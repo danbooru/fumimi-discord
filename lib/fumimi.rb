@@ -380,10 +380,10 @@ class Fumimi
     post = tag.example_post(booru)
 
     event.channel.send_embed do |embed|
-      embed.title = title.tr("_", " ")
-      embed.url = "https://danbooru.donmai.us/wiki_pages/#{wiki.title}"
-
-      # embed.author = Discordrb::Webhooks::EmbedAuthor.new(name: "@#{wiki.creator_name}", url: "https://danbooru.donmai.us/users/#{wiki.creator_name}")
+      embed.author = Discordrb::Webhooks::EmbedAuthor.new({
+        name: title.tr("_", " "),
+        url: "https://danbooru.donmai.us/wiki_pages/#{title}"
+      })
 
       embed.description = wiki.body
       embed.image = post.embed_image(event)
