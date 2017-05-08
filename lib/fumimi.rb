@@ -308,7 +308,7 @@ class Fumimi
       titles = event.text.scan(/\[\[ ( [^\]]+ ) \]\]/x).flatten
 
       titles.each do |title|
-        render_wiki(event, title)
+        render_wiki(event, title.tr(" ", "_"))
       end
     end
 
