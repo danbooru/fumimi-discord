@@ -85,7 +85,11 @@ class Danbooru
     end
 
     def full_large_file_url
-      "https://danbooru.donmai.us#{large_file_url}"
+      if has_large
+        "https://danbooru.donmai.us#{large_file_url}"
+      else
+        full_preview_file_url
+      end
     end
 
     def full_preview_file_url
@@ -176,6 +180,26 @@ class Danbooru
 end
 
 class Danbooru
+  class Tag < OpenStruct
+    def example_post(booru)
+      case category
+      when 0
+        search = "#{name} rating:safe order:score filetype:jpg limit:1"
+      when 1 # artist
+        search = "#{name} rating:safe order:score filetype:jpg limit:1"
+      when 3 # copy
+        search = "#{name} everyone rating:safe order:score filetype:jpg limit:1"
+      when 4 # char
+        search = "#{name} chartags:1 rating:safe order:score filetype:jpg limit:1"
+      end
+
+      post = booru.posts.index(tags: search).first
+      post
+    end
+  end
+end
+
+class Danbooru
   attr_reader :host, :user, :api_key, :site
   attr_reader :posts, :users, :comments, :forum_posts, :wiki, :tags
 
@@ -197,6 +221,7 @@ class Danbooru
 
     posts.type = Danbooru::Post
     comments.type = Danbooru::Comment
+    tags.type = Danbooru::Tag
   end
 end
 
@@ -264,6 +289,14 @@ class Fumimi
       end
 
       nil
+    end
+
+    bot.message(contains: /\[\[ [^\]]+ \]\]/x) do |event|
+      titles = event.text.scan(/\[\[ ( [^\]]+ ) \]\]/x).flatten
+
+      titles.each do |title|
+        render_wiki(event, title)
+      end
     end
 
     bot.command(:posts, usage: "/posts <tags>", description: "Search for posts on Danbooru") do |event, *tags|
@@ -339,6 +372,22 @@ class Fumimi
     #embed.image = post.embed_image(event)
     embed.thumbnail = post.embed_thumbnail(event)
     embed.footer = comment.embed_footer
+  end
+
+  def render_wiki(event, title)
+    wiki = booru.wiki.show(title)
+    tag  = booru.tags.search(name: title).first
+    post = tag.example_post(booru)
+
+    event.channel.send_embed do |embed|
+      embed.title = title.tr("_", " ")
+      embed.url = "https://danbooru.donmai.us/wiki_pages/#{wiki.title}"
+
+      # embed.author = Discordrb::Webhooks::EmbedAuthor.new(name: "@#{wiki.creator_name}", url: "https://danbooru.donmai.us/users/#{wiki.creator_name}")
+
+      embed.description = wiki.body
+      embed.image = post.embed_image(event)
+    end
   end
 
   def run
