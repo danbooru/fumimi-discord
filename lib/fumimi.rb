@@ -73,7 +73,14 @@ class Fumimi
 
   def initialize(client_id: nil, token: nil)
     RestClient.log = Logger.new(STDOUT)
-    @bot = Discordrb::Commands::CommandBot.new(client_id: client_id, token: token, prefix: '/')
+
+    @bot = Discordrb::Commands::CommandBot.new({
+      name: "Robot Maid Fumimi",
+      client_id: client_id,
+      token: token,
+      prefix: '/',
+    })
+
     @booru = Danbooru.new
 
     register_commands
