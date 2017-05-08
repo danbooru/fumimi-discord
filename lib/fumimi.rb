@@ -67,4 +67,25 @@ class Danbooru
     @tags = @site["/tags"]
   end
 end
+
+class Fumimi
+  attr_reader :bot, :booru
+
+  def initialize(client_id: nil, token: nil)
+    RestClient.log = Logger.new(STDOUT)
+    @bot = Discordrb::Commands::CommandBot.new(client_id: client_id, token: token, prefix: '/')
+    @booru = Danbooru.new
+
+    register_commands
+  end
+
+  def register_commands
+    @bot.command(:random, description: "Show a random post") do |event, *args|
+      "https://danbooru.donmai.us/posts/random"
+    end
+  end
+
+  def run
+    @bot.run
+  end
 end
