@@ -5,6 +5,7 @@ require "active_support/core_ext/hash/indifferent_access"
 require "active_support/core_ext/object/to_query"
 require "active_support/core_ext/object/blank"
 require "active_support/core_ext/numeric/conversions"
+require "addressable/uri"
 require "discordrb"
 require "dotenv"
 require "pry"
@@ -34,14 +35,32 @@ class Danbooru
       params = "?" + params.to_query
       resp = self[params].get
 
-      json = JSON.parse(resp.body)
-      json.map { |item| OpenStruct.new(item) }
+      array = JSON.parse(resp.body)
+      array.map { |hash| self.class.deserialize(hash) }
     end
 
     def show(id)
       resp = self[id].get
-      json = JSON.parse(resp.body)
-      OpenStruct.new(json)
+      hash = JSON.parse(resp.body)
+      struct = self.class.deserialize(hash)
+      struct
+    end
+
+    def self.deserialize(hash)
+      hash = hash.map do |key, value|
+        value =
+          case key
+          when "created_at", "updated_at", "last_commented_at", "last_comment_bumped_at", "last_noted_at"
+            Time.parse(value) rescue nil
+          when /_url$/
+            Addressable::URI.parse(value)
+          else
+            value
+          end
+        [key, value]
+      end.to_h
+
+      OpenStruct.new(hash)
     end
   end
 end
