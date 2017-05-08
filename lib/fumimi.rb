@@ -270,11 +270,7 @@ class Fumimi
     embed.image = post.embed_image(event)
     embed.color = post.border_color
 
-    embed.footer = Discordrb::Webhooks::EmbedFooter.new({
-      # XXX link to source, use source's favicon.
-      # icon_url: 'https://i.imgur.com/j69wMDu.jpg',
-      text: "#{post.image_width}x#{post.image_height} (#{post.file_size.to_s(:human_size, precision: 4)} #{post.file_ext})"
-    })
+    embed.footer = post.embed_footer
 
     embed
   end
