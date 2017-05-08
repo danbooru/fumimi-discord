@@ -1,4 +1,5 @@
 source 'https://rubygems.org'
 
-# Specify your gem's dependencies in fumimi-discord.gemspec
 gemspec
+
+gem "dtext_rb", git: "https://github.com/r888888888/dtext_rb"
