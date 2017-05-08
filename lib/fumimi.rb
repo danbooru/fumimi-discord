@@ -416,9 +416,9 @@ class Fumimi
       last_checked_at = Time.now
       sleep 20
 
-      notify_new_uploads(last_checked_at)
+      #notify_new_uploads(last_checked_at)
       notify_new_comments(last_checked_at)
-      notify_new_forum_posts(last_checked_at)
+      #notify_new_forum_posts(last_checked_at)
     end
   end
 
@@ -433,10 +433,21 @@ class Fumimi
 
   def notify_new_comments(last_checked_at)
     log.debug("Checking /comments (#{last_checked_at}).")
-    comments = booru.comments.newest(last_checked_at, 50)
 
+    comments = booru.comments.newest(last_checked_at, 50)
+    comments = comments.reject(&:do_not_bump_post)
+
+    creator_ids = comments.map(&:creator_id).join(",")
+    users = booru.users.search(id: creator_ids).group_by(&:id).transform_values(&:first)
+
+    post_ids = comments.map(&:post_id).join(",")
+    posts = booru.posts.with(tags: "id:#{post_ids}").search.group_by(&:id).transform_values(&:first)
+
+    channel = channels["comment-feed"]
     comments.each do |comment|
-      channels["testing"].send_message("https://danbooru.donmai.us/comments/#{comment.id}")
+      channel.send_embed do |embed|
+        embed_comment(embed, channel.name, comment, users, posts)
+      end
     end
   end
 
