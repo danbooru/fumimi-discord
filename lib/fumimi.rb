@@ -69,10 +69,10 @@ class Danbooru
 end
 
 class Fumimi
-  attr_reader :bot, :booru
+  attr_reader :bot, :booru, :log
 
-  def initialize(client_id: nil, token: nil)
-    RestClient.log = Logger.new(STDOUT)
+  def initialize(client_id: nil, token: nil, log: Logger.new(STDERR))
+    @log = RestClient.log = log
 
     @bot = Discordrb::Commands::CommandBot.new({
       name: "Robot Maid Fumimi",
@@ -93,6 +93,7 @@ class Fumimi
   end
 
   def run
+    log.debug("Running bot...")
     @bot.run
   end
 end
