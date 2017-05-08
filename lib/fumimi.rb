@@ -86,6 +86,12 @@ class Fumimi
     register_commands
   end
 
+  def shutdown!
+    # log.info("Shutting down...")
+    STDERR.puts "Shutting down..."
+    exit(0)
+  end
+
   def register_commands
     @bot.command(:random, description: "Show a random post") do |event, *args|
       "https://danbooru.donmai.us/posts/random"

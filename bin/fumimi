@@ -12,4 +12,10 @@ fumimi = Fumimi.new({
   log: log,
 })
 
+trap "INT" do
+  # fumimi.log.debug("SIGINT received.")
+  STDERR.puts "SIGINT received..."
+  fumimi.shutdown!
+end
+
 fumimi.run
