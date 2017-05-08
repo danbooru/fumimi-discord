@@ -93,7 +93,7 @@ class Danbooru
     end
 
     def full_preview_file_url
-      "https://danbooru.donmai.us#{large_file_url}"
+      "https://danbooru.donmai.us#{preview_file_url}"
     end
 
     def shortlink
