@@ -51,6 +51,11 @@ class Danbooru
       deserialize(hash)
     end
 
+    def newest(since, limit = 50)
+      items = index(limit: limit)
+      items.select { |i| i.created_at >= since }
+    end
+
     def deserialize(hash)
       hash = hash.map do |key, value|
         value =
@@ -134,6 +139,47 @@ class Fumimi
 
   def run
     log.debug("Running bot...")
-    @bot.run
+
+    bot.run(:async)
+    event_loop
+    bot.sync
+  end
+
+  def event_loop
+    loop do
+      last_checked_at = Time.now
+      sleep 20
+
+      notify_new_uploads(last_checked_at)
+      notify_new_comments(last_checked_at)
+      notify_new_forum_posts(last_checked_at)
+    end
+  end
+
+  def notify_new_uploads(last_checked_at)
+    log.debug("Checking /posts (#{last_checked_at}).")
+    posts = booru.posts.newest(last_checked_at, 50)
+
+    posts.each do |post|
+      channels["testing"].send_message(post.url)
+    end
+  end
+
+  def notify_new_comments(last_checked_at)
+    log.debug("Checking /comments (#{last_checked_at}).")
+    comments = booru.comments.newest(last_checked_at, 50)
+
+    comments.each do |comment|
+      channels["testing"].send_message("https://danbooru.donmai.us/comments/#{comment.id}")
+    end
+  end
+
+  def notify_new_forum_posts(last_checked_at)
+    log.debug("Checking /forum_posts (#{last_checked_at}).")
+    forum_posts = booru.forum_posts.newest(last_checked_at, 50)
+
+    forum_posts.each do |fp|
+      channels["testing"].send_message("https://danbooru.donmai.us/forum_posts/#{fp.id}")
+    end
   end
 end
