@@ -1,0 +1,11 @@
+#!/usr/bin/env ruby
+
+require "bundler/setup"
+require "fumimi"
+
+fumimi = Fumimi.new({
+  client_id: ENV["DISCORD_CLIENT_ID"],
+  token: ENV["DISCORD_TOKEN"],
+})
+
+fumimi.run
