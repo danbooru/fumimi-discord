@@ -210,6 +210,23 @@ class Fumimi
       nil
     end
 
+    bot.command(:posts, usage: "/posts <tags>", description: "Search for posts on Danbooru") do |event, *tags|
+      limit = tags.grep(/limit:(\d+)/i) { $1.to_i }.first
+      limit ||= 3 
+      limit = [10, limit].min
+
+      tags = tags.grep_v(/limit:(\d+)/i)
+      posts = booru.posts.index(limit: limit, tags: tags.join(" "))
+
+      posts.each do |post|
+        event.channel.send_embed do |embed|
+          embed_post(embed, event, post, tags)
+        end
+      end
+
+      nil
+    end
+
   def embed_post(embed, event, post, tags)
     embed.author = Discordrb::Webhooks::EmbedAuthor.new({
       name: "post ##{post.id}",
