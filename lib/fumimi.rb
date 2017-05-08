@@ -11,6 +11,9 @@ require "dotenv"
 require "pry"
 require "pry-byebug"
 
+require "dtext"
+require "nokogiri"
+
 Dotenv.load
 
 class Danbooru
@@ -130,6 +133,32 @@ class Danbooru
 end
 
 class Danbooru
+  class Comment < OpenStruct
+    def html_body
+      DTextRagel.parse(body)
+    end
+
+    def pretty_body
+      nodes = Nokogiri::HTML.fragment(html_body)
+
+      nodes.children.map do |node|
+        case node.name
+        when "i"
+          "*#{node.text.gsub(/\*/, "\*")}*"
+        when "b"
+          "**#{node.text.gsub(/\*\*/, "\*\*")}**"
+        when "div", "blockquote"
+          # no-op
+          nil
+        else
+          node.text
+        end
+      end.compact.take(2).join("\n\n")
+    end
+  end
+end
+
+class Danbooru
   attr_reader :host, :user, :api_key, :site
   attr_reader :posts, :users, :comments, :forum_posts, :wiki, :tags
 
@@ -150,6 +179,7 @@ class Danbooru
     @tags = @site["/tags"]
 
     posts.type = Danbooru::Post
+    comments.type = Danbooru::Comment
   end
 end
 
@@ -287,7 +317,7 @@ class Fumimi
       url: post.url,
     })
 
-    embed.description = body
+    embed.description = comment.pretty_body
 
     embed.image = post.embed_image(event)
     embed.footer = post.embed_footer
