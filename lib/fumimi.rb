@@ -117,6 +117,15 @@ class Danbooru
         0x0000FF
       end
     end
+
+    def embed_footer
+      file_info = "#{image_width}x#{image_height} (#{file_size.to_s(:human_size, precision: 4)} #{file_ext})"
+      timestamp = "#{created_at.strftime("%F")} at #{created_at.strftime("%l:%M %p")}"
+
+      Discordrb::Webhooks::EmbedFooter.new({
+        text: "#{file_info} | #{timestamp}"
+      })
+    end
   end
 end
 
@@ -227,6 +236,29 @@ class Fumimi
       nil
     end
 
+    bot.command(:comments, usage: "/comments <tags>", description: "List the latest comments") do |event, *tags|
+      limit = tags.grep(/limit:(\d+)/i) { $1.to_i }.first
+      limit ||= 3 
+      limit = [10, limit].min
+      tags = tags.grep_v(/limit:(\d+)/i)
+
+      comments = booru.comments.with(limit: limit).search(post_tags_match: tags.join(" "))
+
+      creator_ids = comments.map(&:creator_id).join(",")
+      users = booru.users.search(id: creator_ids).group_by(&:id).transform_values(&:first)
+
+      post_ids = comments.map(&:post_id).join(",")
+      posts = booru.posts.with(tags: "id:#{post_ids}").search.group_by(&:id).transform_values(&:first)
+
+      comments.each do |comment|
+        event.channel.send_embed do |embed|
+          embed_comment(embed, event, comment, users, posts)
+        end
+      end
+
+      nil
+    end
+
   def embed_post(embed, event, post, tags)
     embed.author = Discordrb::Webhooks::EmbedAuthor.new({
       name: "post ##{post.id}",
@@ -246,6 +278,23 @@ class Fumimi
 
     embed
   end
+
+  def embed_comment(embed, event, comment, users, posts)
+    user = users[comment.creator_id]
+    post = posts[comment.post_id]
+
+    embed.title = "@#{user.name}"
+    embed.url = "https://danbooru.donmai.us/users?name=#{user.name}"
+
+    embed.author = Discordrb::Webhooks::EmbedAuthor.new({
+      name: post.shortlink
+      url: post.url,
+    })
+
+    embed.description = body
+
+    embed.image = post.embed_image(event)
+    embed.footer = post.embed_footer
   end
 
   def run
