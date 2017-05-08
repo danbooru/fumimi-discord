@@ -15,6 +15,12 @@ Dotenv.load
 
 class Danbooru
   class Resource < RestClient::Resource
+    attr_accessor :type
+
+    def type
+      @type ||= OpenStruct
+    end
+
     def default_params
       @default_params ||= { limit: 200 }
     end
@@ -36,17 +42,16 @@ class Danbooru
       resp = self[params].get
 
       array = JSON.parse(resp.body)
-      array.map { |hash| self.class.deserialize(hash) }
+      array.map { |hash| deserialize(hash) }
     end
 
     def show(id)
       resp = self[id].get
       hash = JSON.parse(resp.body)
-      struct = self.class.deserialize(hash)
-      struct
+      deserialize(hash)
     end
 
-    def self.deserialize(hash)
+    def deserialize(hash)
       hash = hash.map do |key, value|
         value =
           case key
@@ -60,7 +65,15 @@ class Danbooru
         [key, value]
       end.to_h
 
-      OpenStruct.new(hash)
+      type.new(hash)
+    end
+  end
+end
+
+class Danbooru
+  class Post < OpenStruct
+    def url
+      "https://danbooru.donmai.us/posts/#{id}"
     end
   end
 end
@@ -84,6 +97,8 @@ class Danbooru
     @forum_posts = @site["/forum_posts"]
     @wiki = @site["/wiki_pages"]
     @tags = @site["/tags"]
+
+    posts.type = Danbooru::Post
   end
 end
 
