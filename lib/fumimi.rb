@@ -98,7 +98,7 @@ class Danbooru
     end
 
     def is_unsafe?(event)
-      nsfw_channel = event.channel.name.starts_with?("nsfw")
+      nsfw_channel = (event.channel.name =~ /^nsfw/i)
       rating != "s" && !nsfw_channel
     end
 
