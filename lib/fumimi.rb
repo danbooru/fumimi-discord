@@ -132,8 +132,22 @@ class Fumimi
   end
 
   def register_commands
-    @bot.command(:random, description: "Show a random post") do |event, *args|
-      "https://danbooru.donmai.us/posts/random"
+    log.debug("Registering bot commands...")
+
+    bot.command(:random, usage: "/random <tags>", description: "Show a random post") do |event, *tags|
+      "https://danbooru.donmai.us/posts/random?tags=#{tags.join("%20")}"
+    end
+
+    bot.command(:hi, description: "Say hi to Fumimi!") do |event, *args|
+      event.send_message "Command received. Deleting all animes."; sleep 1
+
+      event.send_message "5..."; sleep 1
+      event.send_message "4..."; sleep 1
+      event.send_message "3..."; sleep 1
+      event.send_message "2..."; sleep 1
+      event.send_message "1..."; sleep 1
+
+      event.send_message "Done! Animes deleted."
     end
   end
 
