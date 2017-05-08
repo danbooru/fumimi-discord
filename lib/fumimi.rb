@@ -125,6 +125,14 @@ class Fumimi
     register_commands
   end
 
+  def server
+    bot.servers.values.first
+  end
+
+  def channels
+    server.channels.group_by(&:name).transform_values(&:first)
+  end
+
   def shutdown!
     # log.info("Shutting down...")
     STDERR.puts "Shutting down..."
