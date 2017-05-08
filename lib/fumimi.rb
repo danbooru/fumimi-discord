@@ -88,8 +88,20 @@ class Danbooru
       "https://danbooru.donmai.us#{large_file_url}"
     end
 
+    def full_preview_file_url
+      "https://danbooru.donmai.us#{large_file_url}"
+    end
+
     def shortlink
       "post ##{id}"
+    end
+
+    def embed_thumbnail(event)
+      if is_censored? || is_unsafe?(event)
+        Discordrb::Webhooks::EmbedThumbnail.new(url: "http://danbooru.donmai.us.rsz.io#{preview_file_url}?blur=30")
+      else
+        Discordrb::Webhooks::EmbedThumbnail.new(url: full_preview_file_url)
+      end
     end
 
     def embed_image(event)
@@ -154,6 +166,11 @@ class Danbooru
           node.text
         end
       end.compact.take(2).join("\n\n")
+    end
+
+    def embed_footer
+      timestamp = "#{created_at.strftime("%F")} at #{created_at.strftime("%l:%M %p")}"
+      Discordrb::Webhooks::EmbedFooter.new(text: timestamp)
     end
   end
 end
@@ -319,8 +336,9 @@ class Fumimi
 
     embed.description = comment.pretty_body
 
-    embed.image = post.embed_image(event)
-    embed.footer = post.embed_footer
+    #embed.image = post.embed_image(event)
+    embed.thumbnail = post.embed_thumbnail(event)
+    embed.footer = comment.embed_footer
   end
 
   def run
