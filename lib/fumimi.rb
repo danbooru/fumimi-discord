@@ -126,24 +126,24 @@ class Danbooru
       "post ##{id}"
     end
 
-    def embed_thumbnail(event)
-      if is_censored? || is_unsafe?(event)
+    def embed_thumbnail(channel_name)
+      if is_censored? || is_unsafe?(channel_name)
         Discordrb::Webhooks::EmbedThumbnail.new(url: "http://danbooru.donmai.us.rsz.io#{preview_file_url}?blur=30")
       else
         Discordrb::Webhooks::EmbedThumbnail.new(url: full_preview_file_url)
       end
     end
 
-    def embed_image(event)
-      if is_censored? || is_unsafe?(event)
+    def embed_image(channel_name)
+      if is_censored? || is_unsafe?(channel_name)
         Discordrb::Webhooks::EmbedImage.new(url: "http://danbooru.donmai.us.rsz.io#{large_file_url}?blur=30")
       else
         Discordrb::Webhooks::EmbedImage.new(url: full_large_file_url)
       end
     end
 
-    def is_unsafe?(event)
-      nsfw_channel = (event.channel.name =~ /^nsfw/i)
+    def is_unsafe?(channel_name)
+      nsfw_channel = (channel_name =~ /^nsfw/i)
       rating != "s" && !nsfw_channel
     end
 
@@ -294,10 +294,10 @@ class Fumimi
 
       post_ids.each do |post_id|
         post = booru.posts.show(post_id)
-        tags = booru.tags.with(limit: 1000).search(name: post.tag_string.split.join(","))
+        # tags = booru.tags.with(limit: 1000).search(name: post.tag_string.split.join(","))
 
         event.channel.send_embed do |embed|
-          embed_post(embed, event, post, tags)
+          embed_post(embed, event.channel.name, post)
         end
       end
 
@@ -322,7 +322,7 @@ class Fumimi
 
       posts.each do |post|
         event.channel.send_embed do |embed|
-          embed_post(embed, event, post, tags)
+          embed_post(embed, event.channel.name, post)
         end
       end
 
@@ -345,7 +345,7 @@ class Fumimi
 
       comments.each do |comment|
         event.channel.send_embed do |embed|
-          embed_comment(embed, event, comment, users, posts)
+          embed_comment(embed, event.channel.name, comment, users, posts)
         end
       end
 
@@ -359,8 +359,8 @@ class Fumimi
     })
 
     embed.title = "@#{post.uploader_name}"
-    embed.url = "https://danbooru.donmai.us/users?name=#{post.uploader_name}"
-    embed.image = post.embed_image(event)
+    embed.url = "https://danbooru.donmai.us/users?name=#{CGI::escape(post.uploader_name)}"
+    embed.image = post.embed_image(channel_name)
     embed.color = post.border_color
 
     embed.footer = post.embed_footer
@@ -368,7 +368,7 @@ class Fumimi
     embed
   end
 
-  def embed_comment(embed, event, comment, users, posts)
+  def embed_comment(embed, channel_name, comment, users, posts)
     user = users[comment.creator_id]
     post = posts[comment.post_id]
 
@@ -383,7 +383,7 @@ class Fumimi
     embed.description = comment.pretty_body
 
     #embed.image = post.embed_image(event)
-    embed.thumbnail = post.embed_thumbnail(event)
+    embed.thumbnail = post.embed_thumbnail(channel_name)
     embed.footer = comment.embed_footer
   end
 
