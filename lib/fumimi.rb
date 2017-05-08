@@ -80,6 +80,43 @@ class Danbooru
     def url
       "https://danbooru.donmai.us/posts/#{id}"
     end
+
+    def full_large_file_url
+      "https://danbooru.donmai.us#{large_file_url}"
+    end
+
+    def shortlink
+      "post ##{id}"
+    end
+
+    def embed_image(event)
+      if is_censored? || is_unsafe?(event)
+        Discordrb::Webhooks::EmbedImage.new(url: "http://danbooru.donmai.us.rsz.io#{large_file_url}?blur=30")
+      else
+        Discordrb::Webhooks::EmbedImage.new(url: full_large_file_url)
+      end
+    end
+
+    def is_unsafe?(event)
+      nsfw_channel = event.channel.name.starts_with?("nsfw")
+      rating != "s" && !nsfw_channel
+    end
+
+    def is_censored?
+      tag_string.split.grep(/^(loli|shota|toddlercon|guro|scat)$/).any?
+    end
+
+    def border_color
+      if is_flagged
+        0xC41C19
+      elsif parent_id
+        0x00FF00
+      elsif has_active_children
+        0xC0C000
+      elsif is_pending
+        0x0000FF
+      end
+    end
   end
 end
 
@@ -157,6 +194,41 @@ class Fumimi
 
       event.send_message "Done! Animes deleted."
     end
+
+    bot.message(contains: /post #[0-9]+/) do |event|
+      post_ids = event.text.scan(/post #[0-9]+/i).grep(/([0-9]+)/) { $1.to_i }
+
+      post_ids.each do |post_id|
+        post = booru.posts.show(post_id)
+        tags = booru.tags.with(limit: 1000).search(name: post.tag_string.split.join(","))
+
+        event.channel.send_embed do |embed|
+          embed_post(embed, event, post, tags)
+        end
+      end
+
+      nil
+    end
+
+  def embed_post(embed, event, post, tags)
+    embed.author = Discordrb::Webhooks::EmbedAuthor.new({
+      name: "post ##{post.id}",
+      url: post.url,
+    })
+
+    embed.title = "@#{post.uploader_name}"
+    embed.url = "https://danbooru.donmai.us/users?name=#{post.uploader_name}"
+    embed.image = post.embed_image(event)
+    embed.color = post.border_color
+
+    embed.footer = Discordrb::Webhooks::EmbedFooter.new({
+      # XXX link to source, use source's favicon.
+      # icon_url: 'https://i.imgur.com/j69wMDu.jpg',
+      text: "#{post.image_width}x#{post.image_height} (#{post.file_size.to_s(:human_size, precision: 4)} #{post.file_ext})"
+    })
+
+    embed
+  end
   end
 
   def run
