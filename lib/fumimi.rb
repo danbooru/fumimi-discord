@@ -283,7 +283,7 @@ class Fumimi
     embed.url = "https://danbooru.donmai.us/users?name=#{user.name}"
 
     embed.author = Discordrb::Webhooks::EmbedAuthor.new({
-      name: post.shortlink
+      name: post.shortlink,
       url: post.url,
     })
 
