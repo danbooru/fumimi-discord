@@ -17,6 +17,32 @@ require "nokogiri"
 Dotenv.load
 
 class Danbooru
+  module HasDText
+    def html_body
+      DTextRagel.parse(body)
+    end
+
+    def pretty_body
+      nodes = Nokogiri::HTML.fragment(html_body)
+
+      nodes.children.map do |node|
+        case node.name
+        when "i"
+          "*#{node.text.gsub(/\*/, "\*")}*"
+        when "b"
+          "**#{node.text.gsub(/\*\*/, "\*\*")}**"
+        when "div", "blockquote"
+          # no-op
+          nil
+        else
+          node.text
+        end
+      end.compact.take(2).join("\n\n")
+    end
+  end
+end
+
+class Danbooru
   class Resource < RestClient::Resource
     attr_accessor :type
 
@@ -150,27 +176,7 @@ end
 
 class Danbooru
   class Comment < OpenStruct
-    def html_body
-      DTextRagel.parse(body)
-    end
-
-    def pretty_body
-      nodes = Nokogiri::HTML.fragment(html_body)
-
-      nodes.children.map do |node|
-        case node.name
-        when "i"
-          "*#{node.text.gsub(/\*/, "\*")}*"
-        when "b"
-          "**#{node.text.gsub(/\*\*/, "\*\*")}**"
-        when "div", "blockquote"
-          # no-op
-          nil
-        else
-          node.text
-        end
-      end.compact.take(2).join("\n\n")
-    end
+    include HasDText
 
     def embed_footer
       timestamp = "#{created_at.strftime("%F")} at #{created_at.strftime("%l:%M %p")}"
@@ -200,6 +206,12 @@ class Danbooru
 end
 
 class Danbooru
+  class Wiki < OpenStruct
+    include Danbooru::HasDText
+  end
+end
+
+class Danbooru
   attr_reader :host, :user, :api_key, :site
   attr_reader :posts, :users, :comments, :forum_posts, :wiki, :tags
 
@@ -222,6 +234,7 @@ class Danbooru
     posts.type = Danbooru::Post
     comments.type = Danbooru::Comment
     tags.type = Danbooru::Tag
+    wiki.type = Danbooru::Wiki
   end
 end
 
@@ -385,7 +398,7 @@ class Fumimi
         url: "https://danbooru.donmai.us/wiki_pages/#{title}"
       })
 
-      embed.description = wiki.body
+      embed.description = wiki.pretty_body
       embed.image = post.embed_image(event)
     end
   end
