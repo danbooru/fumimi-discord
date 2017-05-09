@@ -292,7 +292,7 @@ class Fumimi
   def update_uploads_feed(last_checked_at, channel)
     log.debug("Checking /posts (#{last_checked_at}).")
 
-    posts = booru.posts.newest(last_checked_at, 50)
+    posts = booru.posts.newest(last_checked_at, 50).reverse
 
     posts.each do |post|
       channel.send_embed do |embed|
@@ -304,7 +304,7 @@ class Fumimi
   def update_comments_feed(last_checked_at, channel)
     log.debug("Checking /comments (#{last_checked_at}).")
 
-    comments = booru.comments.newest(last_checked_at, 50)
+    comments = booru.comments.newest(last_checked_at, 50).reverse
     comments = comments.reject(&:do_not_bump_post)
 
     creator_ids = comments.map(&:creator_id).join(",")
@@ -323,7 +323,7 @@ class Fumimi
   def update_forum_feed(last_checked_at, channel)
     log.debug("Checking /forum_posts (#{last_checked_at}).")
 
-    forum_posts = booru.forum_posts.newest(last_checked_at, 50)
+    forum_posts = booru.forum_posts.newest(last_checked_at, 50).reverse
 
     creator_ids = forum_posts.map(&:creator_id).join(",")
     users = booru.users.search(id: creator_ids).group_by(&:id).transform_values(&:first)
