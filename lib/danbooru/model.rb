@@ -1,6 +1,8 @@
 require "addressable/uri"
 require "ostruct"
 
+require "discordrb"
+
 class Danbooru
   class Model < OpenStruct
     def initialize(attributes)
@@ -18,6 +20,11 @@ class Danbooru
       end.to_h
 
       super(attributes)
+    end
+
+    def embed_footer
+      timestamp = "#{created_at.strftime("%F")} at #{created_at.strftime("%l:%M %p")}"
+      Discordrb::Webhooks::EmbedFooter.new(text: timestamp)
     end
   end
 end

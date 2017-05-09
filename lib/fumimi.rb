@@ -250,6 +250,7 @@ class Fumimi
     embed.url = "https://danbooru.donmai.us/users?name=#{user.name}"
 
     embed.description = forum_post.pretty_body
+    embed.footer = forum_post.embed_footer
   end
 
   def render_wiki(event, title)
