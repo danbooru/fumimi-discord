@@ -352,7 +352,39 @@ class Fumimi
       nil
     end
 
-  def embed_post(embed, event, post, tags)
+=begin
+    @bot.command(:forum, usage: "/forum <search>", description: "List the latest forum posts") do |event, *args|
+      body = args.join(" ")
+      resp = RestClient.get("http://danbooru.donmai.us/forum_posts?search[body_matches]=#{body}&limit=5", {accept: :json})
+      posts = JSON.parse(resp.body)
+      posts = posts.take(5)
+
+      creator_ids = posts.map { |p| p["creator_id"] }
+      resp = RestClient.get("http://danbooru.donmai.us/users.json?search[id]=#{creator_ids.join(",")}")
+      users = JSON.parse(resp.body).group_by { |u| u["id"] }
+
+      event.send_message("Newest forum posts:")
+      posts.each do |p|
+        event.channel.send_embed do |embed|
+          embed.title = "topic ##{p["topic_id"]}: forum ##{p["id"]}"
+          embed.url = "https://danbooru.donmai.us/forum_posts/#{p["id"]}"
+
+          username = users[p["creator_id"]].first["name"]
+          embed.author = Discordrb::Webhooks::EmbedAuthor.new(name: "@#{username}", url: "https://danbooru.donmai.us/users/#{p["creator_id"]}")
+          embed.description = p["body"].gsub(/\[quote\].*\[\/quote\]/mi, "")
+        end
+      end
+      nil
+    end
+
+    bot.member_join do |event, *args|
+      thing = %w[post pool tag character copyright artist].sample
+      event.respond("*Fumimi would like to know your favorite #{thing}.*")
+    end
+=end
+  end
+
+  def embed_post(embed, channel_name, post, tags = nil)
     embed.author = Discordrb::Webhooks::EmbedAuthor.new({
       name: "post ##{post.id}",
       url: post.url,
@@ -366,6 +398,32 @@ class Fumimi
     embed.footer = post.embed_footer
 
     embed
+
+=begin
+    chartags = tags.select { |t| t.category == 4 }.sort_by(&:post_count).reverse.take(1).map do |tag|
+      p = tag.name.tr("_", " ").gsub(/\]/, "\]")
+      t = CGI::escape(tag.name)
+      "[#{p}](https://danbooru.donmai.us/posts?tags=#{t})"
+    end.join(", ")
+
+    copytags = tags.select { |t| t.category == 3 }.sort_by(&:post_count).reverse.take(1).map do |tag|
+      p = tag.name.tr("_", " ").gsub(/\]/, "\]")
+      t = CGI::escape(tag.name)
+      "[#{p}](https://danbooru.donmai.us/posts?tags=#{t})"
+    end.join(", ")
+
+    arttags = tags.select { |t| t.category == 1 }.sort_by(&:post_count).reverse.take(1).map do |tag|
+      p = tag.name.tr("_", " ").gsub(/\]/, "\]")
+      t = CGI::escape(tag.name)
+      "[#{p}](https://danbooru.donmai.us/posts?tags=#{t})"
+    end.join(", ")
+
+    gentags = tags.select { |t| t.category == 0 }.sort_by(&:post_count).take(10).map do |tag|
+      p = tag.name.tr("_", " ").tr("]", "\]")
+      t = CGI::escape(tag.name)
+      "[#{p}](https://danbooru.donmai.us/posts?tags=#{t})"
+    end.join(", ")
+=end
   end
 
   def embed_comment(embed, channel_name, comment, users, posts)
