@@ -239,9 +239,10 @@ class Danbooru
 end
 
 class Fumimi
-  attr_reader :bot, :booru, :log
+  attr_reader :bot, :server, :booru, :log
 
-  def initialize(client_id: nil, token: nil, log: Logger.new(STDERR))
+  def initialize(server_id:, client_id:, token:, log: Logger.new(STDERR))
+    @server_id = server_id
     @log = RestClient.log = log
 
     @bot = Discordrb::Commands::CommandBot.new({
@@ -257,7 +258,7 @@ class Fumimi
   end
 
   def server
-    bot.servers.values.first
+    bot.servers.fetch(@server_id)
   end
 
   def channels
