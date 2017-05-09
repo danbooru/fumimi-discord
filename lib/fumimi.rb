@@ -80,8 +80,12 @@ module Fumimi::Commands
   end
 
   def do_forum(event, *args)
-    body = args.join(" ")
-    forum_posts = booru.forum_posts.search(body_matches: body)
+    limit = args.grep(/limit:(\d+)/i) { $1.to_i }.first
+    limit ||= 3 
+    limit = [10, limit].min
+    body = args.grep_v(/limit:(\d+)/i).join(" ")
+
+    forum_posts = booru.forum_posts.with(limit: limit).search(body_matches: body)
 
     creator_ids = forum_posts.map(&:creator_id).join(",")
     users = booru.users.search(id: creator_ids).group_by(&:id).transform_values(&:first)
