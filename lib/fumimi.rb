@@ -1,4 +1,5 @@
 require "fumimi/version"
+require "danbooru/model"
 require "danbooru/resource"
 
 require "active_support"
@@ -43,7 +44,7 @@ class Danbooru
 end
 
 class Danbooru
-  class Post < OpenStruct
+  class Post < Danbooru::Model
     def url
       "https://danbooru.donmai.us/posts/#{id}"
     end
@@ -113,7 +114,7 @@ class Danbooru
 end
 
 class Danbooru
-  class Comment < OpenStruct
+  class Comment < Danbooru::Model
     include HasDText
 
     def embed_footer
@@ -124,7 +125,7 @@ class Danbooru
 end
 
 class Danbooru
-  class Tag < OpenStruct
+  class Tag < Danbooru::Model
     def example_post(booru)
       case category
       when 0
@@ -144,7 +145,7 @@ class Danbooru
 end
 
 class Danbooru
-  class Wiki < OpenStruct
+  class Wiki < Danbooru::Model
     include Danbooru::HasDText
   end
 end
