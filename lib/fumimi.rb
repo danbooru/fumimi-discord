@@ -20,7 +20,93 @@ require "pry-byebug"
 
 Dotenv.load
 
+module Fumimi::Events
+  def do_post_id(event)
+    post_ids = event.text.scan(/post #[0-9]+/i).grep(/([0-9]+)/) { $1.to_i }
+
+    post_ids.each do |post_id|
+      post = booru.posts.show(post_id)
+      # tags = booru.tags.with(limit: 1000).search(name: post.tag_string.split.join(","))
+
+      event.channel.send_embed do |embed|
+        embed_post(embed, event.channel.name, post)
+      end
+    end
+
+    nil
+  end
+
+  def do_wiki_link(event)
+    titles = event.text.scan(/\[\[ ( [^\]]+ ) \]\]/x).flatten
+
+    titles.each do |title|
+      render_wiki(event, title.tr(" ", "_"))
+    end
+  end
+end
+
+module Fumimi::Commands
+  def do_hi(event, *args)
+    event.send_message "Command received. Deleting all animes."; sleep 1
+
+    event.send_message "5..."; sleep 1
+    event.send_message "4..."; sleep 1
+    event.send_message "3..."; sleep 1
+    event.send_message "2..."; sleep 1
+    event.send_message "1..."; sleep 1
+
+    event.send_message "Done! Animes deleted."
+  end
+
+  def do_random(event, *args)
+    "https://danbooru.donmai.us/posts/random?tags=#{tags.join("%20")}"
+  end
+
+  def do_posts(event, *tags)
+    limit = tags.grep(/limit:(\d+)/i) { $1.to_i }.first
+    limit ||= 3 
+    limit = [10, limit].min
+
+    tags = tags.grep_v(/limit:(\d+)/i)
+    posts = booru.posts.index(limit: limit, tags: tags.join(" "))
+
+    posts.each do |post|
+      event.channel.send_embed do |embed|
+        embed_post(embed, event.channel.name, post)
+      end
+    end
+
+    nil
+  end
+
+  def do_comments(event, *tags)
+    limit = tags.grep(/limit:(\d+)/i) { $1.to_i }.first
+    limit ||= 3 
+    limit = [10, limit].min
+    tags = tags.grep_v(/limit:(\d+)/i)
+
+    comments = booru.comments.with(limit: limit).search(post_tags_match: tags.join(" "))
+
+    creator_ids = comments.map(&:creator_id).join(",")
+    users = booru.users.search(id: creator_ids).group_by(&:id).transform_values(&:first)
+
+    post_ids = comments.map(&:post_id).join(",")
+    posts = booru.posts.with(tags: "id:#{post_ids}").search.group_by(&:id).transform_values(&:first)
+
+    comments.each do |comment|
+      event.channel.send_embed do |embed|
+        embed_comment(embed, event.channel.name, comment, users, posts)
+      end
+    end
+
+    nil
+  end
+end
+
 class Fumimi
+  include Fumimi::Commands
+  include Fumimi::Events
+
   attr_reader :bot, :server, :booru, :log
 
   def initialize(server_id:, client_id:, token:, log: Logger.new(STDERR))
@@ -54,84 +140,13 @@ class Fumimi
   def register_commands
     log.debug("Registering bot commands...")
 
-    bot.command(:random, usage: "/random <tags>", description: "Show a random post") do |event, *tags|
-      "https://danbooru.donmai.us/posts/random?tags=#{tags.join("%20")}"
-    end
+    bot.message(contains: /post #[0-9]+/, &method(:do_post_id))
+    bot.message(contains: /\[\[ [^\]]+ \]\]/x, &method(:do_wiki_link))
 
-    bot.command(:hi, description: "Say hi to Fumimi!") do |event, *args|
-      event.send_message "Command received. Deleting all animes."; sleep 1
-
-      event.send_message "5..."; sleep 1
-      event.send_message "4..."; sleep 1
-      event.send_message "3..."; sleep 1
-      event.send_message "2..."; sleep 1
-      event.send_message "1..."; sleep 1
-
-      event.send_message "Done! Animes deleted."
-    end
-
-    bot.message(contains: /post #[0-9]+/) do |event|
-      post_ids = event.text.scan(/post #[0-9]+/i).grep(/([0-9]+)/) { $1.to_i }
-
-      post_ids.each do |post_id|
-        post = booru.posts.show(post_id)
-        # tags = booru.tags.with(limit: 1000).search(name: post.tag_string.split.join(","))
-
-        event.channel.send_embed do |embed|
-          embed_post(embed, event.channel.name, post)
-        end
-      end
-
-      nil
-    end
-
-    bot.message(contains: /\[\[ [^\]]+ \]\]/x) do |event|
-      titles = event.text.scan(/\[\[ ( [^\]]+ ) \]\]/x).flatten
-
-      titles.each do |title|
-        render_wiki(event, title.tr(" ", "_"))
-      end
-    end
-
-    bot.command(:posts, usage: "/posts <tags>", description: "Search for posts on Danbooru") do |event, *tags|
-      limit = tags.grep(/limit:(\d+)/i) { $1.to_i }.first
-      limit ||= 3 
-      limit = [10, limit].min
-
-      tags = tags.grep_v(/limit:(\d+)/i)
-      posts = booru.posts.index(limit: limit, tags: tags.join(" "))
-
-      posts.each do |post|
-        event.channel.send_embed do |embed|
-          embed_post(embed, event.channel.name, post)
-        end
-      end
-
-      nil
-    end
-
-    bot.command(:comments, usage: "/comments <tags>", description: "List the latest comments") do |event, *tags|
-      limit = tags.grep(/limit:(\d+)/i) { $1.to_i }.first
-      limit ||= 3 
-      limit = [10, limit].min
-      tags = tags.grep_v(/limit:(\d+)/i)
-
-      comments = booru.comments.with(limit: limit).search(post_tags_match: tags.join(" "))
-
-      creator_ids = comments.map(&:creator_id).join(",")
-      users = booru.users.search(id: creator_ids).group_by(&:id).transform_values(&:first)
-
-      post_ids = comments.map(&:post_id).join(",")
-      posts = booru.posts.with(tags: "id:#{post_ids}").search.group_by(&:id).transform_values(&:first)
-
-      comments.each do |comment|
-        event.channel.send_embed do |embed|
-          embed_comment(embed, event.channel.name, comment, users, posts)
-        end
-      end
-
-      nil
-    end
+    bot.command(:hi, description: "Say hi to Fumimi: `/hi`", &method(:do_hi))
+    bot.command(:posts, description: "List posts: `/posts <tags>`", &method(:do_posts))
+    bot.command(:comments, description: "List comments: `/comments <tags>`", &method(:do_comments))
+    bot.command(:random, description: "Show a random post: `/random <tags>`", &method(:do_random))
 
 =begin
     @bot.command(:forum, usage: "/forum <search>", description: "List the latest forum posts") do |event, *args|
