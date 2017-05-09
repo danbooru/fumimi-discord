@@ -253,8 +253,6 @@ class Fumimi
     })
 
     @booru = Danbooru.new
-
-    register_commands
   end
 
   def server
@@ -462,12 +460,11 @@ class Fumimi
     end
   end
 
-  def run
-    log.debug("Running bot...")
+  def start
+    log.debug("Starting bot...")
 
+    register_commands
     bot.run(:async)
-    event_loop
-    bot.sync
   end
 
   def event_loop
