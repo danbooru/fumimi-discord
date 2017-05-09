@@ -172,11 +172,6 @@ class Fumimi
       end
       nil
     end
-
-    bot.member_join do |event, *args|
-      thing = %w[post pool tag character copyright artist].sample
-      event.respond("*Fumimi would like to know your favorite #{thing}.*")
-    end
 =end
   end
 
