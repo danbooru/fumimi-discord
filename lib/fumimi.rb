@@ -281,19 +281,19 @@ class Fumimi
 
     loop do
       last_checked_at = Time.now
-      sleep 10
+      sleep 60
 
-      #notify_new_uploads(last_checked_at)
+      update_uploads_feed(last_checked_at, channels[upload_feed])
       update_comments_feed(last_checked_at, channels[comment_feed])
       update_forum_feed(last_checked_at, channels[forum_feed])
     end
   end
 
-  def notify_new_uploads(last_checked_at)
+  def update_uploads_feed(last_checked_at, channel)
     log.debug("Checking /posts (#{last_checked_at}).")
+
     posts = booru.posts.newest(last_checked_at, 50)
 
-    channel = channels["upload-feed"]
     posts.each do |post|
       channel.send_embed do |embed|
         embed_post(embed, channel.name, post)
