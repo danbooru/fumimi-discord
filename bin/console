@@ -3,4 +3,17 @@
 require "bundler/setup"
 require "fumimi"
 
+log = Logger.new(STDERR)
+log.level = Logger::DEBUG
+
+fumimi = Fumimi.new({
+  server_id: ENV["DISCORD_SERVER_ID"].to_i,
+  client_id: ENV["DISCORD_CLIENT_ID"],
+  token: ENV["DISCORD_TOKEN"],
+  log: log,
+})
+
+puts fumimi.bot.invite_url
+
+fumimi.bot.run(:async)
 Pry.start
