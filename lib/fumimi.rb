@@ -426,8 +426,11 @@ class Fumimi
     log.debug("Checking /posts (#{last_checked_at}).")
     posts = booru.posts.newest(last_checked_at, 50)
 
+    channel = channels["upload-feed"]
     posts.each do |post|
-      channels["testing"].send_message(post.url)
+      channel.send_embed do |embed|
+        embed_post(embed, channel.name, post)
+      end
     end
   end
 
