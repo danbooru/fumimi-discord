@@ -276,7 +276,7 @@ class Fumimi
     bot.run(:async)
   end
 
-  def update_feeds(comment_feed: "", upload_feed: "")
+  def update_feeds(comment_feed: "", upload_feed: "", forum_feed: "")
     log.debug("Entering feed update loop...")
 
     loop do
@@ -285,7 +285,7 @@ class Fumimi
 
       #notify_new_uploads(last_checked_at)
       update_comments_feed(last_checked_at, channels[comment_feed])
-      #notify_new_forum_posts(last_checked_at)
+      update_forum_feed(last_checked_at, channels[forum_feed])
     end
   end
 
@@ -320,12 +320,22 @@ class Fumimi
     end
   end
 
-  def notify_new_forum_posts(last_checked_at)
+  def update_forum_feed(last_checked_at, channel)
     log.debug("Checking /forum_posts (#{last_checked_at}).")
+
     forum_posts = booru.forum_posts.newest(last_checked_at, 50)
 
-    forum_posts.each do |fp|
-      channels["testing"].send_message("https://danbooru.donmai.us/forum_posts/#{fp.id}")
+    creator_ids = forum_posts.map(&:creator_id).join(",")
+    users = booru.users.search(id: creator_ids).group_by(&:id).transform_values(&:first)
+
+    #topic_ids = forum_posts.map(&:topic_id).join(",")
+    #forum_topics = booru.forum_topics.search(id: topic_ids).group_by(&:id).transform_values(&:first)
+    forum_topics = nil
+
+    forum_posts.each do |forum_post|
+      channel.send_embed do |embed|
+        embed_forum_post(embed, forum_post, forum_topics, users)
+      end
     end
   end
 end

@@ -20,4 +20,4 @@ trap "INT" do
 end
 
 fumimi.start
-fumimi.update_feeds(comment_feed: "comment-feed", upload_feed: "upload-feed")
+fumimi.update_feeds(comment_feed: "comment-feed", upload_feed: "upload-feed", forum_feed: "forum-feed")
