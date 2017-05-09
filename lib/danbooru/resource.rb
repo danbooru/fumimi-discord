@@ -1,15 +1,14 @@
-require "json"
-require "ostruct"
-
-require "addressable/uri"
 require "rest-client"
+require "json"
+
+require "danbooru/model"
 
 class Danbooru
   class Resource < RestClient::Resource
-    attr_accessor :type
+    attr_accessor :factory
 
-    def type
-      @type ||= OpenStruct
+    def factory
+      @factory ||= Danbooru::Model
     end
 
     def default_params
@@ -33,35 +32,18 @@ class Danbooru
       resp = self[params].get
 
       array = JSON.parse(resp.body)
-      array.map { |hash| deserialize(hash) }
+      array.map { |hash| factory.new(hash) }
     end
 
     def show(id)
       resp = self[id].get
       hash = JSON.parse(resp.body)
-      deserialize(hash)
+      factory.new(hash)
     end
 
     def newest(since, limit = 50)
       items = index(limit: limit)
       items.select { |i| i.created_at >= since }
-    end
-
-    def deserialize(hash)
-      hash = hash.map do |key, value|
-        value =
-          case key
-          when "created_at", "updated_at", "last_commented_at", "last_comment_bumped_at", "last_noted_at"
-            Time.parse(value) rescue nil
-          when /_url$/
-            Addressable::URI.parse(value)
-          else
-            value
-          end
-        [key, value]
-      end.to_h
-
-      type.new(hash)
     end
   end
 end

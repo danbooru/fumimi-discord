@@ -170,10 +170,10 @@ class Danbooru
     @wiki = @site["/wiki_pages"]
     @tags = @site["/tags"]
 
-    posts.type = Danbooru::Post
-    comments.type = Danbooru::Comment
-    tags.type = Danbooru::Tag
-    wiki.type = Danbooru::Wiki
+    posts.factory = Danbooru::Post
+    comments.factory = Danbooru::Comment
+    tags.factory = Danbooru::Tag
+    wiki.factory = Danbooru::Wiki
   end
 end
 
