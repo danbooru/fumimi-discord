@@ -1,6 +1,9 @@
 require "fumimi/version"
-require "danbooru/model"
 require "danbooru/resource"
+
+require "danbooru/model"
+require "danbooru/comment"
+require "danbooru/wiki"
 
 require "active_support"
 require "active_support/core_ext/hash/indifferent_access"
@@ -12,36 +15,7 @@ require "dotenv"
 require "pry"
 require "pry-byebug"
 
-require "dtext"
-require "nokogiri"
-
 Dotenv.load
-
-class Danbooru
-  module HasDText
-    def html_body
-      DTextRagel.parse(body)
-    end
-
-    def pretty_body
-      nodes = Nokogiri::HTML.fragment(html_body)
-
-      nodes.children.map do |node|
-        case node.name
-        when "i"
-          "*#{node.text.gsub(/\*/, "\*")}*"
-        when "b"
-          "**#{node.text.gsub(/\*\*/, "\*\*")}**"
-        when "div", "blockquote"
-          # no-op
-          nil
-        else
-          node.text
-        end
-      end.compact.take(2).join("\n\n")
-    end
-  end
-end
 
 class Danbooru
   class Post < Danbooru::Model
@@ -114,17 +88,6 @@ class Danbooru
 end
 
 class Danbooru
-  class Comment < Danbooru::Model
-    include HasDText
-
-    def embed_footer
-      timestamp = "#{created_at.strftime("%F")} at #{created_at.strftime("%l:%M %p")}"
-      Discordrb::Webhooks::EmbedFooter.new(text: timestamp)
-    end
-  end
-end
-
-class Danbooru
   class Tag < Danbooru::Model
     def example_post(booru)
       case category
@@ -141,12 +104,6 @@ class Danbooru
       post = booru.posts.index(tags: search).first
       post
     end
-  end
-end
-
-class Danbooru
-  class Wiki < Danbooru::Model
-    include Danbooru::HasDText
   end
 end
 
