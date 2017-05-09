@@ -28,6 +28,7 @@ class Danbooru
 
     posts.factory = Danbooru::Post
     comments.factory = Danbooru::Comment
+    forum_posts.factory = Danbooru::ForumPost
     tags.factory = Danbooru::Tag
     wiki.factory = Danbooru::Wiki
   end

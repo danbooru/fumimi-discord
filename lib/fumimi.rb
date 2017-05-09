@@ -4,6 +4,7 @@ require "danbooru/resource"
 require "danbooru"
 require "danbooru/model"
 require "danbooru/comment"
+require "danbooru/forum_post"
 require "danbooru/post"
 require "danbooru/tag"
 require "danbooru/wiki"
@@ -248,7 +249,7 @@ class Fumimi
     embed.title = "@#{user.name}"
     embed.url = "https://danbooru.donmai.us/users?name=#{user.name}"
 
-    embed.description = forum_post.body
+    embed.description = forum_post.pretty_body
   end
 
   def render_wiki(event, title)
