@@ -282,19 +282,21 @@ class Fumimi
   def update_feeds(comment_feed: "", upload_feed: "", forum_feed: "")
     log.debug("Entering feed update loop...")
 
-    last_checked_at = 5.minutes.ago
-    loop do
-      update_uploads_feed(last_checked_at, channels[upload_feed])
-      update_comments_feed(last_checked_at, channels[comment_feed])
-      update_forum_feed(last_checked_at, channels[forum_feed])
+    last_upload_time = 5.minutes.ago
+    last_comment_time = 5.minutes.ago
+    last_forum_post_time = 5.minutes.ago
 
-      sleep 60
-      last_checked_at = Time.now
+    loop do
+      last_upload_time = update_uploads_feed(last_upload_time, channels[upload_feed])
+      last_comment_time = update_comments_feed(last_comment_time, channels[comment_feed])
+      last_forum_post_time = update_forum_feed(last_forum_post_time, channels[forum_feed])
+
+      sleep 30
     end
   end
 
   def update_uploads_feed(last_checked_at, channel)
-    log.debug("Checking /posts (#{last_checked_at}).")
+    log.debug("Checking /posts (last seen: #{last_checked_at}).")
 
     posts = booru.posts.newest(last_checked_at, 50).reverse
 
@@ -303,10 +305,12 @@ class Fumimi
         embed_post(embed, channel.name, post)
       end
     end
+
+    posts.last&.created_at || last_checked_at
   end
 
   def update_comments_feed(last_checked_at, channel)
-    log.debug("Checking /comments (#{last_checked_at}).")
+    log.debug("Checking /comments (last seen: #{last_checked_at}).")
 
     comments = booru.comments.newest(last_checked_at, 50).reverse
     comments = comments.reject(&:do_not_bump_post)
@@ -322,10 +326,12 @@ class Fumimi
         embed_comment(embed, channel.name, comment, users, posts)
       end
     end
+
+    comments.last&.created_at || last_checked_at
   end
 
   def update_forum_feed(last_checked_at, channel)
-    log.debug("Checking /forum_posts (#{last_checked_at}).")
+    log.debug("Checking /forum_posts (last seen: #{last_checked_at}).")
 
     forum_posts = booru.forum_posts.newest(last_checked_at, 50).reverse
 
@@ -341,5 +347,7 @@ class Fumimi
         embed_forum_post(embed, forum_post, forum_topics, users)
       end
     end
+
+    forum_posts.last&.created_at || last_checked_at
   end
 end

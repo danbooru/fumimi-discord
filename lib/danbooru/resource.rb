@@ -43,7 +43,8 @@ class Danbooru
 
     def newest(since, limit = 50)
       items = index(limit: limit)
-      items.select { |i| i.created_at >= since }
+      RestClient.log.debug("Newest: #{items.first.created_at}")
+      items.select { |i| i.created_at > since }
     end
   end
 end
