@@ -79,6 +79,26 @@ module Fumimi::Commands
     nil
   end
 
+  def do_forum(event, *args)
+    body = args.join(" ")
+    forum_posts = booru.forum_posts.search(body_matches: body)
+
+    creator_ids = forum_posts.map(&:creator_id).join(",")
+    users = booru.users.search(id: creator_ids).group_by(&:id).transform_values(&:first)
+
+    #topic_ids = forum_posts.map(&:topic_id).join(",")
+    #forum_topics = booru.forum_topics.search(id: topic_ids).group_by(&:id).transform_values(&:first)
+    forum_topics = nil
+
+    forum_posts.each do |forum_post|
+      event.channel.send_embed do |embed|
+        embed_forum_post(embed, forum_post, forum_topics, users)
+      end
+    end
+
+    nil
+  end
+
   def do_comments(event, *tags)
     limit = tags.grep(/limit:(\d+)/i) { $1.to_i }.first
     limit ||= 3 
@@ -146,33 +166,8 @@ class Fumimi
     bot.command(:hi, description: "Say hi to Fumimi: `/hi`", &method(:do_hi))
     bot.command(:posts, description: "List posts: `/posts <tags>`", &method(:do_posts))
     bot.command(:comments, description: "List comments: `/comments <tags>`", &method(:do_comments))
+    bot.command(:forum, description: "List forum posts: `/forum <text>`", &method(:do_forum))
     bot.command(:random, description: "Show a random post: `/random <tags>`", &method(:do_random))
-
-=begin
-    @bot.command(:forum, usage: "/forum <search>", description: "List the latest forum posts") do |event, *args|
-      body = args.join(" ")
-      resp = RestClient.get("http://danbooru.donmai.us/forum_posts?search[body_matches]=#{body}&limit=5", {accept: :json})
-      posts = JSON.parse(resp.body)
-      posts = posts.take(5)
-
-      creator_ids = posts.map { |p| p["creator_id"] }
-      resp = RestClient.get("http://danbooru.donmai.us/users.json?search[id]=#{creator_ids.join(",")}")
-      users = JSON.parse(resp.body).group_by { |u| u["id"] }
-
-      event.send_message("Newest forum posts:")
-      posts.each do |p|
-        event.channel.send_embed do |embed|
-          embed.title = "topic ##{p["topic_id"]}: forum ##{p["id"]}"
-          embed.url = "https://danbooru.donmai.us/forum_posts/#{p["id"]}"
-
-          username = users[p["creator_id"]].first["name"]
-          embed.author = Discordrb::Webhooks::EmbedAuthor.new(name: "@#{username}", url: "https://danbooru.donmai.us/users/#{p["creator_id"]}")
-          embed.description = p["body"].gsub(/\[quote\].*\[\/quote\]/mi, "")
-        end
-      end
-      nil
-    end
-=end
   end
 
   def embed_post(embed, channel_name, post, tags = nil)
@@ -234,6 +229,22 @@ class Fumimi
     #embed.image = post.embed_image(event)
     embed.thumbnail = post.embed_thumbnail(channel_name)
     embed.footer = comment.embed_footer
+  end
+
+  def embed_forum_post(embed, forum_post, forum_topics, users)
+    user = users[forum_post.creator_id]
+    # topic = forum_topics[forum_post.topic_id]
+
+    embed.author = Discordrb::Webhooks::EmbedAuthor.new({
+      # name: topic.title,
+      name: "forum ##{forum_post.id}",
+      url: "https://danbooru.donmai.us/forum_posts/#{forum_post.id}"
+    })
+
+    embed.title = "@#{user.name}"
+    embed.url = "https://danbooru.donmai.us/users?name=#{user.name}"
+
+    embed.description = forum_post.body
   end
 
   def render_wiki(event, title)
