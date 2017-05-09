@@ -19,4 +19,5 @@ trap "INT" do
   fumimi.shutdown!
 end
 
-fumimi.run
+fumimi.start
+fumimi.update_feeds(comment_feed: "comment-feed", upload_feed: "upload-feed")

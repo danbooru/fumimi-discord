@@ -467,13 +467,15 @@ class Fumimi
     bot.run(:async)
   end
 
-  def event_loop
+  def update_feeds(comment_feed: "", upload_feed: "")
+    log.debug("Entering feed update loop...")
+
     loop do
       last_checked_at = Time.now
-      sleep 20
+      sleep 10
 
       #notify_new_uploads(last_checked_at)
-      notify_new_comments(last_checked_at)
+      update_comments_feed(last_checked_at, channels[comment_feed])
       #notify_new_forum_posts(last_checked_at)
     end
   end
@@ -490,7 +492,7 @@ class Fumimi
     end
   end
 
-  def notify_new_comments(last_checked_at)
+  def update_comments_feed(last_checked_at, channel)
     log.debug("Checking /comments (#{last_checked_at}).")
 
     comments = booru.comments.newest(last_checked_at, 50)
@@ -502,7 +504,6 @@ class Fumimi
     post_ids = comments.map(&:post_id).join(",")
     posts = booru.posts.with(tags: "id:#{post_ids}").search.group_by(&:id).transform_values(&:first)
 
-    channel = channels["comment-feed"]
     comments.each do |comment|
       channel.send_embed do |embed|
         embed_comment(embed, channel.name, comment, users, posts)
