@@ -86,7 +86,8 @@ module Fumimi::Commands
     limit = [10, limit].min
     body = args.grep_v(/limit:(\d+)/i).join(" ")
 
-    forum_posts = booru.forum_posts.with(limit: limit).search(body_matches: body)
+    # XXX
+    forum_posts = booru.forum_posts.search(body_matches: body).take(limit)
 
     creator_ids = forum_posts.map(&:creator_id).join(",")
     users = booru.users.search(id: creator_ids).group_by(&:id).transform_values(&:first)
@@ -110,13 +111,14 @@ module Fumimi::Commands
     limit = [10, limit].min
     tags = tags.grep_v(/limit:(\d+)/i)
 
-    comments = booru.comments.with(limit: limit).search(post_tags_match: tags.join(" "))
+    # XXX
+    comments = booru.comments.search(post_tags_match: tags.join(" ")).take(limit)
 
     creator_ids = comments.map(&:creator_id).join(",")
     users = booru.users.search(id: creator_ids).group_by(&:id).transform_values(&:first)
 
     post_ids = comments.map(&:post_id).join(",")
-    posts = booru.posts.with(tags: "id:#{post_ids}").search.group_by(&:id).transform_values(&:first)
+    posts = booru.posts.index(tags: "id:#{post_ids}").group_by(&:id).transform_values(&:first)
 
     comments.each do |comment|
       event.channel.send_embed do |embed|
@@ -311,7 +313,7 @@ class Fumimi
     users = booru.users.search(id: creator_ids).group_by(&:id).transform_values(&:first)
 
     post_ids = comments.map(&:post_id).join(",")
-    posts = booru.posts.with(tags: "id:#{post_ids}").search.group_by(&:id).transform_values(&:first)
+    posts = booru.posts.index(tags: "id:#{post_ids}").group_by(&:id).transform_values(&:first)
 
     comments.each do |comment|
       channel.send_embed do |embed|
