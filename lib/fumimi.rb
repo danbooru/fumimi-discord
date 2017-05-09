@@ -14,6 +14,7 @@ require "active_support/core_ext/hash/indifferent_access"
 require "active_support/core_ext/object/to_query"
 require "active_support/core_ext/object/blank"
 require "active_support/core_ext/numeric/conversions"
+require "active_support/core_ext/numeric/time"
 require "discordrb"
 require "dotenv"
 require "pry"
@@ -281,13 +282,14 @@ class Fumimi
   def update_feeds(comment_feed: "", upload_feed: "", forum_feed: "")
     log.debug("Entering feed update loop...")
 
+    last_checked_at = 5.minutes.ago
     loop do
-      last_checked_at = Time.now
-      sleep 60
-
       update_uploads_feed(last_checked_at, channels[upload_feed])
       update_comments_feed(last_checked_at, channels[comment_feed])
       update_forum_feed(last_checked_at, channels[forum_feed])
+
+      sleep 60
+      last_checked_at = Time.now
     end
   end
 
