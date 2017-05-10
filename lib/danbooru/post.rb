@@ -50,15 +50,15 @@ class Danbooru
 
     def border_color
       if is_flagged
-        0xC41C19
+        0xC41C19 # red
       elsif pool_string =~ /pool:series/
-        0xAA00AA
+        0xAA00AA # purple
       elsif parent_id
-        0xC0C000
+        0xC0C000 # yellow
       elsif has_active_children
-        0x00FF00
+        0x00FF00 # green
       elsif is_pending
-        0x0000FF
+        0x0000FF # blue
       end
     end
 
