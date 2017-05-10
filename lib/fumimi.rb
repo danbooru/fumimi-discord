@@ -137,10 +137,8 @@ module Fumimi::Commands
   end
 
   def do_stats(event, *args)
-    dataset = "danbooru-1343.danbooru_production"
-
     if args[0] == "longest" && args[1] == "tags"
-      query = "SELECT name FROM `#{dataset}.tags` AS t WHERE t.count > 0 ORDER BY LENGTH(t.name) DESC LIMIT 20"
+      query = "SELECT name FROM `tags` AS t WHERE t.count > 0 ORDER BY LENGTH(t.name) DESC LIMIT 20"
     elsif args[0] == "tags" && args[1] == "by" && args[2].present?
       username = args[2]
       user = booru.users.search(name: username).first
@@ -152,7 +150,7 @@ module Fumimi::Commands
               added_tag,
               MIN(updated_at) AS updated_at
             FROM
-              `#{dataset}.post_versions_flat_part`
+              `post_versions_flat_part`
             GROUP BY
               added_tag
           )
@@ -162,9 +160,9 @@ module Fumimi::Commands
           -- t.category,
           t.count
         FROM
-          `#{dataset}.post_versions` AS pv
+          `post_versions` AS pv
         JOIN initial_tags AS it ON pv.updated_at = it.updated_at
-        LEFT OUTER JOIN `#{dataset}.tags` AS t ON t.name = added_tag
+        LEFT OUTER JOIN `tags` AS t ON t.name = added_tag
         WHERE
           TRUE
           AND NOT REGEXP_CONTAINS(added_tag, '^source:|parent:')
@@ -179,10 +177,10 @@ module Fumimi::Commands
       return
     end
 
-    event.respond "*Fumimi is preparing. Please wait warmly until she is ready.*"
+    event.respond "*Fumimi is preparing. Please wait warmly until she is ready. This may take up to 30 seconds.*"
     event.channel.start_typing
 
-    results = bq.query(query, standard_sql: true)
+    results = bq.query(query, max: 20, timeout: 30000, project: "danbooru-1343", dataset: "danbooru_production", standard_sql: true)
     rows = results.map(&:values)
 
     table = Terminal::Table.new do |t|
