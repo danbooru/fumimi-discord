@@ -119,7 +119,7 @@ module Fumimi::Commands
     users = booru.users.search(id: creator_ids).group_by(&:id).transform_values(&:first)
 
     post_ids = comments.map(&:post_id).join(",")
-    posts = booru.posts.index(tags: "id:#{post_ids}").group_by(&:id).transform_values(&:first)
+    posts = booru.posts.index(tags: "status:any id:#{post_ids}").group_by(&:id).transform_values(&:first)
 
     comments.each do |comment|
       event.channel.send_embed do |embed|
@@ -319,7 +319,7 @@ class Fumimi
     users = booru.users.search(id: creator_ids).group_by(&:id).transform_values(&:first)
 
     post_ids = comments.map(&:post_id).join(",")
-    posts = booru.posts.index(tags: "id:#{post_ids}").group_by(&:id).transform_values(&:first)
+    posts = booru.posts.index(tags: "status:any id:#{post_ids}").group_by(&:id).transform_values(&:first)
 
     comments.each do |comment|
       channel.send_embed do |embed|
