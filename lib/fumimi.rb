@@ -62,8 +62,12 @@ module Fumimi::Commands
     event.send_message "Done! Animes deleted."
   end
 
-  def do_random(event, *args)
-    "https://danbooru.donmai.us/posts/random?tags=#{tags.join("%20")}"
+  def do_random(event, *tags)
+    post = booru.posts.index(random: 1, limit: 1, tags: tags.join(" ")).first
+
+    event.channel.send_embed do |embed|
+      embed_post(embed, event.channel.name, post)
+    end
   end
 
   def do_posts(event, *tags)
