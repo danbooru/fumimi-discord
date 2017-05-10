@@ -52,9 +52,9 @@ class Danbooru
       if is_flagged
         0xC41C19
       elsif parent_id
-        0x00FF00
-      elsif has_active_children
         0xC0C000
+      elsif has_active_children
+        0x00FF00
       elsif is_pending
         0x0000FF
       end
