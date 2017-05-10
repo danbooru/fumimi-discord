@@ -17,8 +17,10 @@ require "active_support/core_ext/numeric/conversions"
 require "active_support/core_ext/numeric/time"
 require "discordrb"
 require "dotenv"
+require "google/cloud/bigquery"
 require "pry"
 require "pry-byebug"
+require "terminal-table"
 
 Dotenv.load
 
@@ -129,13 +131,81 @@ module Fumimi::Commands
 
     nil
   end
+
+  def do_stats(event, *args)
+    dataset = "danbooru-1343.danbooru_production"
+
+    if args[0] == "longest" && args[1] == "tags"
+      query = "SELECT name FROM `#{dataset}.tags` AS t WHERE t.count > 0 ORDER BY LENGTH(t.name) DESC LIMIT 20"
+    elsif args[0] == "tags" && args[1] == "by" && args[2].present?
+      username = args[2]
+      user = booru.users.search(name: username).first
+
+      query = <<-SQL
+        WITH
+          initial_tags AS (
+            SELECT
+              added_tag,
+              MIN(updated_at) AS updated_at
+            FROM
+              `#{dataset}.post_versions_flat_part`
+            GROUP BY
+              added_tag
+          )
+        SELECT
+          it.added_tag,
+          -- pv.updated_at,
+          -- t.category,
+          t.count
+        FROM
+          `#{dataset}.post_versions` AS pv
+        JOIN initial_tags AS it ON pv.updated_at = it.updated_at
+        LEFT OUTER JOIN `#{dataset}.tags` AS t ON t.name = added_tag
+        WHERE
+          TRUE
+          AND NOT REGEXP_CONTAINS(added_tag, '^source:|parent:')
+          AND pv.updater_id = #{user.id}
+        ORDER BY count DESC
+        LIMIT 15;
+      SQL
+    else
+      event << "Usage:\n"
+      event << "`/stats longest tags`"
+      event << "`/stats tags by <username>`"
+      return
+    end
+
+    event.respond "*Fumimi is preparing. Please wait warmly until she is ready.*"
+    event.channel.start_typing
+
+    results = bq.query(query, standard_sql: true)
+    rows = results.map(&:values)
+
+    table = Terminal::Table.new do |t|
+      t.headings = results.headers
+
+      rows.each do |row|
+        t << row
+        break if t.to_s.size >= 1600
+      end
+    end
+
+    event << "```"
+    event << table.to_s
+    event << "#{table.rows.size} of #{results.total} rows | #{(results.job.ended_at - results.job.started_at).round(2)} seconds | #{results.total_bytes.to_s(:human_size)} (cached: #{results.cache_hit?})"
+    event << "```"
+  rescue StandardError => e
+    event.drain
+    event << "Exception: #{e.to_s}.\n"
+    event << "https://i.imgur.com/0CsFWP3.png"
+  end
 end
 
 class Fumimi
   include Fumimi::Commands
   include Fumimi::Events
 
-  attr_reader :bot, :server, :booru, :log
+  attr_reader :bot, :server, :booru, :bq, :log
 
   def initialize(server_id:, client_id:, token:, log: Logger.new(STDERR))
     @server_id = server_id
@@ -149,6 +219,7 @@ class Fumimi
     })
 
     @booru = Danbooru.new
+    @bq = Google::Cloud::Bigquery.new
   end
 
   def server
@@ -176,6 +247,7 @@ class Fumimi
     bot.command(:comments, description: "List comments: `/comments <tags>`", &method(:do_comments))
     bot.command(:forum, description: "List forum posts: `/forum <text>`", &method(:do_forum))
     bot.command(:random, description: "Show a random post: `/random <tags>`", &method(:do_random))
+    bot.command(:stats, description: "Query various stats: `/stats help`", &method(:do_stats))
   end
 
   def embed_post(embed, channel_name, post, tags = nil)
