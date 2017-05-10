@@ -7,11 +7,11 @@ class Danbooru
       "https://danbooru.donmai.us/posts/#{id}"
     end
 
-    def full_large_file_url
-      if has_large
-        "https://danbooru.donmai.us#{large_file_url}"
+    def embed_image_url
+      if file_ext.match?(/jpe?g|png|gif/i)
+        file_url
       else
-        full_preview_file_url
+        preview_file_url
       end
     end
 
@@ -33,9 +33,10 @@ class Danbooru
 
     def embed_image(channel_name)
       if is_censored? || is_unsafe?(channel_name)
-        Discordrb::Webhooks::EmbedImage.new(url: "http://danbooru.donmai.us.rsz.io#{large_file_url}?blur=30")
+        # XXX gifs don't work here.
+        Discordrb::Webhooks::EmbedImage.new(url: "http://danbooru.donmai.us.rsz.io#{embed_image_url}?blur=30")
       else
-        Discordrb::Webhooks::EmbedImage.new(url: full_large_file_url)
+        Discordrb::Webhooks::EmbedImage.new(url: "https://danbooru.donmai.us#{embed_image_url}")
       end
     end
 
