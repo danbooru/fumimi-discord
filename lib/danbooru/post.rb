@@ -51,6 +51,8 @@ class Danbooru
     def border_color
       if is_flagged
         0xC41C19
+      elsif pool_string =~ /pool:series/
+        0xAA00AA
       elsif parent_id
         0xC0C000
       elsif has_active_children
