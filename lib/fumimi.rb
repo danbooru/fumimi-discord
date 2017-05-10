@@ -356,9 +356,9 @@ class Fumimi
   def update_feeds(comment_feed: "", upload_feed: "", forum_feed: "")
     log.debug("Entering feed update loop...")
 
-    last_upload_time = 5.minutes.ago
-    last_comment_time = 5.minutes.ago
-    last_forum_post_time = 5.minutes.ago
+    last_upload_time = 1.minutes.ago
+    last_comment_time = 1.minutes.ago
+    last_forum_post_time = 1.minutes.ago
 
     loop do
       last_upload_time = update_uploads_feed(last_upload_time, channels[upload_feed])
@@ -367,6 +367,15 @@ class Fumimi
 
       sleep 30
     end
+  rescue StandardError => e
+    msg =  "Error. Retrying in 60s...\n\n"
+    msg += "Exception: #{e.to_s}.\n"
+    msg += "https://i.imgur.com/0CsFWP3.png"
+
+    bot.send_message(channels["general"], msg)
+
+    sleep 60
+    retry
   end
 
   def update_uploads_feed(last_checked_at, channel)
