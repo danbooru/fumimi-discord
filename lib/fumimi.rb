@@ -62,6 +62,13 @@ module Fumimi::Commands
     event.send_message "Done! Animes deleted."
   end
 
+  def do_say(event, *args)
+    channel_name = args.shift
+    message = args.join(" ")
+
+    channels[channel_name].send_message(message)
+  end
+
   def do_random(event, *tags)
     post = booru.posts.index(random: 1, limit: 1, tags: tags.join(" ")).first
 
@@ -250,6 +257,7 @@ class Fumimi
     bot.command(:forum, description: "List forum posts: `/forum <text>`", &method(:do_forum))
     bot.command(:random, description: "Show a random post: `/random <tags>`", &method(:do_random))
     bot.command(:stats, description: "Query various stats: `/stats help`", &method(:do_stats))
+    bot.command(:say, help_available: false, &method(:do_say))
   end
 
   def embed_post(embed, channel_name, post, tags = nil)
