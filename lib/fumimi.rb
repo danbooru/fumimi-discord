@@ -366,9 +366,9 @@ class Fumimi
   def update_feeds(comment_feed: "", upload_feed: "", forum_feed: "")
     log.debug("Entering feed update loop...")
 
-    last_upload_time = 1.minutes.ago
-    last_comment_time = 1.minutes.ago
-    last_forum_post_time = 1.minutes.ago
+    last_upload_time = Time.now
+    last_comment_time = Time.now
+    last_forum_post_time = Time.now
 
     loop do
       last_upload_time = update_uploads_feed(last_upload_time, channels[upload_feed])
