@@ -339,6 +339,8 @@ class Fumimi
   end
 
   def render_wiki(event, title)
+    event.channel.start_typing
+
     wiki = booru.wiki.show(title)
     tag  = booru.tags.search(name: title).first
     post = tag.example_post(booru)
@@ -350,7 +352,7 @@ class Fumimi
       })
 
       embed.description = wiki.pretty_body
-      embed.image = post.embed_image(event)
+      embed.image = post.embed_image(event.channel.name)
     end
   end
 
