@@ -382,7 +382,7 @@ class Fumimi
     msg += "Exception: #{e.to_s}.\n"
     msg += "https://i.imgur.com/0CsFWP3.png"
 
-    bot.send_message(channels["general"], msg)
+    bot.send_message(channels["fumimi"], msg)
 
     sleep 60
     retry
