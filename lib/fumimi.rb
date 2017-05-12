@@ -248,7 +248,7 @@ class Fumimi
   def register_commands
     log.debug("Registering bot commands...")
 
-    bot.message(contains: /post #[0-9]+/, &method(:do_post_id))
+    bot.message(contains: /post #[0-9]+/i, &method(:do_post_id))
     bot.message(contains: /\[\[ [^\]]+ \]\]/x, &method(:do_wiki_link))
 
     bot.command(:hi, description: "Say hi to Fumimi: `/hi`", &method(:do_hi))
