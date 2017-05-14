@@ -18,6 +18,7 @@ require "active_support/core_ext/numeric/time"
 require "discordrb"
 require "dotenv"
 require "google/cloud/bigquery"
+require "pg"
 require "pry"
 require "pry-byebug"
 require "terminal-table"
@@ -143,6 +144,35 @@ module Fumimi::Commands
     nil
   end
 
+  def do_sql(event, *args)
+    return unless event.user.id == 310167383912349697
+
+    event.respond "*Fumimi is preparing. Please wait warmly until she is ready.*"
+    event.channel.start_typing
+
+    sql = args.join(" ")
+    @pg = PG::Connection.open(dbname: "danbooru2")
+    results = @pg.exec(sql)
+
+    table = Terminal::Table.new do |t|
+      t.headings = results.fields
+
+      results.each do |row|
+        t << row.values
+        break if t.to_s.size >= 1600
+      end
+    end
+
+    event << "```"
+    event << table.to_s
+    event << "#{table.rows.size} of #{results.ntuples} rows"
+    event << "```"
+  rescue StandardError => e
+    event.drain
+    event << "Exception: #{e.to_s}.\n"
+    event << "https://i.imgur.com/0CsFWP3.png"
+  end
+
   def do_stats(event, *args)
     if args[0] == "longest" && args[1] == "tags"
       query = "SELECT name FROM `tags` AS t WHERE t.count > 0 ORDER BY LENGTH(t.name) DESC LIMIT 20"
@@ -257,6 +287,7 @@ class Fumimi
     bot.command(:forum, description: "List forum posts: `/forum <text>`", &method(:do_forum))
     bot.command(:random, description: "Show a random post: `/random <tags>`", &method(:do_random))
     bot.command(:stats, description: "Query various stats: `/stats help`", &method(:do_stats))
+    bot.command(:sql, help_available: false, &method(:do_sql))
     bot.command(:say, help_available: false, &method(:do_say))
   end
 
