@@ -41,6 +41,23 @@ module Fumimi::Events
     nil
   end
 
+  def do_forum_id(event)
+    forum_post_ids = event.text.scan(/forum #[0-9]+/i).grep(/([0-9]+)/) { $1.to_i }
+
+    forum_post_ids.each do |forum_post_id|
+      forum_post = booru.forum_posts.show(forum_post_id)
+
+      creator_ids = [forum_post.creator_id].join(",")
+      users = booru.users.search(id: creator_ids).group_by(&:id).transform_values(&:first)
+
+      event.channel.send_embed do |embed|
+        embed_forum_post(embed, forum_post, users)
+      end
+    end
+
+    nil
+  end
+
   def do_wiki_link(event)
     titles = event.text.scan(/\[\[ ( [^\]]+ ) \]\]/x).flatten
 
@@ -109,11 +126,10 @@ module Fumimi::Commands
 
     #topic_ids = forum_posts.map(&:topic_id).join(",")
     #forum_topics = booru.forum_topics.search(id: topic_ids).group_by(&:id).transform_values(&:first)
-    forum_topics = nil
 
     forum_posts.each do |forum_post|
       event.channel.send_embed do |embed|
-        embed_forum_post(embed, forum_post, forum_topics, users)
+        embed_forum_post(embed, forum_post, users)
       end
     end
 
@@ -279,6 +295,7 @@ class Fumimi
     log.debug("Registering bot commands...")
 
     bot.message(contains: /post #[0-9]+/i, &method(:do_post_id))
+    bot.message(contains: /forum #[0-9]+/i, &method(:do_forum_id))
     bot.message(contains: /\[\[ [^\]]+ \]\]/x, &method(:do_wiki_link))
 
     bot.command(:hi, description: "Say hi to Fumimi: `/hi`", &method(:do_hi))
@@ -352,7 +369,7 @@ class Fumimi
     embed.footer = comment.embed_footer
   end
 
-  def embed_forum_post(embed, forum_post, forum_topics, users)
+  def embed_forum_post(embed, forum_post, users, forum_topics = nil)
     user = users[forum_post.creator_id]
     # topic = forum_topics[forum_post.topic_id]
 
@@ -464,11 +481,10 @@ class Fumimi
 
     #topic_ids = forum_posts.map(&:topic_id).join(",")
     #forum_topics = booru.forum_topics.search(id: topic_ids).group_by(&:id).transform_values(&:first)
-    forum_topics = nil
 
     forum_posts.each do |forum_post|
       channel.send_embed do |embed|
-        embed_forum_post(embed, forum_post, forum_topics, users)
+        embed_forum_post(embed, forum_post, users)
       end
     end
 
