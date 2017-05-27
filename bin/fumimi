@@ -1,24 +1,56 @@
 #!/usr/bin/env ruby
 
 require "bundler/setup"
+require "optparse"
 require "fumimi"
 
-log = Logger.new(STDERR)
-log.level = Logger::DEBUG
+def parse_options
+  options = {
+    feed: false
+  }
 
-fumimi = Fumimi.new({
-  server_id: ENV["DISCORD_SERVER_ID"].to_i,
-  client_id: ENV["DISCORD_CLIENT_ID"],
-  token: ENV["DISCORD_TOKEN"],
-  log: log,
-})
+  OptionParser.new do |opts|
+    opts.on("-f", "--feed", "update feeds") { options[:feed] = true }
+    opts.on("-h", "--help", "display this help and exit") do
+      puts opts
+      exit 1
+    end
 
-trap "INT" do
-  # fumimi.log.debug("SIGINT received.")
-  STDERR.puts "SIGINT received..."
-  fumimi.shutdown!
+    begin
+      opts.parse!
+      yield(options)
+    rescue OptionParser::ParseError => error
+      STDERR.puts(error)
+      STDERR.puts "Try 'fumimi --help' for more information."
+      exit 1
+    end
+  end
 end
 
-fumimi.start
-fumimi.update_feeds(comment_feed: "comment-feed", upload_feed: "upload-feed", forum_feed: "forum-feed")
-fumimi.bot.sync
+def main(options)
+  log = Logger.new(STDERR)
+  log.level = Logger::DEBUG
+
+  fumimi = Fumimi.new({
+    server_id: ENV["DISCORD_SERVER_ID"].to_i,
+    client_id: ENV["DISCORD_CLIENT_ID"],
+    token: ENV["DISCORD_TOKEN"],
+    log: log,
+  })
+
+  trap "INT" do
+    # fumimi.log.debug("SIGINT received.")
+    STDERR.puts "SIGINT received..."
+    fumimi.shutdown!
+  end
+
+  if options[:feed]
+    fumimi.update_feeds(comment_feed: "comment-feed", upload_feed: "upload-feed", forum_feed: "forum-feed")
+  else
+    fumimi.start
+  end
+end
+
+parse_options do |opts|
+  main(opts)
+end

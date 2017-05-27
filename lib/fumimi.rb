@@ -408,10 +408,12 @@ class Fumimi
 
     register_commands
     bot.run(:async)
+    bot.sync
   end
 
   def update_feeds(comment_feed: "", upload_feed: "", forum_feed: "")
     log.debug("Entering feed update loop...")
+    bot.run(:async)
 
     last_upload_time = Time.now
     last_comment_time = Time.now
