@@ -38,10 +38,12 @@ def main(options)
     log: log,
   })
 
-  trap "INT" do
-    # fumimi.log.debug("SIGINT received.")
-    STDERR.puts "SIGINT received..."
-    fumimi.shutdown!
+  %w[INT TERM].each do |signal|
+    trap signal do
+      # fumimi.log.debug("SIGINT received.")
+      STDERR.puts "SIG#{signal} received..."
+      fumimi.shutdown!
+    end
   end
 
   if options[:feed]
