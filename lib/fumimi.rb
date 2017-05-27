@@ -388,7 +388,7 @@ class Fumimi
   def render_wiki(event, title)
     event.channel.start_typing
 
-    wiki = booru.wiki.show(title)
+    wiki = booru.wiki.index(title: title).first
     tag  = booru.tags.search(name: title).first
     post = tag.example_post(booru)
 
@@ -398,7 +398,7 @@ class Fumimi
         url: "https://danbooru.donmai.us/wiki_pages/#{title}"
       })
 
-      embed.description = wiki.pretty_body
+      embed.description = wiki.try(:pretty_body)
       embed.image = post.embed_image(event.channel.name)
     end
   end
