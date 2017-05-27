@@ -31,7 +31,6 @@ module Fumimi::Events
 
     post_ids.each do |post_id|
       post = booru.posts.show(post_id)
-      # tags = booru.tags.with(limit: 1000).search(name: post.tag_string.split.join(","))
 
       event.channel.send_embed do |embed|
         embed_post(embed, event.channel.name, post)
