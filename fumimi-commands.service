@@ -1,0 +1,11 @@
+[Unit]
+Description=Fumimi Discord bot - Command processor
+
+[Service]
+Type=simple
+
+WorkingDirectory=%h/src/fumimi-discord
+ExecStart=/usr/bin/env %h/.rbenv/shims/bundle exec bin/fumimi
+StandardOutput=journal
+Restart=always
+RestartSec=1
