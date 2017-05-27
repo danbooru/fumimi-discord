@@ -10,7 +10,7 @@ require "danbooru/iqdb_query"
 
 class Danbooru
   attr_reader :host, :user, :api_key, :site
-  attr_reader :posts, :users, :comments, :forum_posts, :wiki, :tags, :bans, :iqdb
+  attr_reader :posts, :users, :comments, :forum_posts, :wiki, :tags, :bans, :iqdb, :pools
 
   def initialize(host: ENV["BOORU_HOST"], user: ENV["BOORU_USER"], api_key: ENV["BOORU_API_KEY"])
     @host, @user, @api_key = host, user, api_key
@@ -29,6 +29,7 @@ class Danbooru
     @tags = @site["/tags"]
     @bans = @site["/bans"]
     @iqdb = @site["/iqdb_queries"]
+    @pools = @site["/pools"]
 
     posts.factory = Danbooru::Post
     comments.factory = Danbooru::Comment
