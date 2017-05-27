@@ -2,6 +2,7 @@ require "rest-client"
 
 require "danbooru/resource"
 require "danbooru/comment"
+require "danbooru/forum_post"
 require "danbooru/post"
 require "danbooru/tag"
 require "danbooru/wiki"
