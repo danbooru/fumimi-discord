@@ -259,18 +259,14 @@ class Fumimi
   include Fumimi::Commands
   include Fumimi::Events
 
-  attr_reader :bot, :server, :booru, :bq, :log
+  attr_reader :server_id, :client_id, :token, :log
+  attr_reader :bot, :server, :booru, :bq
 
   def initialize(server_id:, client_id:, token:, log: Logger.new(STDERR))
     @server_id = server_id
+    @client_id = client_id
+    @token = token
     @log = RestClient.log = log
-
-    @bot = Discordrb::Commands::CommandBot.new({
-      name: "Robot Maid Fumimi",
-      client_id: client_id,
-      token: token,
-      prefix: '/',
-    })
 
     @booru = Danbooru.new
     @bq = Google::Cloud::Bigquery.new
@@ -403,16 +399,30 @@ class Fumimi
     end
   end
 
-  def start
+  def run_commands
     log.debug("Starting bot...")
+
+    @bot = Discordrb::Commands::CommandBot.new({
+      name: "Robot Maid Fumimi",
+      client_id: client_id,
+      token: token,
+      prefix: '/',
+    })
 
     register_commands
     bot.run(:async)
     bot.sync
   end
 
-  def update_feeds(comment_feed: "", upload_feed: "", forum_feed: "")
+  def run_feeds(comment_feed: "", upload_feed: "", forum_feed: "")
     log.debug("Entering feed update loop...")
+
+    @bot = Discordrb::Bot.new({
+      name: "Robot Maid Fumimi",
+      client_id: client_id,
+      token: token,
+    })
+
     bot.run(:async)
 
     last_upload_time = Time.now

@@ -45,9 +45,9 @@ def main(options)
   end
 
   if options[:feed]
-    fumimi.update_feeds(comment_feed: "comment-feed", upload_feed: "upload-feed", forum_feed: "forum-feed")
+    fumimi.run_feeds(comment_feed: "comment-feed", upload_feed: "upload-feed", forum_feed: "forum-feed")
   else
-    fumimi.start
+    fumimi.run_commands
   end
 end
 
