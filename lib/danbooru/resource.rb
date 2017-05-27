@@ -12,7 +12,7 @@ class Danbooru
     end
 
     def default_params
-      @default_params ||= { limit: 200 }
+      @default_params ||= { limit: 1000 }
     end
 
     def with(params)
