@@ -261,6 +261,7 @@ class Fumimi
 
   attr_reader :server_id, :client_id, :token, :log
   attr_reader :bot, :server, :booru, :bq
+  attr_reader :initiate_shutdown
 
   def initialize(server_id:, client_id:, token:, log: Logger.new(STDERR))
     @server_id = server_id
@@ -281,8 +282,8 @@ class Fumimi
   end
 
   def shutdown!
-    # log.info("Shutting down...")
-    STDERR.puts "Shutting down..."
+    log.info("Shutting down...")
+    bot.stop
     exit(0)
   end
 
@@ -411,7 +412,11 @@ class Fumimi
 
     register_commands
     bot.run(:async)
-    bot.sync
+
+    loop do
+      shutdown! if initiate_shutdown
+      sleep 1
+    end
   end
 
   def run_feeds(comment_feed: "", upload_feed: "", forum_feed: "")
@@ -500,5 +505,9 @@ class Fumimi
     end
 
     forum_posts.last&.created_at || last_checked_at
+  end
+
+  def initiate_shutdown!
+    @initiate_shutdown = true
   end
 end

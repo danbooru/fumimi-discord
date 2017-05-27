@@ -40,9 +40,8 @@ def main(options)
 
   %w[INT TERM].each do |signal|
     trap signal do
-      # fumimi.log.debug("SIGINT received.")
-      STDERR.puts "SIG#{signal} received..."
-      fumimi.shutdown!
+      STDERR.puts "SIG#{signal} received, initiating shutdown..."
+      fumimi.initiate_shutdown!
     end
   end
 
