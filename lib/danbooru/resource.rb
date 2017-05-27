@@ -26,7 +26,7 @@ class Danbooru
       index(params)
     end
 
-    def index(params)
+    def index(params = {})
       params = default_params.merge(params)
       params = "?" + params.to_query
       resp = self[params].get
@@ -43,8 +43,20 @@ class Danbooru
 
     def newest(since, limit = 50)
       items = index(limit: limit)
-      RestClient.log.debug("Newest: #{items.first.created_at}")
       items.select { |i| i.created_at > since }
+    end
+
+    def each(from: 0)
+      return enum_for(:each) unless block_given?
+
+      id = from
+      loop do
+        items = index(page: "a#{id}").reverse
+        break if items.empty?
+
+        items.each { |i| yield i }
+        id = items.last.id
+      end
     end
   end
 end
