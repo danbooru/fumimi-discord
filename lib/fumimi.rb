@@ -111,6 +111,21 @@ module Fumimi::Commands
     nil
   end
 
+  def do_iqdb(event, *urls)
+    url = urls.first or return
+
+    event.channel.start_typing
+    iqdb_queries = booru.iqdb.index(url: url)
+
+    iqdb_queries.map(&:post).each do |post|
+      event.channel.send_embed do |embed|
+        embed_post(embed, event.channel.name, post)
+      end
+    end
+
+    nil
+  end
+
   def do_forum(event, *args)
     limit = args.grep(/limit:(\d+)/i) { $1.to_i }.first
     limit ||= 3 
@@ -296,6 +311,7 @@ class Fumimi
 
     bot.command(:hi, description: "Say hi to Fumimi: `/hi`", &method(:do_hi))
     bot.command(:posts, description: "List posts: `/posts <tags>`", &method(:do_posts))
+    bot.command(:iqdb, description: "Find similar posts: `/iqdb <url>`", &method(:do_iqdb))
     bot.command(:comments, description: "List comments: `/comments <tags>`", &method(:do_comments))
     bot.command(:forum, description: "List forum posts: `/forum <text>`", &method(:do_forum))
     bot.command(:random, description: "Show a random post: `/random <tags>`", &method(:do_random))
