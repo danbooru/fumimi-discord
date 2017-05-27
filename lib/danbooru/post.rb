@@ -3,6 +3,8 @@ require "discordrb"
 
 class Danbooru
   class Post < Danbooru::Model
+    NSFW_BLUR = ENV["NSFW_BLUR"] || 50
+
     def url
       "https://danbooru.donmai.us/posts/#{id}"
     end
@@ -25,7 +27,7 @@ class Danbooru
 
     def embed_thumbnail(channel_name)
       if is_censored? || is_unsafe?(channel_name)
-        Discordrb::Webhooks::EmbedThumbnail.new(url: "http://danbooru.donmai.us.rsz.io#{preview_file_url}?blur=30")
+        Discordrb::Webhooks::EmbedThumbnail.new(url: "http://danbooru.donmai.us.rsz.io#{preview_file_url}?blur=#{NSFW_BLUR}")
       else
         Discordrb::Webhooks::EmbedThumbnail.new(url: full_preview_file_url)
       end
@@ -34,7 +36,7 @@ class Danbooru
     def embed_image(channel_name)
       if is_censored? || is_unsafe?(channel_name)
         # XXX gifs don't work here.
-        Discordrb::Webhooks::EmbedImage.new(url: "http://danbooru.donmai.us.rsz.io#{embed_image_url}?blur=30")
+        Discordrb::Webhooks::EmbedImage.new(url: "http://danbooru.donmai.us.rsz.io#{embed_image_url}?blur=#{NSFW_BLUR}")
       else
         Discordrb::Webhooks::EmbedImage.new(url: "https://danbooru.donmai.us#{embed_image_url}")
       end
