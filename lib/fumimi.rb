@@ -204,11 +204,20 @@ module Fumimi::Commands
   end
 
   def do_stats(event, *args)
-    if args[0] == "longest" && args[1] == "tags"
+    if args == %w[longest tags]
       query = "SELECT name FROM `tags` AS t WHERE t.count > 0 ORDER BY LENGTH(t.name) DESC LIMIT 20"
-    elsif args[0] == "tags" && args[1] == "by" && args[2].present?
-      username = args[2]
+    elsif args.size == 4 && args[1..2] == %w[created by]
+      username = args[3]
       user = booru.users.search(name: username).first
+
+      case args[0]
+      when "gentags" then categories = [0]
+      when "arttags" then categories = [1]
+      when "chartags" then categories = [4]
+      when "copytags" then categories = [3]
+      when "tags" then categories = [0, 1, 3, 4]
+      else categories = [0, 1, 3, 4]
+      end
 
       query = <<-SQL
         WITH
@@ -226,21 +235,25 @@ module Fumimi::Commands
           -- pv.updated_at,
           -- t.category,
           t.count
-        FROM
-          `post_versions` AS pv
+        FROM `post_versions` AS pv
         JOIN initial_tags AS it ON pv.updated_at = it.updated_at
         LEFT OUTER JOIN `tags` AS t ON t.name = added_tag
         WHERE
           TRUE
           AND NOT REGEXP_CONTAINS(added_tag, '^source:|parent:')
           AND pv.updater_id = #{user.id}
+          AND t.category IN (#{categories.join(",")})
         ORDER BY count DESC
         LIMIT 15;
       SQL
     else
       event << "Usage:\n"
       event << "`/stats longest tags`"
-      event << "`/stats tags by <username>`"
+      event << "`/stats tags created by <username>`"
+      event << "`/stats gentags created by <username>`"
+      event << "`/stats arttags created by <username>`"
+      event << "`/stats chartags created by <username>`"
+      event << "`/stats copytags created by <username>`"
       return
     end
 
