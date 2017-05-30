@@ -242,7 +242,7 @@ module Fumimi::Commands
           AND pv.updater_id = #{user.id}
           AND t.category IN (#{categories.join(",")})
         ORDER BY count DESC
-        LIMIT 15;
+        LIMIT 50;
       SQL
     else
       event << "Usage:\n"
@@ -258,7 +258,7 @@ module Fumimi::Commands
     event.respond "*Fumimi is preparing. Please wait warmly until she is ready. This may take up to 30 seconds.*"
     event.channel.start_typing
 
-    results = bq.query(query, max: 20, timeout: 30000, project: "danbooru-1343", dataset: "danbooru_production", standard_sql: true)
+    results = bq.query(query, max: 50, timeout: 30000, project: "danbooru-1343", dataset: "danbooru_production", standard_sql: true)
     rows = results.map(&:values)
 
     table = Terminal::Table.new do |t|
