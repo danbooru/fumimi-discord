@@ -7,6 +7,7 @@ require "danbooru/post"
 require "danbooru/tag"
 require "danbooru/wiki"
 require "danbooru/iqdb_query"
+require "danbooru/pool"
 
 class Danbooru
   attr_reader :host, :user, :api_key, :site
@@ -37,5 +38,6 @@ class Danbooru
     tags.factory = Danbooru::Tag
     wiki.factory = Danbooru::Wiki
     iqdb.factory = Danbooru::IqdbQuery
+    pools.factory = Danbooru::Pool
   end
 end
