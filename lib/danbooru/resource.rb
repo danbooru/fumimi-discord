@@ -1,3 +1,5 @@
+require "active_support"
+require "active_support/core_ext/object/to_query"
 require "rest-client"
 require "json"
 

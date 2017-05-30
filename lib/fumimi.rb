@@ -11,7 +11,6 @@ require "danbooru/wiki"
 
 require "active_support"
 require "active_support/core_ext/hash/indifferent_access"
-require "active_support/core_ext/object/to_query"
 require "active_support/core_ext/object/blank"
 require "active_support/core_ext/numeric/conversions"
 require "active_support/core_ext/numeric/time"
