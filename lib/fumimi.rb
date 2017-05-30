@@ -231,9 +231,7 @@ module Fumimi::Commands
               added_tag
           )
         SELECT
-          it.added_tag,
-          -- pv.updated_at,
-          -- t.category,
+          DISTINCT it.added_tag,
           t.count
         FROM `post_versions` AS pv
         JOIN initial_tags AS it ON pv.updated_at = it.updated_at
