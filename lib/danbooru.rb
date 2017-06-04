@@ -11,7 +11,7 @@ require "danbooru/pool"
 
 class Danbooru
   attr_reader :host, :user, :api_key, :site
-  attr_reader :posts, :users, :comments, :forum_posts, :wiki, :tags, :bans, :iqdb, :pools
+  attr_reader :posts, :users, :comments, :forum_posts, :wiki, :tags, :bans, :iqdb, :pools, :counts
 
   def initialize(host: ENV["BOORU_HOST"], user: ENV["BOORU_USER"], api_key: ENV["BOORU_API_KEY"])
     @host, @user, @api_key = host, user, api_key
@@ -31,6 +31,7 @@ class Danbooru
     @bans = @site["/bans"]
     @iqdb = @site["/iqdb_queries"]
     @pools = @site["/pools"]
+    @counts = @site["/counts/posts"]
 
     posts.factory = Danbooru::Post
     comments.factory = Danbooru::Comment

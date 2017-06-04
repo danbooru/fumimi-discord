@@ -110,6 +110,15 @@ module Fumimi::Commands
     nil
   end
 
+  def do_count(event, *tags)
+    event.channel.start_typing
+
+    query = (tags + ["id:>-#{rand(2**32)}"]).join(" ")
+    resp = booru.counts.show("?tags=#{query}")
+
+    event << "#{tags.join(" ")}: #{resp.counts["posts"]} posts"
+  end
+
   def do_iqdb(event, *urls)
     url = urls.first or return
 
@@ -321,6 +330,7 @@ class Fumimi
 
     bot.command(:hi, description: "Say hi to Fumimi: `/hi`", &method(:do_hi))
     bot.command(:posts, description: "List posts: `/posts <tags>`", &method(:do_posts))
+    bot.command(:count, description: "Count posts: `/count <tags>`", &method(:do_count))
     bot.command(:iqdb, description: "Find similar posts: `/iqdb <url>`", &method(:do_iqdb))
     bot.command(:comments, description: "List comments: `/comments <tags>`", &method(:do_comments))
     bot.command(:forum, description: "List forum posts: `/forum <text>`", &method(:do_forum))
