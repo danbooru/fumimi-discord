@@ -431,6 +431,9 @@ class Fumimi
         url: "https://danbooru.donmai.us/wiki_pages/#{title}"
       })
 
+      embed.title = "post ##{post.id}"
+      embed.url = "https://danbooru.donmai.us/posts/#{post.id}"
+
       embed.description = wiki.try(:pretty_body)
       embed.image = post.embed_image(event.channel.name)
     end
