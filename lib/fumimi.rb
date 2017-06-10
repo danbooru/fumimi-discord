@@ -138,6 +138,8 @@ module Fumimi::Commands
   end
 
   def do_forum(event, *args)
+    event.channel.start_typing
+
     limit = args.grep(/limit:(\d+)/i) { $1.to_i }.first
     limit ||= 3 
     limit = [10, limit].min
