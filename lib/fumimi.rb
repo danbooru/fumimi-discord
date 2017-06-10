@@ -458,7 +458,7 @@ class Fumimi
     end
   end
 
-  def run_feeds(comment_feed: "", upload_feed: "", forum_feed: "")
+  def run_feeds(comment_feed: "", upload_feed: "", forum_feed: "", error_channel: "")
     log.debug("Entering feed update loop...")
 
     @bot = Discordrb::Bot.new({
@@ -485,7 +485,7 @@ class Fumimi
     msg += "Exception: #{e.to_s}.\n"
     msg += "https://i.imgur.com/0CsFWP3.png"
 
-    bot.send_message(channels["fumimi"], msg)
+    bot.send_message(channels[error_channel], msg)
 
     sleep 60
     retry
