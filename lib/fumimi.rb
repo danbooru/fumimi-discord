@@ -65,6 +65,18 @@ module Fumimi::Events
     titles.each do |title|
       render_wiki(event, title.tr(" ", "_"))
     end
+
+    nil
+  end
+
+  def do_issue_id(event)
+    issue_ids = event.text.scan(/issue #[0-9]+/i).grep(/([0-9]+)/) { $1.to_i }
+
+    issue_ids.each do |issue_id|
+      event.send_message "https://github.com/r888888888/danbooru/issues/#{issue_id}"
+    end
+
+    nil
   end
 end
 
@@ -331,6 +343,7 @@ class Fumimi
 
     bot.message(contains: /post #[0-9]+/i, &method(:do_post_id))
     bot.message(contains: /forum #[0-9]+/i, &method(:do_forum_id))
+    bot.message(contains: /issue #[0-9]+/i, &method(:do_issue_id))
     bot.message(contains: /\[\[ [^\]]+ \]\]/x, &method(:do_wiki_link))
 
     bot.command(:hi, description: "Say hi to Fumimi: `/hi`", &method(:do_hi))
