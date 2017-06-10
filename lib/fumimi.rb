@@ -427,7 +427,10 @@ class Fumimi
 
     wiki = booru.wiki.index(title: title).first
     tag  = booru.tags.search(name: title).first
-    post = tag.example_post(booru)
+
+    if tag && tag.post_count > 0
+      post = tag.example_post(booru)
+    end
 
     event.channel.send_embed do |embed|
       embed.author = Discordrb::Webhooks::EmbedAuthor.new({
@@ -435,11 +438,13 @@ class Fumimi
         url: "https://danbooru.donmai.us/wiki_pages/#{title}"
       })
 
-      embed.title = "post ##{post.id}"
-      embed.url = "https://danbooru.donmai.us/posts/#{post.id}"
-
       embed.description = wiki.try(:pretty_body)
-      embed.image = post.embed_image(event.channel.name)
+
+      if post
+        embed.title = "post ##{post.id}"
+        embed.url = "https://danbooru.donmai.us/posts/#{post.id}"
+        embed.image = post.embed_image(event.channel.name)
+      end
     end
   end
 
