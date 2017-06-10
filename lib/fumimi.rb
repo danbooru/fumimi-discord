@@ -45,11 +45,14 @@ module Fumimi::Events
     forum_post_ids.each do |forum_post_id|
       forum_post = booru.forum_posts.show(forum_post_id)
 
+      topic_ids = [forum_post.topic_id].join(",")
+      forum_topics = booru.forum_topics.search(id: topic_ids).group_by(&:id).transform_values(&:first)
+
       creator_ids = [forum_post.creator_id].join(",")
       users = booru.users.search(id: creator_ids).group_by(&:id).transform_values(&:first)
 
       event.channel.send_embed do |embed|
-        embed_forum_post(embed, forum_post, users)
+        embed_forum_post(embed, forum_post, forum_topics, users)
       end
     end
 
@@ -146,12 +149,12 @@ module Fumimi::Commands
     creator_ids = forum_posts.map(&:creator_id).join(",")
     users = booru.users.search(id: creator_ids).group_by(&:id).transform_values(&:first)
 
-    #topic_ids = forum_posts.map(&:topic_id).join(",")
-    #forum_topics = booru.forum_topics.search(id: topic_ids).group_by(&:id).transform_values(&:first)
+    topic_ids = forum_posts.map(&:topic_id).join(",")
+    forum_topics = booru.forum_topics.search(id: topic_ids).group_by(&:id).transform_values(&:first)
 
     forum_posts.each do |forum_post|
       event.channel.send_embed do |embed|
-        embed_forum_post(embed, forum_post, users)
+        embed_forum_post(embed, forum_post, forum_topics, users)
       end
     end
 
@@ -401,13 +404,12 @@ class Fumimi
     embed.footer = comment.embed_footer
   end
 
-  def embed_forum_post(embed, forum_post, users, forum_topics = nil)
+  def embed_forum_post(embed, forum_post, forum_topics, users)
     user = users[forum_post.creator_id]
-    # topic = forum_topics[forum_post.topic_id]
+    topic = forum_topics[forum_post.topic_id]
 
     embed.author = Discordrb::Webhooks::EmbedAuthor.new({
-      # name: topic.title,
-      name: "forum ##{forum_post.id}",
+      name: "#{topic.title} (forum ##{forum_post.id})",
       url: "https://danbooru.donmai.us/forum_posts/#{forum_post.id}"
     })
 
@@ -534,12 +536,12 @@ class Fumimi
     creator_ids = forum_posts.map(&:creator_id).join(",")
     users = booru.users.search(id: creator_ids).group_by(&:id).transform_values(&:first)
 
-    #topic_ids = forum_posts.map(&:topic_id).join(",")
-    #forum_topics = booru.forum_topics.search(id: topic_ids).group_by(&:id).transform_values(&:first)
+    topic_ids = forum_posts.map(&:topic_id).join(",")
+    forum_topics = booru.forum_topics.search(id: topic_ids).group_by(&:id).transform_values(&:first)
 
     forum_posts.each do |forum_post|
       channel.send_embed do |embed|
-        embed_forum_post(embed, forum_post, users)
+        embed_forum_post(embed, forum_post, forum_topics, users)
       end
     end
 
