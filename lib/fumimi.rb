@@ -230,6 +230,41 @@ module Fumimi::Commands
     event << "https://i.imgur.com/0CsFWP3.png"
   end
 
+  def do_top(event, *args)
+    if args.size == 4 && args[0..2] == %w[uploaders in last]
+      period = case args[3]
+      when "month"
+        "INTERVAL 30 DAY"
+      when "week"
+        "INTERVAL 7 DAY"
+      else
+        "INTERVAL 1 DAY"
+      end
+
+      query = <<-SQL
+        SELECT
+          updater_id,
+          COUNT(DISTINCT post_id) as uploads
+        FROM
+          `post_versions_flat_part`
+        WHERE
+          updated_at >= TIMESTAMP_SUB(CURRENT_TIMESTAMP, #{period})
+          AND version = 1
+        GROUP BY
+          updater_id
+        ORDER BY uploads DESC
+        LIMIT 20;
+      SQL
+
+      exec_bq(event, query)
+    else
+      event << "Usage:\n"
+      event << "`/top uploaders in last <day|week|month>`"
+      #event << "`/top taggers in last <day|week|month>`"
+      return
+    end
+  end
+
   def do_stats(event, *args)
     if args == %w[longest tags]
       query = "SELECT name FROM `tags` AS t WHERE t.count > 0 ORDER BY LENGTH(t.name) DESC LIMIT 20"
@@ -282,6 +317,12 @@ module Fumimi::Commands
       return
     end
 
+    exec_bq(event, query)
+  end
+
+protected
+
+  def exec_bq(event, query)
     event.respond "*Fumimi is preparing. Please wait warmly until she is ready. This may take up to 30 seconds.*"
     event.channel.start_typing
 
@@ -356,6 +397,7 @@ class Fumimi
     bot.command(:forum, description: "List forum posts: `/forum <text>`", &method(:do_forum))
     bot.command(:random, description: "Show a random post: `/random <tags>`", &method(:do_random))
     bot.command(:stats, description: "Query various stats: `/stats help`", &method(:do_stats))
+    bot.command(:top, description: "Show leaderboards: `/top help`", &method(:do_top))
     bot.command(:sql, help_available: false, &method(:do_sql))
     bot.command(:say, help_available: false, &method(:do_say))
   end
