@@ -94,6 +94,8 @@ module Fumimi::Commands
   end
 
   def do_say(event, *args)
+    return unless event.user.id == 310167383912349697
+
     channel_name = args.shift
     message = args.join(" ")
 
