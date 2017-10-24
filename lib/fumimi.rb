@@ -338,9 +338,13 @@ protected
       end
     end
 
+    ended_at = results.job.ended_at || 0
+    started_at = results.job.started_at || 0
+    duration = (ended_at - started_at).round(3)
+
     event << "```"
     event << table.to_s.force_encoding("UTF-8")
-    event << "#{table.rows.size} of #{results.total} rows | #{(results.job.ended_at - results.job.started_at).round(2)} seconds | #{results.total_bytes.to_s(:human_size)} (cached: #{results.cache_hit?})"
+    event << "#{table.rows.size} of #{results.total} rows | #{duration} seconds | #{results.total_bytes.to_s(:human_size)} (cached: #{results.cache_hit?})"
     event << "```"
   rescue StandardError => e
     event.drain
