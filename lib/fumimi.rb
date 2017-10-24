@@ -404,12 +404,12 @@ class Fumimi
 
   def embed_post(embed, channel_name, post, tags = nil)
     embed.author = Discordrb::Webhooks::EmbedAuthor.new({
-      name: "post ##{post.id}",
-      url: post.url,
+      name: "@#{post.uploader_name}",
+      url: "https://danbooru.donmai.us/users?name=#{CGI::escape(post.uploader_name)}"
     })
 
-    embed.title = "@#{post.uploader_name}"
-    embed.url = "https://danbooru.donmai.us/users?name=#{CGI::escape(post.uploader_name)}"
+    embed.title = "post ##{post.id}"
+    embed.url = post.url
     embed.image = post.embed_image(channel_name)
     embed.color = post.border_color
 
