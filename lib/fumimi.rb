@@ -339,7 +339,7 @@ protected
     end
 
     event << "```"
-    event << table.to_s
+    event << table.to_s.force_encoding("UTF-8")
     event << "#{table.rows.size} of #{results.total} rows | #{(results.job.ended_at - results.job.started_at).round(2)} seconds | #{results.total_bytes.to_s(:human_size)} (cached: #{results.cache_hit?})"
     event << "```"
   rescue StandardError => e
