@@ -204,21 +204,13 @@ module Fumimi::Commands
   def do_sql(event, *args)
     return unless event.user.id == 310167383912349697
 
-    event.respond "*Fumimi is preparing. Please wait warmly until she is ready.*"
-    event.channel.start_typing
+    show_loading_message(event)
 
     sql = args.join(" ")
     @pg = PG::Connection.open(dbname: "danbooru2")
     results = @pg.exec(sql)
 
-    table = Terminal::Table.new do |t|
-      t.headings = results.fields
-
-      results.each do |row|
-        t << row.values
-        break if t.to_s.size >= 1600
-      end
-    end
+    table = format_table(results.fields, results.map(&:values))
 
     event << "```"
     event << table.to_s
@@ -256,6 +248,7 @@ module Fumimi::Commands
         LIMIT 20;
       SQL
 
+      show_loading_message(event)
       exec_bq(event, query)
     else
       event << "Usage:\n"
@@ -317,26 +310,34 @@ module Fumimi::Commands
       return
     end
 
+    show_loading_message(event)
     exec_bq(event, query)
   end
 
 protected
 
-  def exec_bq(event, query)
-    event.respond "*Fumimi is preparing. Please wait warmly until she is ready. This may take up to 30 seconds.*"
-    event.channel.start_typing
-
+  def exec_query(query)
     results = bq.query(query, max: 50, timeout: 30000, project: "danbooru-1343", dataset: "danbooru_production", standard_sql: true)
-    rows = results.map(&:values)
 
-    table = Terminal::Table.new do |t|
-      t.headings = results.headers
+    user_ids = results.map { |row| row[:updater_id] || 13 }.uniq
+    users = booru.users.search(id: user_ids.join(","))
 
-      rows.each do |row|
-        t << row
-        break if t.to_s.size >= 1600
-      end
-    end
+    values = results.map do |row|
+      row.map do |k, v|
+        if k == :updater_id
+          [k, users.find { |user| user.id == v }.try(:name) || "MD Anonymous"]
+        else
+          [k, v]
+        end
+      end.to_h
+    end.map(&:values)
+
+    [results, values]
+  end
+
+  def exec_bq(event, query)
+    results, values = exec_query(query)
+    table = format_table(results.headers, values)
 
     ended_at = results.job.ended_at || 0
     started_at = results.job.started_at || 0
@@ -350,6 +351,22 @@ protected
     event.drain
     event << "Exception: #{e.to_s}.\n"
     event << "https://i.imgur.com/0CsFWP3.png"
+  end
+
+  def show_loading_message(event)
+    event.respond "*Fumimi is preparing. Please wait warmly until she is ready. This may take up to 30 seconds.*"
+    event.channel.start_typing
+  end
+
+  def format_table(headers, rows)
+    Terminal::Table.new do |t|
+      t.headings = headers
+
+      rows.each do |row|
+        t << row
+        break if t.to_s.size >= 1600
+      end
+    end
   end
 end
 
