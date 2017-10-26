@@ -258,6 +258,51 @@ module Fumimi::Commands
     end
   end
 
+  def do_tag(event, *args)
+    show_loading_message(event)
+
+    tag = args[0].gsub(/'/, "\\'")
+
+    query = <<-SQL
+      SELECT
+        version_id, post_id, updater_id, updated_at, added_tag
+      FROM `post_versions_flat_part`
+      WHERE added_tag = '#{tag}'
+      ORDER BY updated_at ASC
+      LIMIT 1;
+    SQL
+
+    results = bq.query(query, max: 50, timeout: 60000, project: "danbooru-1343", dataset: "danbooru_production", standard_sql: true)
+    updater_id = results.first[:updater_id] || 13
+    post_id = results.first[:post_id]
+    created_at = results.first[:updated_at]
+
+    #tag = booru.tags.search(name: args[0])
+    user = booru.users.search(id: updater_id).first
+    event << "`#{tag}` was first used by `#{user.name}` on #{created_at.strftime("%Y-%m-%d")} in post ##{post_id}"
+
+    query = <<-SQL
+      SELECT
+        updater_id,
+        COUNTIF(added_tag = '#{tag}') AS added_count,
+        COUNTIF(removed_tag = '#{tag}') AS removed_count,
+        COUNTIF(added_tag = '#{tag}' OR removed_tag = '#{tag}') AS total_count
+      FROM
+      `post_versions_flat_part`
+      WHERE
+        added_tag = '#{tag}' OR removed_tag = '#{tag}'
+      GROUP BY updater_id
+      ORDER BY 4 DESC
+      LIMIT 50;
+    SQL
+
+    exec_bq(event, query)
+  rescue StandardError => e
+    event.drain
+    event << "Exception: #{e.to_s}.\n"
+    event << "https://i.imgur.com/0CsFWP3.png"
+  end
+
   def do_stats(event, *args)
     if args == %w[longest tags]
       query = "SELECT name FROM `tags` AS t WHERE t.count > 0 ORDER BY LENGTH(t.name) DESC LIMIT 20"
@@ -418,6 +463,7 @@ class Fumimi
     bot.command(:forum, description: "List forum posts: `/forum <text>`", &method(:do_forum))
     bot.command(:random, description: "Show a random post: `/random <tags>`", &method(:do_random))
     bot.command(:stats, description: "Query various stats: `/stats help`", &method(:do_stats))
+    bot.command(:tag, description: "Show tag information: `/tag <name>`", &method(:do_tag))
     bot.command(:top, description: "Show leaderboards: `/top help`", &method(:do_top))
     bot.command(:sql, help_available: false, &method(:do_sql))
     bot.command(:say, help_available: false, &method(:do_say))
