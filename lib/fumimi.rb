@@ -8,6 +8,7 @@ require "danbooru/forum_post"
 require "danbooru/post"
 require "danbooru/tag"
 require "danbooru/wiki"
+require "bq"
 
 require "active_support"
 require "active_support/core_ext/hash/indifferent_access"
@@ -16,11 +17,9 @@ require "active_support/core_ext/numeric/conversions"
 require "active_support/core_ext/numeric/time"
 require "discordrb"
 require "dotenv"
-require "google/cloud/bigquery"
 require "pg"
 require "pry"
 require "pry-byebug"
-require "terminal-table"
 
 Dotenv.load
 
@@ -249,13 +248,28 @@ module Fumimi::Commands
       SQL
 
       show_loading_message(event)
-      exec_bq(event, query)
+      event << bq.query(query).to_table
     else
       event << "Usage:\n"
       event << "`/top uploaders in last <day|week|month>`"
       #event << "`/top taggers in last <day|week|month>`"
       return
     end
+  rescue StandardError => e
+    event.drain
+    event << "Exception: #{e.to_s}.\n"
+    event << "https://i.imgur.com/0CsFWP3.png"
+  end
+
+  def do_bq(event, *args)
+    query = args.join(" ")
+
+    show_loading_message(event)
+    event << bq.query(query).to_table
+  rescue StandardError => e
+    event.drain
+    event << "Exception: #{e.to_s}.\n"
+    event << "https://i.imgur.com/0CsFWP3.png"
   end
 
   def do_tag(event, *args)
@@ -272,12 +286,11 @@ module Fumimi::Commands
       LIMIT 1;
     SQL
 
-    results = bq.query(query, max: 50, timeout: 60000, project: "danbooru-1343", dataset: "danbooru_production", standard_sql: true)
+    results = bq.exec(query)
     updater_id = results.first[:updater_id] || 13
     post_id = results.first[:post_id]
     created_at = results.first[:updated_at]
 
-    #tag = booru.tags.search(name: args[0])
     user = booru.users.search(id: updater_id).first
     event << "`#{tag}` was first used by `#{user.name}` on #{created_at.strftime("%Y-%m-%d")} in post ##{post_id}"
 
@@ -288,7 +301,7 @@ module Fumimi::Commands
         COUNTIF(removed_tag = '#{tag}') AS removed_count,
         COUNTIF(added_tag = '#{tag}' OR removed_tag = '#{tag}') AS total_count
       FROM
-      `post_versions_flat_part`
+        `post_versions_flat_part`
       WHERE
         added_tag = '#{tag}' OR removed_tag = '#{tag}'
       GROUP BY updater_id
@@ -296,7 +309,7 @@ module Fumimi::Commands
       LIMIT 50;
     SQL
 
-    exec_bq(event, query)
+    event << bq.query(query).to_table
   rescue StandardError => e
     event.drain
     event << "Exception: #{e.to_s}.\n"
@@ -356,62 +369,17 @@ module Fumimi::Commands
     end
 
     show_loading_message(event)
-    exec_bq(event, query)
-  end
-
-protected
-
-  def exec_query(query)
-    results = bq.query(query, max: 50, timeout: 30000, project: "danbooru-1343", dataset: "danbooru_production", standard_sql: true)
-
-    user_ids = results.map { |row| row[:updater_id] || 13 }.uniq
-    users = booru.users.search(id: user_ids.join(","))
-
-    values = results.map do |row|
-      row.map do |k, v|
-        if k == :updater_id
-          [k, users.find { |user| user.id == v }.try(:name) || "MD Anonymous"]
-        else
-          [k, v]
-        end
-      end.to_h
-    end.map(&:values)
-
-    [results, values]
-  end
-
-  def exec_bq(event, query)
-    results, values = exec_query(query)
-    table = format_table(results.headers, values)
-
-    ended_at = results.job.ended_at || 0
-    started_at = results.job.started_at || 0
-    duration = (ended_at - started_at).round(3)
-
-    event << "```"
-    event << table.to_s.force_encoding("UTF-8")
-    event << "#{table.rows.size} of #{results.total} rows | #{duration} seconds | #{results.total_bytes.to_s(:human_size)} (cached: #{results.cache_hit?})"
-    event << "```"
+    event << bq.query(query).to_table
   rescue StandardError => e
     event.drain
     event << "Exception: #{e.to_s}.\n"
     event << "https://i.imgur.com/0CsFWP3.png"
   end
 
+protected
   def show_loading_message(event)
     event.respond "*Fumimi is preparing. Please wait warmly until she is ready. This may take up to 30 seconds.*"
     event.channel.start_typing
-  end
-
-  def format_table(headers, rows)
-    Terminal::Table.new do |t|
-      t.headings = headers
-
-      rows.each do |row|
-        t << row
-        break if t.to_s.size >= 1600
-      end
-    end
   end
 end
 
@@ -430,7 +398,7 @@ class Fumimi
     @log = RestClient.log = log
 
     @booru = Danbooru.new
-    @bq = Google::Cloud::Bigquery.new
+    @bq = BQ.new(booru: @booru, project: "danbooru-1343", dataset: "danbooru_production")
   end
 
   def server
@@ -464,6 +432,7 @@ class Fumimi
     bot.command(:random, description: "Show a random post: `/random <tags>`", &method(:do_random))
     bot.command(:stats, description: "Query various stats: `/stats help`", &method(:do_stats))
     bot.command(:tag, description: "Show tag information: `/tag <name>`", &method(:do_tag))
+    bot.command(:bq, description: "Run a query on BigQuery: `/bq <query>`", &method(:do_bq))
     bot.command(:top, description: "Show leaderboards: `/top help`", &method(:do_top))
     bot.command(:sql, help_available: false, &method(:do_sql))
     bot.command(:say, help_available: false, &method(:do_say))
