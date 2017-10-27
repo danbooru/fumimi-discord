@@ -286,13 +286,10 @@ module Fumimi::Commands
       LIMIT 1;
     SQL
 
-    results = bq.exec(query)
-    updater_id = results.first[:updater_id] || 13
-    post_id = results.first[:post_id]
-    created_at = results.first[:updated_at]
+    first_version = bq.query(query).first
+    raise BigQueryError unless first_version.present?
 
-    user = booru.users.search(id: updater_id).first
-    event << "`#{tag}` was first used by `#{user.name}` on #{created_at.strftime("%Y-%m-%d")} in post ##{post_id}"
+    event.send_message "`#{tag}` was first used by `#{first_version[:updater]}` on #{first_version[:updated_at].strftime("%Y-%m-%d")} in post ##{first_version[:post_id]}"
 
     query = <<-SQL
       SELECT
@@ -309,8 +306,8 @@ module Fumimi::Commands
       LIMIT 50;
     SQL
 
-    event << bq.query(query).to_table
-  rescue StandardError => e
+    event.send_message bq.query(query).to_table
+  rescue StandardError, RestClient::Exception => e
     event.drain
     event << "Exception: #{e.to_s}.\n"
     event << "https://i.imgur.com/0CsFWP3.png"
