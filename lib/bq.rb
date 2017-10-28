@@ -47,11 +47,11 @@ protected
   end
 
   module Formatter
-    def to_table(title)
+    def to_table(title="")
       rows = map(&:values)
 
       table = Terminal::Table.new do |t|
-        t.headings = headers
+        t.headings = first.keys
 
         rows.each do |row|
           t << row
