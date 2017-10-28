@@ -279,17 +279,15 @@ module Fumimi::Commands
 
     query = <<-SQL
       SELECT
-        version_id, post_id, updater_id, updated_at, added_tag
-      FROM `post_versions_flat_part`
+        added_tag AS tag, category_name AS type, updater_id AS creator_id, count, updated_at AS created_at, post_id
+      FROM `post_versions_flat_part` AS pv
+      JOIN `robot-maid-fumimi.danbooru.tags` AS t ON pv.added_tag = t.name
       WHERE added_tag = '#{tag}'
       ORDER BY updated_at ASC
       LIMIT 1;
     SQL
 
-    first_version = bq.query(query).first
-    raise BigQueryError unless first_version.present?
-
-    event.send_message "`#{tag}` was first used by `#{first_version[:updater]}` on #{first_version[:updated_at].strftime("%Y-%m-%d")} in post ##{first_version[:post_id]}"
+    event.send_message bq.query(query).to_table("Creator of #{tag}")
 
     query = <<-SQL
       SELECT

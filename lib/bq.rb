@@ -44,7 +44,7 @@ protected
   end
 
   module Formatter
-    def to_table
+    def to_table(title)
       rows = map(&:values)
 
       table = Terminal::Table.new do |t|
@@ -59,7 +59,7 @@ protected
       body = to_s.force_encoding("UTF-8")
       footer = "#{table.rows.size} of #{total} rows | #{(job.ended_at - job.started_at).round(3)} seconds | #{total_bytes.to_s(:human_size)} (cached: #{cache_hit?})"
 
-      "```\n#{table}\n#{footer}```"
+      "```\n#{title}\n#{table}\n#{footer}```"
     end
   end
 end
