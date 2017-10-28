@@ -279,7 +279,7 @@ module Fumimi::Commands
 
     query = <<-SQL
       SELECT
-        added_tag AS tag, category_name AS type, updater_id AS creator_id, count, updated_at AS created_at, post_id
+        added_tag AS tag, category_name AS type, count, updater_id AS creator_id, updated_at AS created_at, post_id
       FROM `post_versions_flat_part` AS pv
       JOIN `robot-maid-fumimi.danbooru.tags` AS t ON pv.added_tag = t.name
       WHERE added_tag = '#{tag}'
@@ -287,7 +287,7 @@ module Fumimi::Commands
       LIMIT 1;
     SQL
 
-    event.send_message bq.query(query).to_table("Creator of #{tag}")
+    event.send_message bq.query(query).to_table("Creator of '#{tag}'")
 
     query = <<-SQL
       SELECT
@@ -301,7 +301,7 @@ module Fumimi::Commands
         added_tag = '#{tag}' OR removed_tag = '#{tag}'
       GROUP BY updater_id
       ORDER BY 4 DESC
-      LIMIT 50;
+      LIMIT 10;
     SQL
 
     event.send_message bq.query(query).to_table
