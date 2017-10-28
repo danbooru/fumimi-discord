@@ -29,13 +29,16 @@ class BQ
 protected
 
   def resolve_user_ids!(results)
-    user_ids = results.map { |row| row[:updater_id] || 13 }.uniq
+    id_field = /(updater|creator|user)_id/
+
+    id_fields = results.headers.grep(id_field)
+    user_ids = results.map { |row| row.values_at(*id_fields) }.flatten.compact.sort.uniq
     users = booru.users.search(id: user_ids.join(","))
 
     results.map! do |row|
       row.map do |k, v|
-        if k == :updater_id
-          [:updater, users.find { |user| user.id == v }.try(:name) || "MD Anonymous"]
+        if k =~ id_field
+          [$1.to_sym, users.find { |user| user.id == v }.try(:name) || "MD Anonymous"]
         else
           [k, v]
         end
