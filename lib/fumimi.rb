@@ -362,7 +362,8 @@ module Fumimi::Commands
       LIMIT 1;
     SQL
 
-    event.send_message bq.query(query).to_table("Creator of '#{tag}'")
+    results = bq.query(query).resolve_user_ids!(booru)
+    event.send_message(results.to_table("Creator of '#{tag}'"))
 
     query = <<-SQL
       SELECT
@@ -379,7 +380,24 @@ module Fumimi::Commands
       LIMIT 10;
     SQL
 
-    event.send_message bq.query(query).to_table
+    results = bq.query(query).resolve_user_ids!(booru)
+    event.send_message(results.to_table("'#{tag}' Usage By User"))
+
+    query = <<-SQL
+      SELECT
+        EXTRACT(year FROM updated_at) AS year,
+        COUNTIF(added_tag = '#{tag}') AS added_count,
+        COUNTIF(removed_tag = '#{tag}') AS removed_count,
+        COUNTIF(added_tag = '#{tag}' OR removed_tag = '#{tag}') AS total_count
+      FROM
+        `post_versions_flat_part`
+      WHERE
+        added_tag = '#{tag}' OR removed_tag = '#{tag}'
+      GROUP BY year
+      ORDER BY 1 ASC;
+    SQL
+
+    event.send_message bq.query(query).to_table("'#{tag}' Usage By Year")
   rescue StandardError, RestClient::Exception => e
     event.drain
     event << "Exception: #{e.to_s}.\n"
