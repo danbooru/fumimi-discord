@@ -23,6 +23,11 @@ require "pry-byebug"
 
 Dotenv.load
 
+DB = Sequel.sqlite
+Post = DB["danbooru-data.danbooru.posts".to_sym]
+PostTags = DB["robot-maid-fumimi.danbooru.post_tags".to_sym]
+PostVersionFlat = DB["danbooru-1343.danbooru.post_versions_flat_part".to_sym]
+
 module Fumimi::Events
   def do_post_id(event)
     post_ids = event.text.scan(/post #[0-9]+/i).grep(/([0-9]+)/) { $1.to_i }
@@ -272,6 +277,25 @@ module Fumimi::Commands
     event << "https://i.imgur.com/0CsFWP3.png"
   end
 
+  def do_search(event, *args)
+    show_loading_message(event)
+    tags = args
+
+    posts = Post.select(:id).reverse(:id)
+    tags.each do |tag|
+      posts = posts.where(id: PostTags.select(:post_id).where(name: tag))
+    end
+
+    results = bq.query(posts.sql, max: 800)
+    post_ids = results.take(800).flat_map(&:values).join(",")
+
+    event << "#{tags}: 0 - #{post_ids.size} of #{results.total} posts"
+    event << "https://danbooru.donmai.us/posts?tags=id:#{post_ids}"
+  rescue StandardError, RestClient::Exception => e
+    event.drain
+    event << "Exception: #{e.to_s}.\n"
+    event << "https://i.imgur.com/0CsFWP3.png"
+  end
   def do_tag(event, *args)
     show_loading_message(event)
 
@@ -427,6 +451,7 @@ class Fumimi
     bot.command(:random, description: "Show a random post: `/random <tags>`", &method(:do_random))
     bot.command(:stats, description: "Query various stats: `/stats help`", &method(:do_stats))
     bot.command(:tag, description: "Show tag information: `/tag <name>`", &method(:do_tag))
+    bot.command(:search, description: "Search posts on BigQuery: `/search <tags>`", &method(:do_search))
     bot.command(:bq, description: "Run a query on BigQuery: `/bq <query>`", &method(:do_bq))
     bot.command(:top, description: "Show leaderboards: `/top help`", &method(:do_top))
     bot.command(:sql, help_available: false, &method(:do_sql))
