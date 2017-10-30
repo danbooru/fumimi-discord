@@ -252,14 +252,95 @@ module Fumimi::Commands
         LIMIT 20;
       SQL
 
-      show_loading_message(event)
-      event << bq.query(query).to_table
-    else
-      event << "Usage:\n"
-      event << "`/top uploaders in last <day|week|month>`"
-      #event << "`/top taggers in last <day|week|month>`"
-      return
+      results = bq.query(query).resolve_user_ids!(booru)
+      event << results.to_table("Top Uploaders in Last #{args[3].capitalize}")
+    elsif args[0] == "taggers"
+      query = <<-SQL
+        SELECT
+          updater_id AS user_id,
+          COUNTIF(added_tag IS NOT NULL) as tags_added,
+          COUNTIF(removed_tag IS NOT NULL) as tags_removed,
+          COUNT(DISTINCT post_id) AS posts_edited,
+          COUNTIF(added_tag IS NOT NULL OR removed_tag IS NOT NULL) AS total_tags
+        FROM `post_versions_flat_part`
+        WHERE
+          updated_at >= TIMESTAMP_SUB(CURRENT_TIMESTAMP, #{period})
+          AND version > 1
+        GROUP BY updater_id
+        ORDER BY 5 DESC
+        LIMIT 20;
+      SQL
+
+      results = bq.query(query).resolve_user_ids!(booru)
+      event << results.to_table("Top Taggers in Last #{args[3].capitalize} (excluding tags on uploads)")
+    elsif args[0] == "tags"
+      cutoff = case args[3]
+        when "day"   then 1.0
+        when "week"  then 2.0
+        when "month" then 3.0
+        else 20.0
+      end
+
+      query = <<-SQL
+        WITH
+          added_tag_counts AS (
+            SELECT added_tag AS tag, COUNT(*) AS added
+            FROM `post_versions_flat_part`
+            WHERE updated_at BETWEEN TIMESTAMP_SUB(CURRENT_TIMESTAMP, #{period}) AND CURRENT_TIMESTAMP
+            GROUP BY added_tag
+          ),
+          removed_tag_counts AS (
+            SELECT removed_tag AS tag, COUNT(*) AS removed
+            FROM `post_versions_flat_part`
+            WHERE updated_at BETWEEN TIMESTAMP_SUB(CURRENT_TIMESTAMP, #{period}) AND CURRENT_TIMESTAMP
+            GROUP BY removed_tag
+          ),
+          total_tag_counts AS (
+            SELECT COALESCE(added_tag, removed_tag) AS tag, COUNTIF(added_tag IS NOT NULL) - COUNTIF(removed_tag IS NOT NULL) AS count
+            FROM `post_versions_flat_part`
+            GROUP BY COALESCE(added_tag, removed_tag)
+          ),
+          tag_stats AS (
+            SELECT
+              atc.tag AS tag,
+              (CASE WHEN category = 0 THEN 'general' WHEN category = 1 THEN 'artist' WHEN category = 3 THEN 'copyright' WHEN category = 4 THEN 'character' ELSE 'unknown' END) AS category_name,
+              COALESCE(added, 0) AS added,
+              COALESCE(removed, 0) AS removed,
+              COALESCE(ttc.count, 0) AS count
+            FROM added_tag_counts atc
+            LEFT OUTER JOIN removed_tag_counts rtc ON rtc.tag = atc.tag
+            LEFT OUTER JOIN total_tag_counts ttc ON atc.tag = ttc.tag
+            LEFT OUTER JOIN `tags` AS tags ON atc.tag = tags.name
+          )
+        SELECT
+          tag,
+          category_name,
+          -- added,
+          -- removed,
+          added - removed AS net_change
+          -- count AS total_count,
+          -- ROUND(SAFE_DIVIDE(count, (count - (added - removed))) * 100 - 100, 1) AS percentage_change --- XXX safe divide returns NULLs instead of infinity, which sorts last.
+        FROM tag_stats
+        WHERE
+          NOT REGEXP_CONTAINS(tag, '^(source|parent):')
+          -- AND category_name = 'general'
+          -- AND count - (added - removed) == 0 -- include only new tags
+          AND ABS(ROUND(IEEE_DIVIDE(count, (count - (added - removed))) * 100 - 100, 1)) > #{cutoff} -- exclude large tags
+        ORDER BY
+          ABS(net_change) DESC
+          -- percentage_change DESC
+        LIMIT 200;
+      SQL
+
+      results = bq.query(query)
+      event << results.to_table("Top Tags in Last #{args[3].capitalize} (cutoff: >#{cutoff}% net change)")
     end
+  #rescue ArgumentError => e
+  #  event.drain
+  #  event << "Usage:\n"
+  #  event << "`/top uploaders in last <day|week|month|year>`"
+  #  event << "`/top taggers in last <day|week|month|year>`"
+  #  event << "`/top tags in last <day|week|month|year>`"
   rescue StandardError => e
     event.drain
     event << "Exception: #{e.to_s}.\n"
