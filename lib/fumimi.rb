@@ -296,6 +296,57 @@ module Fumimi::Commands
     event << "Exception: #{e.to_s}.\n"
     event << "https://i.imgur.com/0CsFWP3.png"
   end
+
+  def do_user(event, *args)
+    raise ArgumentError unless args.size == 1
+    show_loading_message(event)
+
+    username = args[0]
+    user_id = booru.users.search(name: username).first.try(:id) or raise ArgumentError, "invalid username"
+
+    query = <<-SQL
+      WITH
+        added_tags AS (
+          SELECT
+            added_tag AS tag,
+            COUNT(*) AS added
+          FROM `post_versions_flat_part`
+          WHERE
+            updater_id = #{user_id}
+            AND added_tag IS NOT NULL
+            AND NOT REGEXP_CONTAINS(added_tag, '^(source|parent):')
+          GROUP BY added_tag
+        ),
+        removed_tags AS (
+          SELECT
+            removed_tag AS tag,
+            COUNT(*) AS removed
+          FROM `post_versions_flat_part`
+          WHERE
+            updater_id = #{user_id} 
+            AND removed_tag IS NOT NULL
+            AND NOT REGEXP_CONTAINS(removed_tag, '^(source|parent):')
+          GROUP BY removed_tag
+        )
+
+      SELECT
+        added_tags.tag,
+        added,
+        removed,
+        added + removed AS total
+      FROM added_tags
+      LEFT OUTER JOIN removed_tags ON added_tags.tag = removed_tags.tag
+      ORDER BY 4 DESC;
+    SQL
+
+    results = bq.query(query).resolve_user_ids!(booru)
+    event << results.to_table("Top Tags Used by #{username}")
+  rescue StandardError, RestClient::Exception => e
+    event.drain
+    event << "Exception: #{e.to_s}.\n"
+    event << "https://i.imgur.com/0CsFWP3.png"
+  end
+
   def do_tag(event, *args)
     show_loading_message(event)
 
@@ -451,6 +502,7 @@ class Fumimi
     bot.command(:random, description: "Show a random post: `/random <tags>`", &method(:do_random))
     bot.command(:stats, description: "Query various stats: `/stats help`", &method(:do_stats))
     bot.command(:tag, description: "Show tag information: `/tag <name>`", &method(:do_tag))
+    bot.command(:user, description: "Show information about user: `/user <name>`", &method(:do_user))
     bot.command(:search, description: "Search posts on BigQuery: `/search <tags>`", &method(:do_search))
     bot.command(:bq, description: "Run a query on BigQuery: `/bq <query>`", &method(:do_bq))
     bot.command(:top, description: "Show leaderboards: `/top help`", &method(:do_top))
