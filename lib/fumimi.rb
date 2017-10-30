@@ -227,27 +227,26 @@ module Fumimi::Commands
   end
 
   def do_top(event, *args)
-    if args.size == 4 && args[0..2] == %w[uploaders in last]
-      period = case args[3]
-      when "month"
-        "INTERVAL 30 DAY"
-      when "week"
-        "INTERVAL 7 DAY"
-      else
-        "INTERVAL 1 DAY"
-      end
+    raise ArgumentError unless args.join(" ") =~ /^(tags|taggers|uploaders) in last (day|week|month|year)$/i
+    show_loading_message(event)
 
+    period = case args[3]
+      when "year"  then "INTERVAL 365 DAY"
+      when "month" then "INTERVAL 30 DAY"
+      when "week"  then "INTERVAL 7 DAY"
+      else "INTERVAL 1 DAY"
+    end
+
+    if args[0] == "uploaders"
       query = <<-SQL
         SELECT
-          updater_id,
+          updater_id AS uploader_id,
           COUNT(DISTINCT post_id) as uploads
-        FROM
-          `post_versions_flat_part`
+        FROM `post_versions_flat_part`
         WHERE
           updated_at >= TIMESTAMP_SUB(CURRENT_TIMESTAMP, #{period})
           AND version = 1
-        GROUP BY
-          updater_id
+        GROUP BY updater_id
         ORDER BY uploads DESC
         LIMIT 20;
       SQL
