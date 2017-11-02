@@ -4,23 +4,27 @@ require "terminal-table"
 class Fumimi::BQ
   class BigQueryError < StandardError; end
 
-  attr_reader :bq, :project, :dataset, :booru, :timeout
+  attr_reader :bq, :project, :dataset, :booru
 
-  def initialize(project:, dataset:, booru:, timeout: 60000)
+  def initialize(project:, dataset:, booru:, timeout: 60)
     @project, @dataset, @booru, @timeout = project, dataset, booru, timeout
-    @bq = Google::Cloud::Bigquery.new
+    @bq = Google::Cloud::Bigquery.new(timeout: timeout)
   end
 
   def exec(query, **params)
-    results = bq.query(query, project: project, dataset: dataset, standard_sql: true, timeout: timeout, **params)
-    raise BigQueryError if results.job.failed?
+    job = bq.query_job(query, project: project, dataset: dataset, standard_sql: true, params: params)
+    job.wait_until_done!
+    raise BigQueryError if job.failed?
 
-    results
+    job
   end
 
   def query(query, **params)
-    results = exec(query, **params)
+    job = exec(query, **params)
+
+    results = job.query_results
     results.extend(BQMethods)
+    results.instance_eval { @job = job }
 
     results
   end
@@ -30,7 +34,7 @@ class Fumimi::BQ
       rows = map(&:values)
 
       table = Terminal::Table.new do |t|
-        t.headings = first.keys
+        t.headings = first.try(:keys)
 
         rows.each do |row|
           t << row
@@ -39,7 +43,7 @@ class Fumimi::BQ
       end
 
       body = to_s.force_encoding("UTF-8")
-      footer = "#{table.rows.size} of #{total} rows | #{(job.ended_at - job.started_at).round(3)} seconds | #{total_bytes.to_s(:human_size)} (cached: #{cache_hit?})"
+      footer = "#{table.rows.size} of #{total} rows | #{(@job.ended_at - @job.started_at).round(3)} seconds | #{@job.bytes_processed.to_s(:human_size)} | cached: #{@job.cache_hit?}"
 
       "```\n#{title}\n#{table}\n#{footer}```"
     end
