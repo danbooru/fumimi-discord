@@ -5,10 +5,10 @@ require "fumimi/util"
 class Fumimi::BQ
   class BigQueryError < StandardError; end
 
-  attr_reader :bq, :project, :dataset, :booru
+  attr_reader :bq, :project, :dataset
 
-  def initialize(project:, dataset:, booru:, timeout: 60)
-    @project, @dataset, @booru, @timeout = project, dataset, booru, timeout
+  def initialize(project:, dataset:, timeout: 60)
+    @project, @dataset, @timeout = project, dataset, timeout
     @bq = Google::Cloud::Bigquery.new(timeout: timeout)
   end
 

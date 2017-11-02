@@ -592,7 +592,7 @@ class Fumimi
     @log = RestClient.log = log
 
     @booru = Danbooru.new
-    @bq = Fumimi::BQ.new(booru: @booru, project: "danbooru-1343", dataset: "danbooru_production")
+    @bq = Fumimi::BQ.new(project: "danbooru-1343", dataset: "danbooru_production")
   end
 
   def server
