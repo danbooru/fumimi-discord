@@ -1,5 +1,6 @@
 require "google/cloud/bigquery"
 require "terminal-table"
+require "fumimi/util"
 
 class Fumimi::BQ
   class BigQueryError < StandardError; end
@@ -42,9 +43,14 @@ class Fumimi::BQ
         end
       end
 
+      tables = @job.stats["query"]["referencedTables"].map do |table|
+        Google::Cloud::Bigquery.new(project: table["projectId"]).dataset(table["datasetId"]).table(table["tableId"])
+      end
+      last_updated = tables.map(&:modified_at).min
+
       body = to_s.force_encoding("UTF-8")
       cost = 0.005 * @job.bytes_processed.to_f / (2**30) # 0.5 cents per gibibyte (https://cloud.google.com/bigquery/pricing#on_demand_pricing)
-      footer = "#{table.rows.size} of #{total} rows | #{(@job.ended_at - @job.started_at).round(3)} seconds | #{@job.bytes_processed.to_s(:human_size)} ($#{cost.round(2)}) | cached: #{@job.cache_hit?}"
+      footer = "#{table.rows.size} of #{total} rows (updated #{last_updated.to_pretty}) | #{(@job.ended_at - @job.started_at).round(1)} seconds | #{@job.bytes_processed.to_s(:human_size)} ($#{cost.round(2)})"
 
       "```\n#{title}\n#{table}\n#{footer}```"
     end
