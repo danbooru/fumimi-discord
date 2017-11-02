@@ -60,5 +60,11 @@ class Danbooru
         id = items.last.id
       end
     end
+
+    def export
+      each do |model|
+        puts model.to_json
+      end
+    end
   end
 end

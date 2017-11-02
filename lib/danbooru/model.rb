@@ -26,5 +26,9 @@ class Danbooru
       timestamp = "#{created_at.strftime("%F")} at #{created_at.strftime("%l:%M %p")}"
       Discordrb::Webhooks::EmbedFooter.new(text: timestamp)
     end
+
+    def to_json
+      to_h.to_json
+    end
   end
 end
