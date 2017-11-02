@@ -236,6 +236,13 @@ module Fumimi::Commands
     event << "https://i.imgur.com/0CsFWP3.png"
   end
 
+  def do_time(event, *args)
+    # format: Thu, Nov 02 2017  6:11 PM CDT
+    Time.use_zone("US/Pacific")    { event << "`US (west): #{Time.current.strftime("%a, %b %d %Y %l:%M %p %Z")}`" }
+    Time.use_zone("US/Eastern")    { event << "`US (east): #{Time.current.strftime("%a, %b %d %Y %l:%M %p %Z")}`" }
+    Time.use_zone("Europe/Berlin") { event << "`Europe:    #{Time.current.strftime("%a, %b %d %Y %l:%M %p %Z")}`" }
+  end
+
   def do_top(event, *args)
     raise ArgumentError unless args.join(" ") =~ /^(tags|taggers|uploaders) in last (day|week|month|year)$/i
     show_loading_message(event)
@@ -623,6 +630,7 @@ class Fumimi
     bot.command(:search, description: "Search posts on BigQuery: `/search <tags>`", &method(:do_search))
     bot.command(:bq, description: "Run a query on BigQuery: `/bq <query>`", &method(:do_bq))
     bot.command(:top, description: "Show leaderboards: `/top help`", &method(:do_top))
+    bot.command(:time, description: "Show current time in various time zones across the world", &method(:do_time))
     bot.command(:sql, help_available: false, &method(:do_sql))
     bot.command(:say, help_available: false, &method(:do_say))
   end
