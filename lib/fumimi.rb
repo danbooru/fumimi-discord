@@ -215,10 +215,19 @@ module Fumimi::Commands
     @pg = PG::Connection.open(dbname: "danbooru2")
     results = @pg.exec(sql)
 
-    table = format_table(results.fields, results.map(&:values))
+    headers = results.fields
+    rows = results.map(&:values)
+    table = Terminal::Table.new do |t|
+      t.headings = headers
+
+      rows.each do |row|
+        t << row
+        break if t.to_s.size >= 1600
+      end
+    end
 
     event << "```"
-    event << table.to_s
+    event << table.to_s.force_encoding("UTF-8")
     event << "#{table.rows.size} of #{results.ntuples} rows"
     event << "```"
   rescue StandardError => e
