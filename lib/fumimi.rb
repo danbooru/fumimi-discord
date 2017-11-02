@@ -20,13 +20,14 @@ require "dotenv"
 require "pg"
 require "pry"
 require "pry-byebug"
+require "sequel"
 
 Dotenv.load
 
 DB = Sequel.sqlite
 Post = DB["danbooru-data.danbooru.posts".to_sym]
 PostTags = DB["robot-maid-fumimi.danbooru.post_tags".to_sym]
-PostVersionFlat = DB["danbooru-1343.danbooru.post_versions_flat_part".to_sym]
+PostVersionFlat = DB["danbooru-1343.danbooru_production.post_versions_flat_part".to_sym]
 
 module Fumimi::Events
   def do_post_id(event)
