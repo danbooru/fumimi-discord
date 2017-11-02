@@ -1,7 +1,7 @@
 require "google/cloud/bigquery"
 require "terminal-table"
 
-class BQ
+class Fumimi::BQ
   class BigQueryError < StandardError; end
 
   attr_reader :bq, :project, :dataset, :booru, :timeout

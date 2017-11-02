@@ -1,4 +1,5 @@
 require "fumimi/version"
+require "fumimi/bq"
 require "danbooru/resource"
 
 require "danbooru"
@@ -8,7 +9,6 @@ require "danbooru/forum_post"
 require "danbooru/post"
 require "danbooru/tag"
 require "danbooru/wiki"
-require "bq"
 
 require "active_support"
 require "active_support/core_ext/hash/indifferent_access"
@@ -585,7 +585,7 @@ class Fumimi
     @log = RestClient.log = log
 
     @booru = Danbooru.new
-    @bq = BQ.new(booru: @booru, project: "danbooru-1343", dataset: "danbooru_production")
+    @bq = Fumimi::BQ.new(booru: @booru, project: "danbooru-1343", dataset: "danbooru_production")
   end
 
   def server
