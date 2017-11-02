@@ -369,11 +369,20 @@ module Fumimi::Commands
 
   def do_search(event, *args)
     show_loading_message(event)
-    tags = args
+
+    updater_id = args[0].to_i
+    changed_tag = args[1]
+    tags = args[2..-1]
 
     posts = Post.select(:id).reverse(:id)
     tags.each do |tag|
       posts = posts.where(id: PostTags.select(:post_id).where(name: tag))
+    end
+
+    if changed_tag =~ /^-(.*)/
+      posts = posts.where(id: PostVersionFlat.select(:post_id).where(removed_tag: $1, updater_id: updater_id))
+    else
+      posts = posts.where(id: PostVersionFlat.select(:post_id).where(added_tag: changed_tag, updater_id: updater_id))
     end
 
     results = bq.query(posts.sql, max: 800)
