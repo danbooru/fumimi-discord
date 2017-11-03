@@ -11,6 +11,7 @@ require "danbooru/tag"
 require "danbooru/wiki"
 
 require "active_support"
+require "active_support/core_ext/array/grouping"
 require "active_support/core_ext/hash/indifferent_access"
 require "active_support/core_ext/object/blank"
 require "active_support/core_ext/numeric/conversions"
@@ -347,12 +348,19 @@ module Fumimi::Commands
     posts = posts.where(id: post_versions) if tags.grep(/^(tagger|added|removed):(.*)$/).any?
 
     show_loading_message(event)
-    results = bq.exec(posts.sql).data(max: 250)
-    post_ids = results.take(250).flat_map(&:values)
-    url = "https://danbooru.donmai.us/posts?tags=id:#{post_ids.join(",")}"
-    short_url = bitly.shorten(url, domain: "j.mp").short_url
+    results = bq.exec(posts.sql).data(max: 1000)
 
-    event << "`#{tags.join(" ")}` 1 - #{post_ids.size} of #{results.total} posts: #{short_url}"
+    results.take(1000).flat_map(&:values).in_groups_of(250, false).each_with_index do |post_ids, i|
+      url = "https://danbooru.donmai.us/posts?tags=id:#{post_ids.join(",")}"
+      short_url = bitly.shorten(url, domain: "j.mp").short_url
+
+      first = (i*250 + 1).to_s
+      last  = (i*250 + post_ids.size).to_s
+
+      event << "`#{tags.join(" ")} | #{first} - #{last} of #{results.total} posts`: #{short_url}"
+    end
+
+    nil
   rescue StandardError, RestClient::Exception => e
     event.drain
     event << "Exception: #{e.to_s}.\n"
