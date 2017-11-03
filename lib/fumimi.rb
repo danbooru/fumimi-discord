@@ -86,6 +86,19 @@ module Fumimi::Events
 end
 
 module Fumimi::Commands
+  def self.command(name, &block)
+    define_method(:"do_#{name}") do |event, *args|
+      begin
+        show_loading_message(event)
+        instance_exec(event, *args, &block)
+      rescue StandardError, RestClient::Exception => e
+        event.drain
+        event << "Exception: #{e.to_s}.\n"
+        event << "https://i.imgur.com/0CsFWP3.png"
+      end
+    end
+  end
+
   def do_hi(event, *args)
     event.send_message "Command received. Deleting all animes."; sleep 1
 
@@ -322,18 +335,13 @@ module Fumimi::Commands
     event << "https://i.imgur.com/0CsFWP3.png"
   end
 
-  def do_user(event, *args)
+  command :user do |event, *args|
     raise ArgumentError unless args.size == 1
-    show_loading_message(event)
 
     username = args[0]
     user_id = booru.users.search(name: username).first.try(:id) or raise ArgumentError, "invalid username"
 
     event << bq.top_tags_for_user(user_id).resolve_user_ids!(booru).to_table("Top Tags Used by #{username}")
-  rescue StandardError, RestClient::Exception => e
-    event.drain
-    event << "Exception: #{e.to_s}.\n"
-    event << "https://i.imgur.com/0CsFWP3.png"
   end
 
   def do_tag(event, *args)
