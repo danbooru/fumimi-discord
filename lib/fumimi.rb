@@ -241,6 +241,7 @@ module Fumimi::Commands
     Time.use_zone("US/Pacific")    { event << "`US (west): #{Time.current.strftime("%a, %b %d %Y %l:%M %p %Z")}`" }
     Time.use_zone("US/Eastern")    { event << "`US (east): #{Time.current.strftime("%a, %b %d %Y %l:%M %p %Z")}`" }
     Time.use_zone("Europe/Berlin") { event << "`Europe:    #{Time.current.strftime("%a, %b %d %Y %l:%M %p %Z")}`" }
+    Time.use_zone("Asia/Tokyo")    { event << "`Japan:     #{Time.current.strftime("%a, %b %d %Y %l:%M %p %Z")}`" }
   end
 
   def do_top(event, *args)
