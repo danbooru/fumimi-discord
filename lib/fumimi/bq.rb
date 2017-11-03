@@ -159,7 +159,7 @@ class Fumimi::BQ
           added_tags.tag,
           added,
           removed,
-          added - removed AS net_changed
+          added - removed AS net_change
         FROM added_tags
         LEFT OUTER JOIN removed_tags ON added_tags.tag = removed_tags.tag
         ORDER BY added + removed DESC;
@@ -191,9 +191,9 @@ class Fumimi::BQ
       query = <<-SQL
         SELECT
           #{group_key} AS #{alias_name},
-          COUNTIF(added_tag = @tag) AS added_count,
-          COUNTIF(removed_tag = @tag) AS removed_count,
-          COUNTIF(added_tag = @tag OR removed_tag = @tag) AS total_count
+          COUNTIF(added_tag = @tag) AS added,
+          COUNTIF(removed_tag = @tag) AS removed,
+          COUNTIF(added_tag = @tag OR removed_tag = @tag) AS net_change
         FROM
           `post_versions_flat_part`
         WHERE
