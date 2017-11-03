@@ -308,19 +308,43 @@ module Fumimi::Commands
   def do_search(event, *args)
     tags = args
     posts = Post.select(:id).reverse(:id)
+    post_versions = PostVersionFlat.select(:post_id)
 
     tags.each do |tag|
       case tag.downcase
+      when /^tagger:(.*)$/
+        username = $1
+        user_id = booru.users.search(name: username).first.try(:id) or raise ArgumentError, "invalid username"
+        post_versions = post_versions.where(updater_id: user_id)
+      end
+    end
+
+    tags.each do |tag|
+      case tag.downcase
+      when /^rating:([sqe]).*$/
+        posts = posts.where(rating: $1)
+      when /^user:(.*)$/
+        username = $1
+        user_id = booru.users.search(name: username).first.try(:id) or raise ArgumentError, "invalid username"
+        posts = posts.where(uploader_id: user_id)
+      when /^approver:(.*)$/
+        username = $1
+        user_id = booru.users.search(name: username).first.try(:id) or raise ArgumentError, "invalid username"
+        posts = posts.where(approver_id: user_id)
       when /^removed:(.*)$/
-        posts = posts.where(id: PostVersionFlat.select(:post_id).where(removed_tag: $1))
+        post_versions = post_versions.where(removed_tag: $1)
       when /^added:(.*)$/
-        posts = posts.where(id: PostVersionFlat.select(:post_id).where(added_tag: $1))
+        post_versions = post_versions.where(added_tag: $1)
       when /^-(.*)$/
         posts = posts.where { id !~ Post.select(Sequel.qualify(:"danbooru-data.danbooru.posts", :id)).cross_join(Sequel.lit("UNNEST(tags)")).where("name": $1) }
+      when /^tagger:(.*)$/
+        # no op
       else
         posts = posts.where { id =~ Post.select(Sequel.qualify(:"danbooru-data.danbooru.posts", :id)).cross_join(Sequel.lit("UNNEST(tags)")).where("name": tag) }
       end
     end
+
+    posts = posts.where(id: post_versions) if tags.grep(/^(tagger|added|removed):(.*)$/).any?
 
     show_loading_message(event)
     results = bq.exec(posts.sql).data(max: 250)
@@ -328,7 +352,7 @@ module Fumimi::Commands
     url = "https://danbooru.donmai.us/posts?tags=id:#{post_ids.join(",")}"
     short_url = bitly.shorten(url, domain: "j.mp").short_url
 
-    event << "Search: `#{tags.join(" ")}`\n\n1 - #{post_ids.size} of #{results.total} posts: #{short_url}"
+    event << "`#{tags.join(" ")}` 1 - #{post_ids.size} of #{results.total} posts: #{short_url}"
   rescue StandardError, RestClient::Exception => e
     event.drain
     event << "Exception: #{e.to_s}.\n"
