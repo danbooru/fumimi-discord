@@ -33,13 +33,14 @@ class Fumimi::BQ
   module BQMethods
     def to_table(title="")
       rows = map(&:values)
+      footer_size = "XXXX of #{total} rows (updated XXm ago) | XXXX seconds | X.XX GB ($X.XX)".size
 
       table = Terminal::Table.new do |t|
         t.headings = first.try(:keys)
 
         rows.each do |row|
           t << row
-          break if t.to_s.size >= 1600
+          break if title.size + t.to_s.size + footer_size >= 1900
         end
       end
 
@@ -48,11 +49,10 @@ class Fumimi::BQ
       end
       last_updated = tables.map(&:modified_at).min
 
-      body = to_s.force_encoding("UTF-8")
       cost = 0.005 * @job.bytes_processed.to_f / (2**30) # 0.5 cents per gibibyte (https://cloud.google.com/bigquery/pricing#on_demand_pricing)
       footer = "#{table.rows.size} of #{total} rows (updated #{last_updated.to_pretty}) | #{(@job.ended_at - @job.started_at).round(1)} seconds | #{@job.bytes_processed.to_s(:human_size)} ($#{cost.round(2)})"
 
-      "```\n#{title}\n#{table}\n#{footer}```"
+      "```\n#{title}\n#{table}\n#{footer}```".force_encoding("UTF-8")
     end
 
     def resolve_user_ids!(booru)
