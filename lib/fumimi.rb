@@ -340,7 +340,7 @@ module Fumimi::Commands
     results = bq.tag_creator(tag).resolve_user_ids!(booru)
     event.send_message(results.to_table("Creator of '#{tag}'"))
 
-    results = bq.tag_usage_by_group(tag, "updater_id", "updater_id", "total_count DESC").resolve_user_ids!(booru)
+    results = bq.tag_usage_by_group(tag, "updater_id", "updater_id", "net_change DESC").resolve_user_ids!(booru)
     event.send_message(results.to_table("'#{tag}' Usage By User"))
 
     results = bq.tag_usage_by_group(tag, "EXTRACT(year FROM updated_at)", "year", "year ASC").resolve_user_ids!(booru)
