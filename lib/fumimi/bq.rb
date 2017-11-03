@@ -159,10 +159,10 @@ class Fumimi::BQ
           added_tags.tag,
           added,
           removed,
-          added + removed AS total
+          added - removed AS net_changed
         FROM added_tags
         LEFT OUTER JOIN removed_tags ON added_tags.tag = removed_tags.tag
-        ORDER BY 4 DESC;
+        ORDER BY added + removed DESC;
       SQL
 
       query(query, user_id: user_id)
