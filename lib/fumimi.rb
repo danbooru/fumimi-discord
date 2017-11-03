@@ -26,9 +26,8 @@ require "sequel"
 Dotenv.load
 
 DB = Sequel.sqlite
-Post = DB["danbooru-data.danbooru.posts".to_sym]
-PostTags = DB["robot-maid-fumimi.danbooru.post_tags".to_sym]
-PostVersionFlat = DB["danbooru-1343.danbooru_production.post_versions_flat_part".to_sym]
+Post = DB[:"danbooru-data.danbooru.posts"]
+PostVersionFlat = DB[:"danbooru-1343.danbooru_production.post_versions_flat_part"]
 
 module Fumimi::Events
   def do_post_id(event)
@@ -298,12 +297,12 @@ module Fumimi::Commands
 
     tags.each do |tag|
       case tag
-      when /tagged:-(.*)/
+      when /removed:(.*)/
         posts = posts.where(id: PostVersionFlat.select(:post_id).where(removed_tag: $1))
-      when /tagged:(.*)/
+      when /added:(.*)/
         posts = posts.where(id: PostVersionFlat.select(:post_id).where(added_tag: $1))
       else
-        posts = posts.where(id: PostTags.select(:post_id).where(name: tag))
+        posts = posts.where(id: Post.select(Sequel.qualify(:"danbooru-data.danbooru.posts", :id)).cross_join(Sequel.lit("UNNEST(tags)")).where("name": tag))
       end
     end
 
