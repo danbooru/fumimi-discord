@@ -15,7 +15,7 @@ class Fumimi::BQ
   def exec(query, **params)
     job = bq.query_job(query, project: project, dataset: dataset, standard_sql: true, params: params)
     job.wait_until_done!
-    raise BigQueryError if job.failed?
+    raise BigQueryError.new(job.errors.map { |e| e["message"] }.join("\n")) if job.failed?
 
     job
   end
