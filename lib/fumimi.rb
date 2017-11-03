@@ -248,47 +248,16 @@ module Fumimi::Commands
     show_loading_message(event)
 
     period = case args[3]
-      when "year"  then "INTERVAL 365 DAY"
-      when "month" then "INTERVAL 30 DAY"
-      when "week"  then "INTERVAL 7 DAY"
-      else "INTERVAL 1 DAY"
+      when "year"  then (1.year.ago..Time.current)
+      when "month" then (1.month.ago..Time.current)
+      when "week"  then (1.week.ago..Time.current)
+      else              (1.day.ago..Time.current)
     end
 
     if args[0] == "uploaders"
-      query = <<-SQL
-        SELECT
-          updater_id AS uploader_id,
-          COUNT(DISTINCT post_id) as uploads
-        FROM `post_versions_flat_part`
-        WHERE
-          updated_at >= TIMESTAMP_SUB(CURRENT_TIMESTAMP, #{period})
-          AND version = 1
-        GROUP BY updater_id
-        ORDER BY uploads DESC
-        LIMIT 20;
-      SQL
-
-      results = bq.query(query).resolve_user_ids!(booru)
-      event << results.to_table("Top Uploaders in Last #{args[3].capitalize}")
+      event << bq.top_uploaders(period).resolve_user_ids!(booru).to_table("Top Uploaders in Last #{args[3].capitalize}")
     elsif args[0] == "taggers"
-      query = <<-SQL
-        SELECT
-          updater_id AS user_id,
-          COUNTIF(added_tag IS NOT NULL) as tags_added,
-          COUNTIF(removed_tag IS NOT NULL) as tags_removed,
-          COUNT(DISTINCT post_id) AS posts_edited,
-          COUNTIF(added_tag IS NOT NULL OR removed_tag IS NOT NULL) AS total_tags
-        FROM `post_versions_flat_part`
-        WHERE
-          updated_at >= TIMESTAMP_SUB(CURRENT_TIMESTAMP, #{period})
-          AND version > 1
-        GROUP BY updater_id
-        ORDER BY 5 DESC
-        LIMIT 20;
-      SQL
-
-      results = bq.query(query).resolve_user_ids!(booru)
-      event << results.to_table("Top Taggers in Last #{args[3].capitalize} (excluding tags on uploads)")
+      event <<  bq.top_taggers(period).resolve_user_ids!(booru).to_table("Top Taggers in Last #{args[3].capitalize} (excluding tags on uploads)")
     elsif args[0] == "tags"
       cutoff = case args[3]
         when "day"   then 1.0
@@ -297,59 +266,7 @@ module Fumimi::Commands
         else 20.0
       end
 
-      query = <<-SQL
-        WITH
-          added_tag_counts AS (
-            SELECT added_tag AS tag, COUNT(*) AS added
-            FROM `post_versions_flat_part`
-            WHERE updated_at BETWEEN TIMESTAMP_SUB(CURRENT_TIMESTAMP, #{period}) AND CURRENT_TIMESTAMP
-            GROUP BY added_tag
-          ),
-          removed_tag_counts AS (
-            SELECT removed_tag AS tag, COUNT(*) AS removed
-            FROM `post_versions_flat_part`
-            WHERE updated_at BETWEEN TIMESTAMP_SUB(CURRENT_TIMESTAMP, #{period}) AND CURRENT_TIMESTAMP
-            GROUP BY removed_tag
-          ),
-          total_tag_counts AS (
-            SELECT COALESCE(added_tag, removed_tag) AS tag, COUNTIF(added_tag IS NOT NULL) - COUNTIF(removed_tag IS NOT NULL) AS count
-            FROM `post_versions_flat_part`
-            GROUP BY COALESCE(added_tag, removed_tag)
-          ),
-          tag_stats AS (
-            SELECT
-              atc.tag AS tag,
-              (CASE WHEN category = 0 THEN 'general' WHEN category = 1 THEN 'artist' WHEN category = 3 THEN 'copyright' WHEN category = 4 THEN 'character' ELSE 'unknown' END) AS category_name,
-              COALESCE(added, 0) AS added,
-              COALESCE(removed, 0) AS removed,
-              COALESCE(ttc.count, 0) AS count
-            FROM added_tag_counts atc
-            LEFT OUTER JOIN removed_tag_counts rtc ON rtc.tag = atc.tag
-            LEFT OUTER JOIN total_tag_counts ttc ON atc.tag = ttc.tag
-            LEFT OUTER JOIN `tags` AS tags ON atc.tag = tags.name
-          )
-        SELECT
-          tag,
-          category_name,
-          -- added,
-          -- removed,
-          added - removed AS net_change
-          -- count AS total_count,
-          -- ROUND(SAFE_DIVIDE(count, (count - (added - removed))) * 100 - 100, 1) AS percentage_change --- XXX safe divide returns NULLs instead of infinity, which sorts last.
-        FROM tag_stats
-        WHERE
-          NOT REGEXP_CONTAINS(tag, '^(source|parent):')
-          -- AND category_name = 'general'
-          -- AND count - (added - removed) == 0 -- include only new tags
-          AND ABS(ROUND(IEEE_DIVIDE(count, (count - (added - removed))) * 100 - 100, 1)) > #{cutoff} -- exclude large tags
-        ORDER BY
-          ABS(net_change) DESC
-          -- percentage_change DESC
-        LIMIT 200;
-      SQL
-
-      results = bq.query(query)
-      event << results.to_table("Top Tags in Last #{args[3].capitalize} (cutoff: >#{cutoff}% net change)")
+      event << bq.top_tags(period, cutoff).to_table("Top Tags in Last #{args[3].capitalize} (cutoff: >#{cutoff}% net change)")
     end
   #rescue ArgumentError => e
   #  event.drain
@@ -410,43 +327,7 @@ module Fumimi::Commands
     username = args[0]
     user_id = booru.users.search(name: username).first.try(:id) or raise ArgumentError, "invalid username"
 
-    query = <<-SQL
-      WITH
-        added_tags AS (
-          SELECT
-            added_tag AS tag,
-            COUNT(*) AS added
-          FROM `post_versions_flat_part`
-          WHERE
-            updater_id = #{user_id}
-            AND added_tag IS NOT NULL
-            AND NOT REGEXP_CONTAINS(added_tag, '^(source|parent):')
-          GROUP BY added_tag
-        ),
-        removed_tags AS (
-          SELECT
-            removed_tag AS tag,
-            COUNT(*) AS removed
-          FROM `post_versions_flat_part`
-          WHERE
-            updater_id = #{user_id} 
-            AND removed_tag IS NOT NULL
-            AND NOT REGEXP_CONTAINS(removed_tag, '^(source|parent):')
-          GROUP BY removed_tag
-        )
-
-      SELECT
-        added_tags.tag,
-        added,
-        removed,
-        added + removed AS total
-      FROM added_tags
-      LEFT OUTER JOIN removed_tags ON added_tags.tag = removed_tags.tag
-      ORDER BY 4 DESC;
-    SQL
-
-    results = bq.query(query).resolve_user_ids!(booru)
-    event << results.to_table("Top Tags Used by #{username}")
+    event << bq.top_tags_for_user(user_id).resolve_user_ids!(booru).to_table("Top Tags Used by #{username}")
   rescue StandardError, RestClient::Exception => e
     event.drain
     event << "Exception: #{e.to_s}.\n"
@@ -455,55 +336,16 @@ module Fumimi::Commands
 
   def do_tag(event, *args)
     show_loading_message(event)
+    tag = args.join("_").downcase
 
-    tag = args[0].gsub(/'/, "\\'")
-
-    query = <<-SQL
-      SELECT
-        added_tag AS tag, category_name AS type, count, updater_id AS creator_id, updated_at AS created_at, post_id
-      FROM `post_versions_flat_part` AS pv
-      JOIN `robot-maid-fumimi.danbooru.tags` AS t ON pv.added_tag = t.name
-      WHERE added_tag = '#{tag}'
-      ORDER BY updated_at ASC
-      LIMIT 1;
-    SQL
-
-    results = bq.query(query).resolve_user_ids!(booru)
+    results = bq.tag_creator(tag).resolve_user_ids!(booru)
     event.send_message(results.to_table("Creator of '#{tag}'"))
 
-    query = <<-SQL
-      SELECT
-        updater_id,
-        COUNTIF(added_tag = '#{tag}') AS added_count,
-        COUNTIF(removed_tag = '#{tag}') AS removed_count,
-        COUNTIF(added_tag = '#{tag}' OR removed_tag = '#{tag}') AS total_count
-      FROM
-        `post_versions_flat_part`
-      WHERE
-        added_tag = '#{tag}' OR removed_tag = '#{tag}'
-      GROUP BY updater_id
-      ORDER BY 4 DESC
-      LIMIT 10;
-    SQL
-
-    results = bq.query(query).resolve_user_ids!(booru)
+    results = bq.tag_usage_by_group(tag, "updater_id", "updater_id", "total_count DESC").resolve_user_ids!(booru)
     event.send_message(results.to_table("'#{tag}' Usage By User"))
 
-    query = <<-SQL
-      SELECT
-        EXTRACT(year FROM updated_at) AS year,
-        COUNTIF(added_tag = '#{tag}') AS added_count,
-        COUNTIF(removed_tag = '#{tag}') AS removed_count,
-        COUNTIF(added_tag = '#{tag}' OR removed_tag = '#{tag}') AS total_count
-      FROM
-        `post_versions_flat_part`
-      WHERE
-        added_tag = '#{tag}' OR removed_tag = '#{tag}'
-      GROUP BY year
-      ORDER BY 1 ASC;
-    SQL
-
-    event.send_message bq.query(query).to_table("'#{tag}' Usage By Year")
+    results = bq.tag_usage_by_group(tag, "EXTRACT(year FROM updated_at)", "year", "year ASC").resolve_user_ids!(booru)
+    event.send_message(results.to_table("'#{tag}' Usage By Year"))
   rescue StandardError, RestClient::Exception => e
     event.drain
     event << "Exception: #{e.to_s}.\n"
@@ -526,31 +368,8 @@ module Fumimi::Commands
       else categories = [0, 1, 3, 4]
       end
 
-      query = <<-SQL
-        WITH
-          initial_tags AS (
-            SELECT
-              added_tag,
-              MIN(updated_at) AS updated_at
-            FROM
-              `post_versions_flat_part`
-            GROUP BY
-              added_tag
-          )
-        SELECT
-          DISTINCT it.added_tag,
-          t.count
-        FROM `post_versions` AS pv
-        JOIN initial_tags AS it ON pv.updated_at = it.updated_at
-        LEFT OUTER JOIN `tags` AS t ON t.name = added_tag
-        WHERE
-          TRUE
-          AND NOT REGEXP_CONTAINS(added_tag, '^source:|parent:')
-          AND pv.updater_id = #{user.id}
-          AND t.category IN (#{categories.join(",")})
-        ORDER BY count DESC
-        LIMIT 50;
-      SQL
+      show_loading_message(event)
+      event << bq.tags_created_by_user(user.id, categories).to_table("Tags Created By #{username}")
     else
       event << "Usage:\n"
       event << "`/stats longest tags`"
@@ -561,9 +380,6 @@ module Fumimi::Commands
       event << "`/stats copytags created by <username>`"
       return
     end
-
-    show_loading_message(event)
-    event << bq.query(query).to_table
   rescue StandardError => e
     event.drain
     event << "Exception: #{e.to_s}.\n"
