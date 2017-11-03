@@ -3,6 +3,8 @@ require "terminal-table"
 require "fumimi/util"
 
 class Fumimi::BQ
+  MAX_DISCORD_MESSAGE_SIZE = 1800
+
   class BigQueryError < StandardError; end
 
   attr_reader :bq, :project, :dataset
@@ -244,7 +246,7 @@ class Fumimi::BQ
 
         rows.each do |row|
           t << row
-          break if title.size + t.to_s.size + footer_size >= 1900
+          break if title.size + t.to_s.size + footer_size >= MAX_DISCORD_MESSAGE_SIZE
         end
       end
 
