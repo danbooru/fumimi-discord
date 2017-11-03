@@ -296,13 +296,15 @@ module Fumimi::Commands
     posts = Post.select(:id).reverse(:id)
 
     tags.each do |tag|
-      case tag
-      when /removed:(.*)/
+      case tag.downcase
+      when /^removed:(.*)$/
         posts = posts.where(id: PostVersionFlat.select(:post_id).where(removed_tag: $1))
-      when /added:(.*)/
+      when /^added:(.*)$/
         posts = posts.where(id: PostVersionFlat.select(:post_id).where(added_tag: $1))
+      when /^-(.*)$/
+        posts = posts.where { id !~ Post.select(Sequel.qualify(:"danbooru-data.danbooru.posts", :id)).cross_join(Sequel.lit("UNNEST(tags)")).where("name": $1) }
       else
-        posts = posts.where(id: Post.select(Sequel.qualify(:"danbooru-data.danbooru.posts", :id)).cross_join(Sequel.lit("UNNEST(tags)")).where("name": tag))
+        posts = posts.where { id =~ Post.select(Sequel.qualify(:"danbooru-data.danbooru.posts", :id)).cross_join(Sequel.lit("UNNEST(tags)")).where("name": tag) }
       end
     end
 
