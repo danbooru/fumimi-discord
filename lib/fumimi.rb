@@ -15,6 +15,7 @@ require "active_support/core_ext/hash/indifferent_access"
 require "active_support/core_ext/object/blank"
 require "active_support/core_ext/numeric/conversions"
 require "active_support/core_ext/numeric/time"
+require "bitly"
 require "discordrb"
 require "dotenv"
 require "pg"
@@ -292,28 +293,27 @@ module Fumimi::Commands
   end
 
   def do_search(event, *args)
-    show_loading_message(event)
-
-    updater_id = args[0].to_i
-    changed_tag = args[1]
-    tags = args[2..-1]
-
+    tags = args
     posts = Post.select(:id).reverse(:id)
+
     tags.each do |tag|
-      posts = posts.where(id: PostTags.select(:post_id).where(name: tag))
+      case tag
+      when /tagged:-(.*)/
+        posts = posts.where(id: PostVersionFlat.select(:post_id).where(removed_tag: $1))
+      when /tagged:(.*)/
+        posts = posts.where(id: PostVersionFlat.select(:post_id).where(added_tag: $1))
+      else
+        posts = posts.where(id: PostTags.select(:post_id).where(name: tag))
+      end
     end
 
-    if changed_tag =~ /^-(.*)/
-      posts = posts.where(id: PostVersionFlat.select(:post_id).where(removed_tag: $1, updater_id: updater_id))
-    else
-      posts = posts.where(id: PostVersionFlat.select(:post_id).where(added_tag: changed_tag, updater_id: updater_id))
-    end
+    show_loading_message(event)
+    results = bq.exec(posts.sql).data(max: 250)
+    post_ids = results.take(250).flat_map(&:values)
+    url = "https://danbooru.donmai.us/posts?tags=id:#{post_ids.join(",")}"
+    short_url = bitly.shorten(url, domain: "j.mp").short_url
 
-    results = bq.query(posts.sql, max: 800)
-    post_ids = results.take(800).flat_map(&:values).join(",")
-
-    event << "#{tags}: 0 - #{post_ids.size} of #{results.total} posts"
-    event << "https://danbooru.donmai.us/posts?tags=id:#{post_ids}"
+    event << "Search: `#{tags.join(" ")}`\n\n1 - #{post_ids.size} of #{results.total} posts: #{short_url}"
   rescue StandardError, RestClient::Exception => e
     event.drain
     event << "Exception: #{e.to_s}.\n"
@@ -388,7 +388,7 @@ module Fumimi::Commands
 
 protected
   def show_loading_message(event)
-    event.respond "*Fumimi is preparing. Please wait warmly until she is ready. This may take up to 30 seconds.*"
+    event.respond "*Fumimi is preparing. Please wait warmly until she is ready. This may take up to 30 seconds.*\n"
     event.channel.start_typing
   end
 end
@@ -398,10 +398,10 @@ class Fumimi
   include Fumimi::Events
 
   attr_reader :server_id, :client_id, :token, :log
-  attr_reader :bot, :server, :booru, :bq
+  attr_reader :bot, :server, :bitly, :booru, :bq
   attr_reader :initiate_shutdown
 
-  def initialize(server_id:, client_id:, token:, log: Logger.new(STDERR))
+  def initialize(server_id:, client_id:, token:, bitly_username:, bitly_api_key:, log: Logger.new(STDERR))
     @server_id = server_id
     @client_id = client_id
     @token = token
@@ -409,6 +409,7 @@ class Fumimi
 
     @booru = Danbooru.new
     @bq = Fumimi::BQ.new(project: "danbooru-1343", dataset: "danbooru_production")
+    @bitly = Bitly.new(bitly_username, bitly_api_key)
   end
 
   def server
