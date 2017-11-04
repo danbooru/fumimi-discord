@@ -1,6 +1,5 @@
 require "google/cloud/bigquery"
 require "terminal-table"
-require "fumimi/util"
 
 class Fumimi::BQ
   MAX_DISCORD_MESSAGE_SIZE = 1800
@@ -124,8 +123,7 @@ class Fumimi::BQ
           AND ABS(ROUND(IEEE_DIVIDE(count, (count - (added - removed))) * 100 - 100, 1)) > @cutoff -- exclude large tags
         ORDER BY
           ABS(net_change) DESC
-          -- percentage_change DESC
-        LIMIT 200;
+          -- percentage_change DESC;
       SQL
 
       query(query, start: period.begin, finish: period.end, cutoff: cutoff)
