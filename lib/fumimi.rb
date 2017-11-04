@@ -90,8 +90,12 @@ module Fumimi::Commands
   def self.command(name, &block)
     define_method(:"do_#{name}") do |event, *args|
       begin
-        show_loading_message(event)
+        event.channel.start_typing
+        message = event.send_message "*Please wait warmly until Fumimi is ready. This may take up to 60 seconds.*"
+
         instance_exec(event, *args, &block)
+        message.delete
+        nil
       rescue StandardError, RestClient::Exception => e
         event.drain
         event << "Exception: #{e.to_s}.\n"
