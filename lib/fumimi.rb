@@ -156,7 +156,7 @@ module Fumimi::Commands
     query = (tags + ["id:>-#{rand(2**32)}"]).join(" ")
     resp = booru.counts.show("?tags=#{query}")
 
-    event << "#{tags.join(" ")}: #{resp.counts["posts"]} posts"
+    event << "`#{tags.join(" ")}`: #{resp.counts["posts"]} posts"
   end
 
   def do_iqdb(event, *urls)
