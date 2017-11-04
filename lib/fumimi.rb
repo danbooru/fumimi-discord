@@ -224,10 +224,8 @@ module Fumimi::Commands
     nil
   end
 
-  def do_sql(event, *args)
+  command :sql do |event, *args|
     return unless event.user.id == 310167383912349697
-
-    show_loading_message(event)
 
     sql = args.join(" ")
     @pg = PG::Connection.open(dbname: "danbooru2")
@@ -248,10 +246,6 @@ module Fumimi::Commands
     event << table.to_s.force_encoding("UTF-8")
     event << "#{table.rows.size} of #{results.ntuples} rows"
     event << "```"
-  rescue StandardError => e
-    event.drain
-    event << "Exception: #{e.to_s}.\n"
-    event << "https://i.imgur.com/0CsFWP3.png"
   end
 
   def do_time(event, *args)
@@ -262,9 +256,8 @@ module Fumimi::Commands
     Time.use_zone("Asia/Tokyo")    { event << "`Japan:     #{Time.current.strftime("%a, %b %d %Y %l:%M %p %Z")}`" }
   end
 
-  def do_top(event, *args)
-    raise ArgumentError unless args.join(" ") =~ /^(tags|taggers|uploaders) in last (day|week|month|year)$/i
-    show_loading_message(event)
+  command :top do |event, *args|
+    raise ArgumentError unless args.join(" ") =~ /^(reverted-tags|tags|taggers|uploaders) in last (day|week|month|year)$/i
 
     period = case args[3]
       when "year"  then (1.year.ago..Time.current)
@@ -287,30 +280,14 @@ module Fumimi::Commands
 
       event << bq.top_tags(period, cutoff).to_table("Top Tags in Last #{args[3].capitalize} (cutoff: >#{cutoff}% net change)")
     end
-  #rescue ArgumentError => e
-  #  event.drain
-  #  event << "Usage:\n"
-  #  event << "`/top uploaders in last <day|week|month|year>`"
-  #  event << "`/top taggers in last <day|week|month|year>`"
-  #  event << "`/top tags in last <day|week|month|year>`"
-  rescue StandardError => e
-    event.drain
-    event << "Exception: #{e.to_s}.\n"
-    event << "https://i.imgur.com/0CsFWP3.png"
   end
 
-  def do_bq(event, *args)
+  command :bq do |event, *args|
     query = args.join(" ")
-
-    show_loading_message(event)
     event << bq.query(query).to_table
-  rescue StandardError => e
-    event.drain
-    event << "Exception: #{e.to_s}.\n"
-    event << "https://i.imgur.com/0CsFWP3.png"
   end
 
-  def do_search(event, *args)
+  command :search do |event, *args|
     tags = args
     posts = Post.select(:id).reverse(:id)
     post_versions = PostVersionFlat.select(:post_id)
@@ -351,7 +328,6 @@ module Fumimi::Commands
 
     posts = posts.where(id: post_versions) if tags.grep(/^(tagger|added|removed):(.*)$/).any?
 
-    show_loading_message(event)
     results = bq.exec(posts.sql).data(max: 1000)
 
     results.take(1000).flat_map(&:values).in_groups_of(250, false).each_with_index do |post_ids, i|
@@ -365,14 +341,10 @@ module Fumimi::Commands
     end
 
     nil
-  rescue StandardError, RestClient::Exception => e
-    event.drain
-    event << "Exception: #{e.to_s}.\n"
-    event << "https://i.imgur.com/0CsFWP3.png"
   end
 
   command :user do |event, *args|
-    raise ArgumentError unless args.size == 1
+    raise ArgumentError unless args.present?
 
     username = args[0]
     user_id = booru.users.search(name: username).first.try(:id) or raise ArgumentError, "invalid username"
@@ -380,8 +352,8 @@ module Fumimi::Commands
     event << bq.top_tags_for_user(user_id).resolve_user_ids!(booru).to_table("Top Tags Used by #{username}")
   end
 
-  def do_tag(event, *args)
-    show_loading_message(event)
+  command :tag do |event, *args|
+    raise ArgumentError unless args.present?
     tag = args.join("_").downcase
 
     results = bq.tag_creator(tag).resolve_user_ids!(booru)
@@ -392,13 +364,9 @@ module Fumimi::Commands
 
     results = bq.tag_usage_by_group(tag, "EXTRACT(year FROM updated_at)", "year", "year ASC").resolve_user_ids!(booru)
     event.send_message(results.to_table("'#{tag}' Usage By Year"))
-  rescue StandardError, RestClient::Exception => e
-    event.drain
-    event << "Exception: #{e.to_s}.\n"
-    event << "https://i.imgur.com/0CsFWP3.png"
   end
 
-  def do_stats(event, *args)
+  command :stats do |event, *args|
     if args == %w[longest tags]
       query = "SELECT name FROM `tags` AS t WHERE t.count > 0 ORDER BY LENGTH(t.name) DESC LIMIT 20"
     elsif args.size == 4 && args[1..2] == %w[created by]
@@ -414,7 +382,6 @@ module Fumimi::Commands
       else categories = [0, 1, 3, 4]
       end
 
-      show_loading_message(event)
       event << bq.tags_created_by_user(user.id, categories).to_table("Tags Created By #{username}")
     else
       event << "Usage:\n"
@@ -424,18 +391,7 @@ module Fumimi::Commands
       event << "`/stats arttags created by <username>`"
       event << "`/stats chartags created by <username>`"
       event << "`/stats copytags created by <username>`"
-      return
     end
-  rescue StandardError => e
-    event.drain
-    event << "Exception: #{e.to_s}.\n"
-    event << "https://i.imgur.com/0CsFWP3.png"
-  end
-
-protected
-  def show_loading_message(event)
-    event.respond "*Fumimi is preparing. Please wait warmly until she is ready. This may take up to 30 seconds.*\n"
-    event.channel.start_typing
   end
 end
 
