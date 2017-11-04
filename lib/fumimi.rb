@@ -346,7 +346,7 @@ module Fumimi::Commands
   command :user do |event, *args|
     raise ArgumentError unless args.present?
 
-    username = args[0]
+    username = args.join("_").downcase
     user_id = booru.users.search(name: username).first.try(:id) or raise ArgumentError, "invalid username"
 
     event << bq.top_tags_for_user(user_id).resolve_user_ids!(booru).to_table("Top Tags Used by #{username}")
