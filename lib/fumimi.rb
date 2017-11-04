@@ -19,6 +19,7 @@ require "active_support/core_ext/numeric/time"
 require "bitly"
 require "discordrb"
 require "dotenv"
+require "google/cloud/storage"
 require "pg"
 require "pry"
 require "pry-byebug"
@@ -256,6 +257,72 @@ module Fumimi::Commands
     Time.use_zone("Asia/Tokyo")    { event << "`Japan:     #{Time.current.strftime("%a, %b %d %Y %l:%M %p %Z")}`" }
   end
 
+  def do_logs(event, *args)
+    raise ArgumentError unless args.size == 1
+    raise ArgumentError unless channels[args[0]].present?
+    channel = channels[args[0]]
+
+    event.channel.start_typing
+    loading_message = event.send_message "*Please wait warmly until Fumimi is ready.*"
+
+    output = Tempfile.new
+
+    n = 0
+    after_id = 0
+    loop do
+      puts after_id
+
+      messages = channel.history(100, nil, after_id)
+      break if messages.empty?
+
+      after_id = messages.last.id
+      n += messages.size
+      loading_message.edit("Downloading message ##{n} (#{messages.last.timestamp.utc.strftime("%a, %b %d %Y %l:%M %p %Z")})...") if n % 1000
+
+      logged_messages = messages.map do |message|
+        {
+          id: message.id,
+          created_at: message.timestamp,
+          updated_at: message.edited_timestamp,
+          author: {
+            id: message.author.id,
+            username: message.author.username,
+            discriminator: message.author.discriminator,
+          },
+          channel: {
+            id: message.channel.id,
+            name: message.channel.name,
+          },
+          content: message.content,
+          embeds: message.embeds.map do |embed|
+            {
+              title: embed.title,
+              url: embed.url,
+              description: embed.description,
+              author: {
+                name: embed.author.try(:name),
+                url: embed.author.try(:url),
+              }
+            }
+          end
+        }
+      end
+
+      logged_messages.map(&:to_json).each do |message|
+        output.write(message + "\n")
+      end
+    end
+
+    filename = "fumimi/discord/logs/#{server.name}/#{channel.name}/#{Time.current.to_i}.json"
+    file = storage.bucket("evazion").create_file(output.path, filename, acl: "public")
+    event << file.public_url
+
+    output.close
+    output.delete
+
+    nil
+  end
+
   command :top do |event, *args|
     raise ArgumentError unless args.join(" ") =~ /^(reverted-tags|tags|taggers|uploaders) in last (day|week|month|year)$/i
 
@@ -400,7 +467,7 @@ class Fumimi
   include Fumimi::Events
 
   attr_reader :server_id, :client_id, :token, :log
-  attr_reader :bot, :server, :bitly, :booru, :bq
+  attr_reader :bot, :server, :bitly, :booru, :bq, :storage
   attr_reader :initiate_shutdown
 
   def initialize(server_id:, client_id:, token:, bitly_username:, bitly_api_key:, log: Logger.new(STDERR))
@@ -411,6 +478,7 @@ class Fumimi
 
     @booru = Danbooru.new
     @bq = Fumimi::BQ.new(project: "danbooru-1343", dataset: "danbooru_production")
+    @storage = Google::Cloud::Storage.new
     @bitly = Bitly.new(bitly_username, bitly_api_key)
   end
 
@@ -450,6 +518,7 @@ class Fumimi
     bot.command(:bq, description: "Run a query on BigQuery: `/bq <query>`", &method(:do_bq))
     bot.command(:top, description: "Show leaderboards: `/top help`", &method(:do_top))
     bot.command(:time, description: "Show current time in various time zones across the world", &method(:do_time))
+    bot.command(:logs, description: "Dump channel log in JSON format: `/logs <channel-name>`", &method(:do_logs))
     bot.command(:sql, help_available: false, &method(:do_sql))
     bot.command(:say, help_available: false, &method(:do_say))
   end
