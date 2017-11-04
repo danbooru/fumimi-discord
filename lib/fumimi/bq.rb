@@ -1,3 +1,5 @@
+require "fumimi/util"
+
 require "google/cloud/bigquery"
 require "terminal-table"
 
