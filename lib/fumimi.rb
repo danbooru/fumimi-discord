@@ -270,14 +270,13 @@ module Fumimi::Commands
     n = 0
     after_id = 0
     loop do
-      puts after_id
 
-      messages = channel.history(100, nil, after_id)
+      messages = channel.history(100, nil, after_id).reverse
       break if messages.empty?
 
       after_id = messages.last.id
       n += messages.size
-      loading_message.edit("Downloading message ##{n} (#{messages.last.timestamp.utc.strftime("%a, %b %d %Y %l:%M %p %Z")})...") if n % 1000
+      loading_message.edit("Downloading message ##{n} (#{messages.last.timestamp.utc.strftime("%a, %b %d %Y %l:%M %p %Z")})...")
 
       logged_messages = messages.map do |message|
         {
