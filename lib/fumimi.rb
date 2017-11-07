@@ -84,6 +84,8 @@ module Fumimi::Events
 end
 
 module Fumimi::Commands
+  class CommandArgumentError < StandardError; end
+
   def self.command(name, &block)
     define_method(:"do_#{name}") do |event, *args|
       begin
@@ -91,12 +93,15 @@ module Fumimi::Commands
         event.channel.start_typing
 
         instance_exec(event, *args, &block)
-        message.delete
-        nil
+      rescue CommandArgumentError => e
+        event << "```#{e.to_s}```"
       rescue StandardError, RestClient::Exception => e
         event.drain
         event << "Exception: #{e.to_s}.\n"
         event << "https://i.imgur.com/0CsFWP3.png"
+      ensure
+        message.delete
+        nil
       end
     end
   end
@@ -317,7 +322,9 @@ module Fumimi::Commands
   end
 
   command :top do |event, *args|
-    raise ArgumentError unless args.join(" ") =~ /^(reverted-tags|tags|taggers|uploaders) in last (day|week|month|year)$/i
+    if args.join(" ") !~ /^(reverted-tags|tags|taggers|uploaders|approvers) in last (day|week|month|year)$/i
+      raise CommandArgumentError.new("Usage: /top <uploaders|approvers|taggers|tags> in last <day|week|month|year>")
+    end
 
     period = case args[3]
       when "year"  then (1.year.ago..Time.current)
