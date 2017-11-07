@@ -54,6 +54,23 @@ class Fumimi::BQ
       query(query, start: period.begin, finish: period.end)
     end
 
+    def top_approvers(period)
+      query = <<-SQL
+        SELECT
+          approver_id,
+          COUNT(*) as uploads
+        FROM `danbooru-data.danbooru.posts`
+        WHERE
+          created_at BETWEEN @start AND @finish
+          AND approver_id != 0
+        GROUP BY approver_id
+        ORDER BY uploads DESC
+        LIMIT 20;
+      SQL
+
+      query(query, start: period.begin, finish: period.end)
+    end
+
     def top_taggers(period)
       query = <<-SQL
         SELECT
@@ -263,7 +280,7 @@ class Fumimi::BQ
     end
 
     def resolve_user_ids!(booru)
-      id_field = /(updater|creator|user|uploader)_id/
+      id_field = /(updater|creator|user|uploader|approver)_id/
 
       id_fields = headers.grep(id_field)
       user_ids = map { |row| row.values_at(*id_fields) }.flatten.compact.sort.uniq

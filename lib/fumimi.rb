@@ -332,6 +332,8 @@ module Fumimi::Commands
 
     if args[0] == "uploaders"
       event << bq.top_uploaders(period).resolve_user_ids!(booru).to_table("Top Uploaders in Last #{args[3].capitalize}")
+    elsif args[0] == "approvers"
+      event << bq.top_approvers(period).resolve_user_ids!(booru).to_table("Top Approvers in Last #{args[3].capitalize}")
     elsif args[0] == "taggers"
       event <<  bq.top_taggers(period).resolve_user_ids!(booru).to_table("Top Taggers in Last #{args[3].capitalize} (excluding tags on uploads)")
     elsif args[0] == "tags"
@@ -513,7 +515,7 @@ class Fumimi
     bot.command(:user, description: "Show information about user: `/user <name>`", &method(:do_user))
     bot.command(:search, description: "Search posts on BigQuery: `/search <tags>`", &method(:do_search))
     bot.command(:bq, description: "Run a query on BigQuery: `/bq <query>`", &method(:do_bq))
-    bot.command(:top, description: "Show leaderboards: `/top help`", &method(:do_top))
+    bot.command(:top, description: "Show leaderboards: `/top <uploaders|approvers|taggers|tags> in last <day|week|month|year>`", &method(:do_top))
     bot.command(:time, description: "Show current time in various time zones across the world", &method(:do_time))
     bot.command(:logs, description: "Dump channel log in JSON format: `/logs <channel-name>`", &method(:do_logs))
     bot.command(:sql, help_available: false, &method(:do_sql))
