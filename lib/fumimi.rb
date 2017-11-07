@@ -151,11 +151,9 @@ module Fumimi::Commands
     nil
   end
 
-  def do_count(event, *tags)
-    event.channel.start_typing
-
-    query = (tags + ["id:>-#{rand(2**32)}"]).join(" ")
-    resp = booru.counts.show("?tags=#{query}")
+  command :count do |event, *tags|
+    query = (tags + ["id:>-#{rand(2**32)}"]).join(" ").downcase
+    resp = booru.counts.show("?tags=#{CGI::escape(query)}")
 
     event << "`#{tags.join(" ")}`: #{resp.counts["posts"]} posts"
   end
