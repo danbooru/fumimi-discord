@@ -87,8 +87,8 @@ module Fumimi::Commands
   def self.command(name, &block)
     define_method(:"do_#{name}") do |event, *args|
       begin
-        event.channel.start_typing
         message = event.send_message "*Please wait warmly until Fumimi is ready. This may take up to 60 seconds.*"
+        event.channel.start_typing
 
         instance_exec(event, *args, &block)
         message.delete
