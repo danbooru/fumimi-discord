@@ -148,6 +148,66 @@ class Fumimi::BQ
       query(query, start: period.begin, finish: period.end, cutoff: cutoff)
     end
 
+    def top_reverted_tags(period)
+      query = <<-SQL
+        WITH post_version_tag_counts AS (
+          SELECT
+            post_id,
+            COALESCE(added_tag, removed_tag) AS tag,
+            COUNTIF(added_tag IS NOT NULL) AS added,
+            COUNTIF(removed_tag IS NOT NULL) AS removed
+          FROM `post_versions_flat_part`
+          WHERE
+            COALESCE(added_tag, removed_tag) IS NOT NULL
+            AND updated_at BETWEEN @start AND @finish
+          GROUP BY post_id, tag
+          HAVING added > 1
+        ),
+        reverted_posts AS (
+          SELECT
+            post_id,
+            STRING_AGG(tag, " " ORDER BY tag ASC) AS tags,
+            added,
+            added > removed AS currently_tagged
+          FROM post_version_tag_counts
+          GROUP BY post_id, added, removed
+        )
+        SELECT
+          tags, COUNT(DISTINCT post_id) AS posts
+        FROM reverted_posts
+        GROUP BY tags
+        ORDER BY 2 DESC;
+      SQL
+
+      query(query, start: period.begin, finish: period.end)
+    end
+
+    def top_reverted_posts_for_tag(tag, cutoff: 2)
+      query = <<-SQL
+        WITH post_version_tag_edit_counts AS (
+          SELECT
+            post_id,
+            COALESCE(added_tag, removed_tag) AS tag,
+            updater_id,
+            COUNT(*) AS edits
+          FROM `post_versions_flat_part`
+          WHERE COALESCE(added_tag, removed_tag) = @tag
+          GROUP BY post_id, updater_id, tag
+        )
+        SELECT
+          post_id,
+          SUM(edits) AS edits,
+          ARRAY_AGG(DISTINCT updater_id IGNORE NULLS ORDER BY updater_id ASC) AS updater_ids
+        FROM post_version_tag_edit_counts pvtec
+        LEFT OUTER JOIN `danbooru-data.danbooru.posts` p ON pvtec.post_id = p.id
+        GROUP BY post_id, tag
+        HAVING edits > @cutoff
+        ORDER BY edits DESC, post_id DESC;
+      SQL
+
+      query(query, tag: tag, cutoff: cutoff)
+    end
+
     def top_tags_for_user(user_id)
       query = <<-SQL
         WITH

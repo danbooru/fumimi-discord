@@ -429,14 +429,15 @@ module Fumimi::Commands
     argv = Shellwords.split(args.join(" "))
 
     parser = OptionParser.new do |parser|
-      parser.banner = "Usage: /tag [--creator|--users|--growth|--all] [--help] <tag>"
+      parser.banner = "Usage: /tag [--creator|--users|--growth|--reverts|--all] [--help] <tag>"
       parser.separator "Options:"
 
       parser.on("-c", "--creator", "Show creator of tag") { opts[:creator] = true }
       parser.on("-u", "--users", "Show top users of tag (default)") { opts[:users] = true }
       parser.on("-g", "--growth", "Show tag growth over time") { opts[:growth] = true }
+      parser.on("-r", "--reverts", "Show most reverted posts for this tag") { opts[:reverts] = true }
       parser.on("-a", "--all", "Show all of the above") do
-        opts[:creator] = opts[:users] = opts[:growth] = true
+        opts[:creator] = opts[:users] = opts[:growth] = opts[:reverts] = true
       end
       parser.on("-h", "--help", "Print this help") { opts[:help] = true }
     end
@@ -464,6 +465,11 @@ module Fumimi::Commands
     if opts[:growth]
       results = bq.tag_usage_by_group(tag, "EXTRACT(year FROM updated_at)", "year", "year ASC").resolve_user_ids!(booru)
       event.send_message(results.to_table("'#{tag}' Usage By Year"))
+    end
+
+    if opts[:reverts]
+      results = bq.top_reverted_posts_for_tag(tag)
+      event.send(results.to_table("Most reverted '#{tag}' posts"))
     end
   end
 
