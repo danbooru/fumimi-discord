@@ -21,6 +21,9 @@ require "pry"
 require "pry-byebug"
 require "sequel"
 
+require "optparse"
+require "shellwords"
+
 Dotenv.load
 
 DB = Sequel.sqlite
@@ -422,17 +425,46 @@ module Fumimi::Commands
   end
 
   command :tag do |event, *args|
-    raise ArgumentError unless args.present?
-    tag = args.join("_").downcase
+    opts = {}
+    argv = Shellwords.split(args.join(" "))
 
-    results = bq.tag_creator(tag).resolve_user_ids!(booru)
-    event.send_message(results.to_table("Creator of '#{tag}'"))
+    parser = OptionParser.new do |parser|
+      parser.banner = "Usage: /tag [--creator|--users|--growth|--all] [--help] <tag>"
+      parser.separator "Options:"
 
-    results = bq.tag_usage_by_group(tag, "updater_id", "updater_id", "net_change DESC").resolve_user_ids!(booru)
-    event.send_message(results.to_table("'#{tag}' Usage By User"))
+      parser.on("-c", "--creator", "Show creator of tag") { opts[:creator] = true }
+      parser.on("-u", "--users", "Show top users of tag (default)") { opts[:users] = true }
+      parser.on("-g", "--growth", "Show tag growth over time") { opts[:growth] = true }
+      parser.on("-a", "--all", "Show all of the above") do
+        opts[:creator] = opts[:users] = opts[:growth] = true
+      end
+      parser.on("-h", "--help", "Print this help") { opts[:help] = true }
+    end
 
-    results = bq.tag_usage_by_group(tag, "EXTRACT(year FROM updated_at)", "year", "year ASC").resolve_user_ids!(booru)
-    event.send_message(results.to_table("'#{tag}' Usage By Year"))
+    parser.parse!(argv)
+    tag = argv.join("_").downcase
+    opts[:users] = true if opts.empty?
+    opts[:help] = true if tag.empty?
+
+    if opts[:help]
+      event << "```#{parser}```"
+      next
+    end
+
+    if opts[:creator]
+      results = bq.tag_creator(tag).resolve_user_ids!(booru)
+      event.send_message(results.to_table("Creator of '#{tag}'"))
+    end
+
+    if opts[:users]
+      results = bq.tag_usage_by_group(tag, "updater_id", "updater_id", "added + removed DESC").resolve_user_ids!(booru)
+      event.send_message(results.to_table("'#{tag}' Usage By User"))
+    end
+
+    if opts[:growth]
+      results = bq.tag_usage_by_group(tag, "EXTRACT(year FROM updated_at)", "year", "year ASC").resolve_user_ids!(booru)
+      event.send_message(results.to_table("'#{tag}' Usage By Year"))
+    end
   end
 
   command :stats do |event, *args|

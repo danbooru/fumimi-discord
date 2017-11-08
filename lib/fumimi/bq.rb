@@ -212,7 +212,7 @@ class Fumimi::BQ
           #{group_key} AS #{alias_name},
           COUNTIF(added_tag = @tag) AS added,
           COUNTIF(removed_tag = @tag) AS removed,
-          COUNTIF(added_tag = @tag OR removed_tag = @tag) AS net_change
+          COUNTIF(added_tag = @tag) - COUNTIF(removed_tag = @tag) AS net_change
         FROM
           `post_versions_flat_part`
         WHERE
