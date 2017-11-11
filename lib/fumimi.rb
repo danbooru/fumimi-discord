@@ -157,7 +157,7 @@ module Fumimi::Commands
 
   command :count do |event, *tags|
     query = (tags + ["id:>-#{rand(2**32)}"]).join(" ").downcase
-    resp = booru.counts.show("?tags=#{CGI::escape(query)}")
+    resp = booru.counts.index(tags: query)
 
     event << "`#{tags.join(" ")}`: #{resp.counts["posts"]} posts"
   end

@@ -33,8 +33,14 @@ class Danbooru
       params = "?" + params.to_query
       resp = self[params].get
 
-      array = JSON.parse(resp.body)
-      array.map { |hash| factory.new(hash) }
+      data = JSON.parse(resp.body)
+      if data.is_a?(Array)
+        data.map { |hash| factory.new(hash) }
+      elsif data.is_a?(Hash)
+        factory.new(data)
+      else
+        raise NotImplementedError
+      end
     end
 
     def show(id)
