@@ -325,15 +325,16 @@ module Fumimi::Commands
   end
 
   command :top do |event, *args|
-    if args.join(" ") !~ /^(reverted-tags|tags|taggers|uploaders|approvers) in last (day|week|month|year)$/i
-      raise CommandArgumentError.new("Usage: /top <uploaders|approvers|taggers|tags> in last <day|week|month|year>")
+    if args.join(" ") !~ /^(reverted-tags|tags|taggers|uploaders|approvers) in last (day|week|month|year|century|millenium)$/i
+      raise CommandArgumentError.new("Usage: /top <uploaders|approvers|taggers|tags> in last <day|week|month|year|century|millenium>")
     end
 
     period = case args[3]
       when "year"  then (1.year.ago..Time.current)
       when "month" then (1.month.ago..Time.current)
       when "week"  then (1.week.ago..Time.current)
-      else              (1.day.ago..Time.current)
+      when "day"   then (1.day.ago..Time.current)
+      else              (20.years.ago..Time.current)
     end
 
     if args[0] == "uploaders"
