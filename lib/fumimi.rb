@@ -351,6 +351,8 @@ module Fumimi::Commands
       end
 
       event << bq.top_tags(period, cutoff).to_table("Top Tags in Last #{args[3].capitalize} (cutoff: >#{cutoff}% net change)")
+    elsif args[0] == "reverted-tags"
+      event << bq.top_reverted_tags(period).to_table("Top Reverted Tags in Last #{args[3].capitalize}")
     end
   end
 
