@@ -117,7 +117,7 @@ class Fumimi::BQ
           tag_stats AS (
             SELECT
               atc.tag AS tag,
-              (CASE WHEN category = 0 THEN 'general' WHEN category = 1 THEN 'artist' WHEN category = 3 THEN 'copyright' WHEN category = 4 THEN 'character' ELSE 'unknown' END) AS category,
+              (CASE WHEN category = 0 THEN 'general' WHEN category = 1 THEN 'artist' WHEN category = 3 THEN 'copyright' WHEN category = 4 THEN 'character' WHEN category = 5 THEN 'meta' ELSE 'unknown' END) AS category,
               COALESCE(added, 0) AS added,
               COALESCE(removed, 0) AS removed,
               COALESCE(ttc.count, 0) AS count
@@ -251,7 +251,7 @@ class Fumimi::BQ
       query = <<-SQL
         SELECT
           pv.added_tag AS tag,
-          (CASE WHEN category = 0 THEN 'general' WHEN category = 1 THEN 'artist' WHEN category = 3 THEN 'copyright' WHEN category = 4 THEN 'character' ELSE 'unknown' END) AS category,
+          (CASE WHEN category = 0 THEN 'general' WHEN category = 1 THEN 'artist' WHEN category = 3 THEN 'copyright' WHEN category = 4 THEN 'character' WHEN category = 5 THEN 'meta' ELSE 'unknown' END) AS category,
           t.count,
           pv.updater_id AS creator_id,
           pv.updated_at AS created_at,

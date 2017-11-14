@@ -486,10 +486,11 @@ module Fumimi::Commands
       case args[0]
       when "gentags" then categories = [0]
       when "arttags" then categories = [1]
-      when "chartags" then categories = [4]
       when "copytags" then categories = [3]
-      when "tags" then categories = [0, 1, 3, 4]
-      else categories = [0, 1, 3, 4]
+      when "chartags" then categories = [4]
+      when "metatags" then categories = [5]
+      when "tags" then categories = [0, 1, 3, 4, 5]
+      else categories = [0, 1, 3, 4, 5]
       end
 
       event << bq.tags_created_by_user(user.id, categories).to_table("Tags Created By #{username}")
@@ -501,6 +502,7 @@ module Fumimi::Commands
       event << "`/stats arttags created by <username>`"
       event << "`/stats chartags created by <username>`"
       event << "`/stats copytags created by <username>`"
+      event << "`/stats metatags created by <username>`"
     end
   end
 end
