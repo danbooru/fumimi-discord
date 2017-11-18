@@ -264,21 +264,18 @@ module Fumimi::Commands
     raise ArgumentError unless channels[args[0]].present?
     channel = channels[args[0]]
 
-    event.channel.start_typing
     loading_message = event.send_message "*Please wait warmly until Fumimi is ready.*"
+    event.channel.start_typing
 
     output = Tempfile.new
 
-    n = 0
     after_id = 0
     loop do
-
       messages = channel.history(100, nil, after_id).reverse
       break if messages.empty?
 
       after_id = messages.last.id
-      n += messages.size
-      loading_message.edit("Downloading message ##{n} (#{messages.last.timestamp.utc.strftime("%a, %b %d %Y %l:%M %p %Z")})...")
+      loading_message.edit("Downloading messages (last seen: #{messages.last.timestamp.utc.strftime("%a, %b %d %Y %l:%M %p %Z")})...")
 
       logged_messages = messages.map do |message|
         {
