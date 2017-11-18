@@ -15,9 +15,16 @@ class Fumimi::BQ
     @bq = Google::Cloud::Bigquery.new(timeout: timeout)
   end
 
-  def exec(query, **params)
+  def exec(query, **params, &block)
     job = bq.query_job(query, project: project, dataset: dataset, standard_sql: true, params: params)
-    job.wait_until_done!
+
+    1.step.each do |i|
+      job.reload!
+      break if job.done?
+
+      yield(job, i) if block_given?
+      sleep 1
+    end
 
     if job.failed?
       raise BigQueryError.new(job.errors.map { |e| e["message"] }.join("\n"))
@@ -26,8 +33,8 @@ class Fumimi::BQ
     job
   end
 
-  def query(query, **params)
-    job = exec(query, **params)
+  def query(query, **params, &block)
+    job = exec(query, **params, &block)
 
     results = job.data(max: 200)
     results.extend(BQMethods)
