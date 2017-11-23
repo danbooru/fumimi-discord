@@ -1,8 +1,6 @@
 require "addressable/uri"
 require "ostruct"
 
-require "discordrb"
-
 class Danbooru
   class Model < OpenStruct
     def initialize(attributes)

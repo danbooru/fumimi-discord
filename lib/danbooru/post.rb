@@ -1,5 +1,4 @@
 require "danbooru/model"
-require "discordrb"
 
 class Danbooru
   class Post < Danbooru::Model
