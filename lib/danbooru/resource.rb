@@ -79,9 +79,9 @@ class Danbooru
       end
     end
 
-    def export
+    def export(file = STDOUT)
       each do |model|
-        puts model.to_json
+        file.puts model.to_json
       end
     end
   end
