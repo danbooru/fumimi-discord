@@ -66,12 +66,12 @@ class Danbooru
       items.select { |i| i.created_at > since }
     end
 
-    def each(from: 0)
-      return enum_for(:each) unless block_given?
+    def each(**params)
+      return enum_for(:each, **params) unless block_given?
 
-      id = from
+      id = 0
       loop do
-        items = index(page: "a#{id}").reverse
+        items = index(**params, page: "a#{id}").reverse
         break if items.empty?
 
         items.each { |i| yield i }
