@@ -155,6 +155,27 @@ module Fumimi::Commands
     nil
   end
 
+  command :mass_update do |event, *args|
+    return unless event.user.id == 310167383912349697
+
+    raise ArgumentError unless args.join(" ") =~ /^update (.*) -> (.*)$/
+    search, tags = $1, $2
+
+    n = 0
+    progress_message = event.send("Updating `#{search}` with `#{tags}`...")
+
+    booru.posts.each(tags: search).each do |post|
+      if n % 20 == 0
+        progress_message.edit("Updating `#{search}` with `#{tags}`... (post ##{post.id})")
+      end
+
+      booru.posts.update!(post.id, "post[old_tag_string]": "", "post[tag_string]": tags)
+      n += 1
+    end
+
+    progress_message.edit("Updated #{n} `#{search}` posts.")
+  end
+
   command :count do |event, *tags|
     query = (tags + ["id:>-#{rand(2**32)}"]).join(" ").downcase
     resp = booru.counts.index(tags: query)
@@ -548,6 +569,7 @@ class Fumimi
 
     bot.command(:hi, description: "Say hi to Fumimi: `/hi`", &method(:do_hi))
     bot.command(:posts, description: "List posts: `/posts <tags>`", &method(:do_posts))
+    bot.command(:mass, description: "Update posts: `/mass update <search> -> <tags>`", &method(:do_mass_update))
     bot.command(:count, description: "Count posts: `/count <tags>`", &method(:do_count))
     bot.command(:iqdb, description: "Find similar posts: `/iqdb <url>`", &method(:do_iqdb))
     bot.command(:comments, description: "List comments: `/comments <tags>`", &method(:do_comments))
