@@ -29,7 +29,7 @@ class Danbooru
     @forum_posts = @site["/forum_posts"]
     @forum_topics = @site["/forum_topics"]
     @wiki = @site["/wiki_pages"]
-    @tags = @site["/tags"]
+    @tags = @site["/tags"].with("search[hide_empty]": "no")
     @bans = @site["/bans"]
     @iqdb = @site["/iqdb_queries"]
     @pools = @site["/pools"]
