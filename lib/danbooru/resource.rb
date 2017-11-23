@@ -7,6 +7,7 @@ require "danbooru/model"
 
 class Danbooru
   class Resource < RestClient::Resource
+    class Error < StandardError; end
     attr_accessor :factory
 
     def factory
@@ -47,6 +48,17 @@ class Danbooru
       resp = self[id].get
       hash = JSON.parse(resp.body)
       factory.new(hash)
+    end
+
+    def update!(id, **params)
+      resp = self[id].put(params)
+
+      if resp.code == 200
+        hash = JSON.parse(resp.body)
+        factory.new(hash)
+      else
+        raise Danbooru::Resource::Error.new(resp)
+      end
     end
 
     def newest(since, limit = 50)
