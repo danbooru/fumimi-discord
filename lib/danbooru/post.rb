@@ -3,6 +3,7 @@ require "danbooru/model"
 class Danbooru
   class Post < Danbooru::Model
     NSFW_BLUR = ENV["NSFW_BLUR"] || 50
+    CENSORED_TAGS = %w[loli shota toddlercon guro death decapitation scat]
 
     def url
       "https://danbooru.donmai.us/posts/#{id}"
@@ -47,7 +48,7 @@ class Danbooru
     end
 
     def is_censored?
-      tag_string.split.grep(/^(loli|shota|toddlercon|guro|scat)$/).any?
+      tag_string.split.grep(/^#{CENSORED_TAGS.join("|")}$/).any?
     end
 
     def border_color
