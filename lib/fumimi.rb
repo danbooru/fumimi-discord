@@ -79,6 +79,20 @@ module Fumimi::Events
 
     nil
   end
+
+  def do_convert_post_links(event)
+    event.message.content =~ %r!^https?://(?:danbooru|sonohara|hijiribe|safebooru)\.donmai\.us/posts/([0-9]+)(?:\?tags=.*)?$!
+    post_id = $1.to_i
+
+    event.message.delete
+
+    post = booru.posts.show(post_id)
+    event.channel.send_embed do |embed|
+      embed_post(embed, event.channel.name, post)
+    end
+
+    nil
+  end
 end
 
 module Fumimi::Commands
@@ -522,7 +536,7 @@ class Fumimi
     bot.message(contains: /forum #[0-9]+/i, &method(:do_forum_id))
     bot.message(contains: /issue #[0-9]+/i, &method(:do_issue_id))
     bot.message(contains: /\[\[ [^\]]+ \]\]/x, &method(:do_wiki_link))
-
+    bot.message(contains: %r!^https?://(?:danbooru|sonohara|hijiribe|safebooru)\.donmai\.us/posts/([0-9]+)(?:\?tags=.*)?$!, &method(:do_convert_post_links))
     bot.command(:hi, description: "Say hi to Fumimi: `/hi`", &method(:do_hi))
     bot.command(:posts, description: "List posts: `/posts <tags>`", &method(:do_posts))
     bot.command(:mass, description: "Update posts: `/mass update <search> -> <tags>`", &method(:do_mass_update))
