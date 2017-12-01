@@ -2,7 +2,7 @@ require "danbooru/tag"
 
 class Fumimi
   class Tag < Danbooru::Tag
-    def example_post(booru)
+    def example_post
       case category
       when 1 # artist
         search = "#{name} rating:safe order:score filetype:jpg limit:1 status:any"

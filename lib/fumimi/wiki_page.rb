@@ -8,7 +8,7 @@ class Fumimi
     def self.render_wiki_page(channel, title, booru)
       wiki_page = booru.wiki_pages.index(title: title.tr(" ", "_")).first
       tag = booru.tags.search(name: title).first
-      post = tag.example_post(booru) if tag && tag.post_count > 0
+      post = tag.example_post if tag && tag.post_count > 0
 
       channel.send_embed { |embed| embed(embed, channel, title, wiki_page, post) }
     end
