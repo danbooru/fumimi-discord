@@ -3,7 +3,7 @@ require "danbooru/model"
 class Danbooru
   class Post < Danbooru::Model
     def url
-      "#{booru.host}/#{id}"
+      "#{booru.host}/posts/#{id}"
     end
 
     def shortlink
