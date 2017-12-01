@@ -11,7 +11,7 @@ require "danbooru/iqdb_query"
 require "danbooru/pool"
 
 class Danbooru
-  RESOURCES = %w[
+  RESOURCES = %i[
     bans comments iqdb_queries forum_posts forum_topics pools posts source tags users wiki_pages
   ]
 
@@ -19,7 +19,7 @@ class Danbooru
   attr_reader *RESOURCES.map(&:to_sym) # attr_reader :bans, :comments, ...
   attr_reader :count
 
-  def initialize(host: ENV["BOORU_HOST"], user: ENV["BOORU_USER"], api_key: ENV["BOORU_API_KEY"], factories: {})
+  def initialize(host: ENV["BOORU_HOST"], user: ENV["BOORU_USER"], api_key: ENV["BOORU_API_KEY"], factory: {})
     @host, @user, @api_key = host, user, api_key
 
     @site = Danbooru::Resource.new(@host, {
@@ -32,9 +32,9 @@ class Danbooru
       # @posts = @site["/posts"]
       instance_variable_set("@#{name}", @site["/#{name}"])
 
-      # posts.factory = Danbooru::Post
-      factory = "Danbooru::#{name.singularize.camelize}".safe_constantize
-      send(name).factory = factory if factory.present?
+      # posts.factory = factory["posts"] || Danbooru::Post
+      default_factory = "Danbooru::#{name.to_s.singularize.camelize}".safe_constantize || Danbooru::Model
+      send(name).factory = factory[name] || default_factory
     end
 
     comments.with(group_by: :comment)
