@@ -1,8 +1,8 @@
-require "danbooru/forum_post"
+require "danbooru/model/forum_post"
 require "fumimi/model"
 
 class Fumimi
-  class ForumPost < Danbooru::ForumPost
+  class ForumPost < Danbooru::Model::ForumPost
     include Fumimi::Model
 
     def self.render_forum_posts(channel, forum_posts, booru)

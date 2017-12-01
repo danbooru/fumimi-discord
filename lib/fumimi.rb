@@ -11,12 +11,6 @@ require "fumimi/wiki_page"
 require "danbooru/resource"
 
 require "danbooru"
-require "danbooru/model"
-require "danbooru/comment"
-require "danbooru/forum_post"
-require "danbooru/post"
-require "danbooru/tag"
-require "danbooru/wiki_page"
 
 require "active_support"
 require "active_support/core_ext"

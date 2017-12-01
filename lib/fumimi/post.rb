@@ -1,8 +1,8 @@
-require "danbooru/post"
+require "danbooru/model/post"
 require "fumimi/model"
 
 class Fumimi
-  class Post < Danbooru::Post
+  class Post < Danbooru::Model::Post
     include Fumimi::Model
 
     NSFW_BLUR = ENV["FUMIMI_NSFW_BLUR"] || 50

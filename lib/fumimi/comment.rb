@@ -1,8 +1,8 @@
-require "danbooru/comment"
+require "danbooru/model/comment"
 require "fumimi/model"
 
 class Fumimi
-  class Comment < Danbooru::Comment
+  class Comment < Danbooru::Model::Comment
     include Fumimi::Model
 
     def self.render_comments(channel, comments, booru)

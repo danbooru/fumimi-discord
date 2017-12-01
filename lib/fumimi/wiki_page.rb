@@ -1,8 +1,8 @@
-require "danbooru/wiki_page"
+require "danbooru/model/wiki_page"
 require "fumimi/model"
 
 class Fumimi
-  class WikiPage < Danbooru::WikiPage
+  class WikiPage < Danbooru::Model::WikiPage
     include Fumimi::Model
 
     def self.render_wiki_page(channel, title, booru)
