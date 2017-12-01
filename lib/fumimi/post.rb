@@ -74,6 +74,8 @@ class Fumimi
         0x00FF00 # green
       elsif is_pending
         0x0000FF # blue
+      elsif is_deleted
+        0xFFFFFF # white
       end
     end
 
