@@ -2,8 +2,8 @@ require "danbooru/post"
 
 class Fumimi
   class Post < Danbooru::Post
-    NSFW_BLUR = ENV["NSFW_BLUR"] || 50
-    CENSORED_TAGS = %w[loli shota toddlercon guro death decapitation scat]
+    NSFW_BLUR = ENV["FUMIMI_NSFW_BLUR"] || 50
+    CENSORED_TAGS = ENV["FUMIMI_CENSORED_TAGS"]&.split || %w[loli shota toddlercon guro death decapitation scat]
 
     def url
       "https://danbooru.donmai.us/posts/#{id}"
