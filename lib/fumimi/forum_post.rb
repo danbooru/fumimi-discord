@@ -16,13 +16,7 @@ class Fumimi
         user = users[forum_post.creator_id]
         topic = forum_topics[forum_post.topic_id]
 
-        forum_post.send_embed(channel, topic, user)
-      end
-    end
-
-    def send_embed(channel, topic, user)
-      channel.send_embed do |embed|
-        embed(embed, topic, user)
+        channel.send_embed { |embed| forum_post.embed(embed, topic, user) }
       end
     end
 
