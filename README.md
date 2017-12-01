@@ -17,6 +17,20 @@ Fumimi is a Danbooru Discord bot.
 3. Configure `.env`.
 4. Run `bin/fumimi`
 
+#### Big Query
+
+1. https://googlecloudplatform.github.io/google-cloud-ruby/#/docs/google-cloud/v0.28.0/guides/authentication
+2. https://console.developers.google.com/project
+3. Create new project.
+4. Go to API manager.
+5. Find and enable the Big Query API.
+6. Click Credentials in the sidebar.
+7. Create service account and download .json keyfile.
+8. Set GOOGLE_CLOUD_PROJECT in .env.
+9. Set GOOGLE_CLOUD_KEYFILE_CONTENTS in .env.
+
+gcloud auth application-default login
+
 ## Usage
 
 Run `bin/fumimi` to start the bot. Use `/help` for a list of commands.
