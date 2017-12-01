@@ -1,3 +1,4 @@
+require "addressable"
 require "rest-client"
 
 require "danbooru/resource"
@@ -18,7 +19,8 @@ class Danbooru
   attr_reader :count
 
   def initialize(host: ENV["BOORU_HOST"], user: ENV["BOORU_USER"], api_key: ENV["BOORU_API_KEY"], factory: {})
-    @host, @user, @api_key = host, user, api_key
+    @user, @api_key = user, api_key
+    @host = Addressable::URI.parse(host)
 
     @site = Danbooru::Resource.new(@host, {
       user: user,
