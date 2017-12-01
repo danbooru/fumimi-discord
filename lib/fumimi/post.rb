@@ -36,7 +36,7 @@ class Fumimi
     end
 
     def is_censored?
-      tag_string.split.grep(/^#{CENSORED_TAGS.join("|")}$/).any?
+      tag_string.split.grep(/^(#{CENSORED_TAGS.join("|")})$/).any?
     end
 
     def border_color
