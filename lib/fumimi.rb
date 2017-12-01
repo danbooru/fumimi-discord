@@ -212,20 +212,8 @@ module Fumimi::Commands
     limit = [10, limit].min
     tags = tags.grep_v(/limit:(\d+)/i)
 
-    # XXX
     comments = booru.comments.search(post_tags_match: tags.join(" ")).take(limit)
-
-    creator_ids = comments.map(&:creator_id).join(",")
-    users = booru.users.search(id: creator_ids).group_by(&:id).transform_values(&:first)
-
-    post_ids = comments.map(&:post_id).join(",")
-    posts = booru.posts.index(tags: "status:any id:#{post_ids}").group_by(&:id).transform_values(&:first)
-
-    comments.each do |comment|
-      event.channel.send_embed do |embed|
-        embed_comment(embed, event.channel.name, comment, users, posts)
-      end
-    end
+    Fumimi::Comment.render_comments(event.channel, comments, booru)
 
     nil
   end
@@ -530,25 +518,6 @@ class Fumimi
     bot.command(:say, help_available: false, &method(:do_say))
   end
 
-  def embed_comment(embed, channel_name, comment, users, posts)
-    user = users[comment.creator_id]
-    post = posts[comment.post_id]
-
-    embed.title = "@#{user.name}"
-    embed.url = "https://danbooru.donmai.us/users?name=#{user.name}"
-
-    embed.author = Discordrb::Webhooks::EmbedAuthor.new({
-      name: post.shortlink,
-      url: post.url,
-    })
-
-    embed.description = comment.pretty_body
-
-    #embed.image = post.embed_image(event)
-    embed.thumbnail = post.embed_thumbnail(channel_name)
-    embed.footer = comment.embed_footer
-  end
-
   def render_wiki(event, title)
     event.channel.start_typing
 
@@ -644,18 +613,7 @@ class Fumimi
 
     comments = booru.comments.newest(last_checked_at, 50).reverse
     comments = comments.reject(&:do_not_bump_post)
-
-    creator_ids = comments.map(&:creator_id).join(",")
-    users = booru.users.search(id: creator_ids).group_by(&:id).transform_values(&:first)
-
-    post_ids = comments.map(&:post_id).join(",")
-    posts = booru.posts.index(tags: "status:any id:#{post_ids}").group_by(&:id).transform_values(&:first)
-
-    comments.each do |comment|
-      channel.send_embed do |embed|
-        embed_comment(embed, channel.name, comment, users, posts)
-      end
-    end
+    Fumimi::Comment.render_comments(event.channel, comments, booru)
 
     comments.last&.created_at || last_checked_at
   end
