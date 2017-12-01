@@ -390,8 +390,8 @@ module Fumimi::Commands
   end
 
   command :search do |event, *args|
-    tags = args
-    results = bq.search(tags)
+    tags = args.join(" ")
+    results = bq.search(booru, tags)
 
     results.take(1000).flat_map(&:values).in_groups_of(250, false).each_with_index do |post_ids, i|
       url = "https://danbooru.donmai.us/posts?tags=id:#{post_ids.join(",")}"
@@ -400,7 +400,7 @@ module Fumimi::Commands
       first = (i*250 + 1).to_s
       last  = (i*250 + post_ids.size).to_s
 
-      event << "`#{tags.join(" ")} | #{first} - #{last} of #{results.total} posts`: #{short_url}"
+      event << "`#{tags} | #{first} - #{last} of #{results.total} posts`: #{short_url}"
     end
 
     nil
