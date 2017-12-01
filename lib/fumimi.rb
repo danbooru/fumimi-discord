@@ -1,5 +1,6 @@
 require "fumimi/version"
 require "fumimi/bq"
+require "fumimi/tag"
 require "danbooru/resource"
 
 require "danbooru"
@@ -509,7 +510,7 @@ class Fumimi
     @token = token
     @log = RestClient.log = log
 
-    @booru = Danbooru.new
+    @booru = Danbooru.new(factory: { tags: Fumimi::Tag })
     @bq = Fumimi::BQ.new(project: "danbooru-1343", dataset: "danbooru_production")
     @storage = Google::Cloud::Storage.new
     @bitly = Bitly.new(bitly_username, bitly_api_key)

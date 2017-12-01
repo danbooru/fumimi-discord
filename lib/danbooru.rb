@@ -3,12 +3,10 @@ require "rest-client"
 require "danbooru/resource"
 require "danbooru/comment"
 require "danbooru/forum_post"
-require "danbooru/forum_topic"
 require "danbooru/post"
 require "danbooru/tag"
 require "danbooru/wiki_page"
 require "danbooru/iqdb_query"
-require "danbooru/pool"
 
 class Danbooru
   RESOURCES = %i[
