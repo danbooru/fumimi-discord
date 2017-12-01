@@ -5,10 +5,6 @@ class Fumimi
     NSFW_BLUR = ENV["FUMIMI_NSFW_BLUR"] || 50
     CENSORED_TAGS = ENV["FUMIMI_CENSORED_TAGS"]&.split || %w[loli shota toddlercon guro death decapitation scat]
 
-    def url
-      "https://danbooru.donmai.us/posts/#{id}"
-    end
-
     def embed_image_url
       if file_ext.match?(/jpe?g|png|gif/i)
         file_url
@@ -17,19 +13,11 @@ class Fumimi
       end
     end
 
-    def full_preview_file_url
-      "https://danbooru.donmai.us#{preview_file_url}"
-    end
-
-    def shortlink
-      "post ##{id}"
-    end
-
     def embed_thumbnail(channel_name)
       if is_censored? || is_unsafe?(channel_name)
         Discordrb::Webhooks::EmbedThumbnail.new(url: "http://danbooru.donmai.us.rsz.io#{preview_file_url}?blur=#{NSFW_BLUR}")
       else
-        Discordrb::Webhooks::EmbedThumbnail.new(url: full_preview_file_url)
+        Discordrb::Webhooks::EmbedThumbnail.new(url: absolute_preview_file_url)
       end
     end
 
