@@ -28,12 +28,12 @@ class Fumimi
 
     def embed(embed, topic, user)
       embed.author = Discordrb::Webhooks::EmbedAuthor.new({
-        name: "#{topic.title} (forum ##{id})",
-        url: "#{booru.host}/forum_posts/#{id}"
+        name: user.at_name,
+        url: user.url
       })
 
-      embed.title = "@#{user.name}"
-      embed.url = "#{booru.host}/users?name=#{user.name}"
+      embed.title = topic.title
+      embed.url = url
 
       embed.description = pretty_body
       embed.footer = embed_footer
