@@ -8,6 +8,7 @@ require "danbooru/post"
 require "danbooru/tag"
 require "danbooru/wiki_page"
 require "danbooru/iqdb_query"
+require "danbooru/user"
 
 class Danbooru
   RESOURCES = %i[

@@ -24,6 +24,16 @@ class Danbooru
       super(attributes)
     end
 
+    def url
+      endpoint = self.class.name.demodulize.underscore.pluralize
+      "#{booru.host}/#{endpoint}/#{id}"
+    end
+
+    def shortlink
+      name = self.class.name.demodulize.underscore.tr("_", " ")
+      "#{name} ##{id}"
+    end
+
     def to_json
       to_h.to_json
     end

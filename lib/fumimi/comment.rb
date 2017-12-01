@@ -20,12 +20,12 @@ class Fumimi
     end
 
     def embed(embed, channel, user, post)
-      embed.title = "@#{user.name}"
-      embed.url = "https://danbooru.donmai.us/users?name=#{user.name}"
+      embed.title = shortlink
+      embed.url = url
 
       embed.author = Discordrb::Webhooks::EmbedAuthor.new({
-        name: post.shortlink,
-        url: post.url,
+        name: user.at_name,
+        url: user.url
       })
 
       embed.description = pretty_body
