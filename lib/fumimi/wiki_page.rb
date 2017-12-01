@@ -6,7 +6,9 @@ class Fumimi
     include Fumimi::Model
 
     def self.render_wiki_page(channel, title, booru)
-      wiki_page = booru.wiki_pages.index(title: title.tr(" ", "_")).first
+      title = title.tr(" ", "_")
+
+      wiki_page = booru.wiki_pages.index(title: title).first
       tag = booru.tags.search(name: title).first
       post = tag.example_post if tag && tag.post_count > 0
 
@@ -15,15 +17,15 @@ class Fumimi
 
     def self.embed(embed, channel, title, wiki_page = nil, post = nil)
       embed.author = Discordrb::Webhooks::EmbedAuthor.new({
-        name: title.tr("_", " "),
-        url: "https://danbooru.donmai.us/wiki_pages/#{title}"
+        name: title,
+        url: wiki_page.try(:url)
       })
 
       embed.description = wiki_page.try(:pretty_body)
 
       if post
-        embed.title = "post ##{post.id}"
-        embed.url = "https://danbooru.donmai.us/posts/#{post.id}"
+        embed.title = post.shortlink
+        embed.url = post.url
         embed.image = post.embed_image(channel.name)
       end
     end
