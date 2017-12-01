@@ -11,7 +11,7 @@ class Danbooru
     end
 
     def absolute_preview_file_url
-      "#{booru.host}/#{preview_file_url}"
+      "#{booru.host}#{preview_file_url}"
     end
   end
 end
