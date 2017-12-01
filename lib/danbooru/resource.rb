@@ -8,7 +8,7 @@ require "danbooru/model"
 class Danbooru
   class Resource < RestClient::Resource
     class Error < StandardError; end
-    attr_accessor :factory
+    attr_accessor :booru, :factory
 
     def factory
       @factory ||= Danbooru::Model
@@ -35,9 +35,9 @@ class Danbooru
 
       data = JSON.parse(resp.body)
       if data.is_a?(Array)
-        data.map { |hash| factory.new(hash) }
+        data.map { |hash| factory.new(booru, hash) }
       elsif data.is_a?(Hash)
-        factory.new(data)
+        factory.new(booru, data)
       else
         raise NotImplementedError
       end
@@ -46,7 +46,7 @@ class Danbooru
     def show(id)
       resp = self[id].get
       hash = JSON.parse(resp.body)
-      factory.new(hash)
+      factory.new(booru, hash)
     end
 
     def update!(id, **params)
@@ -54,7 +54,7 @@ class Danbooru
 
       if resp.code == 200
         hash = JSON.parse(resp.body)
-        factory.new(hash)
+        factory.new(booru, hash)
       else
         raise Danbooru::Resource::Error.new(resp)
       end

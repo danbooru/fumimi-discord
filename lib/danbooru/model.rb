@@ -3,7 +3,11 @@ require "ostruct"
 
 class Danbooru
   class Model < OpenStruct
-    def initialize(attributes)
+    attr_reader :booru
+
+    def initialize(booru, attributes)
+      @booru = booru
+
       attributes = attributes.map do |attr, value|
         value =
           case attr

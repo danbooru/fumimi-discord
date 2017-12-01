@@ -30,6 +30,9 @@ class Danbooru
       # @posts = @site["/posts"]
       instance_variable_set("@#{name}", @site["/#{name}"])
 
+      # posts.booru = self
+      send(name).booru = self
+
       # posts.factory = factory["posts"] || Danbooru::Post
       default_factory = "Danbooru::#{name.to_s.singularize.camelize}".safe_constantize || Danbooru::Model
       send(name).factory = factory[name] || default_factory
