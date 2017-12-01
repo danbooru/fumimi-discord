@@ -3,6 +3,8 @@ Dotenv.load
 
 require "fumimi/version"
 require "fumimi/bq"
+require "fumimi/comment"
+require "fumimi/forum_post"
 require "fumimi/post"
 require "fumimi/tag"
 require "danbooru/resource"
@@ -511,7 +513,7 @@ class Fumimi
     @token = token
     @log = RestClient.log = log
 
-    @booru = Danbooru.new(factory: { posts: Fumimi::Post, tags: Fumimi::Tag })
+    @booru = Danbooru.new(factory: { posts: Fumimi::Post, tags: Fumimi::Tag, comments: Fumimi::Comment, forum_posts: Fumimi::ForumPost })
     @bq = Fumimi::BQ.new(project: "danbooru-1343", dataset: "danbooru_production")
     @storage = Google::Cloud::Storage.new
     @bitly = Bitly.new(bitly_username, bitly_api_key)

@@ -1,7 +1,10 @@
 require "danbooru/post"
+require "fumimi/model"
 
 class Fumimi
   class Post < Danbooru::Post
+    include Fumimi::Model
+
     NSFW_BLUR = ENV["FUMIMI_NSFW_BLUR"] || 50
     CENSORED_TAGS = ENV["FUMIMI_CENSORED_TAGS"].to_s.split
 
