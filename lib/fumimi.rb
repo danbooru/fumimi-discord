@@ -35,10 +35,7 @@ module Fumimi::Events
 
     post_ids.each do |post_id|
       post = booru.posts.show(post_id)
-
-      event.channel.send_embed do |embed|
-        embed_post(embed, event.channel.name, post)
-      end
+      post.send_embed(event.channel)
     end
 
     nil
@@ -91,9 +88,7 @@ module Fumimi::Events
     event.message.delete
 
     post = booru.posts.show(post_id)
-    event.channel.send_embed do |embed|
-      embed_post(embed, event.channel.name, post)
-    end
+    post.send_embed(event.channel)
 
     nil
   end
@@ -145,10 +140,8 @@ module Fumimi::Commands
 
   def do_random(event, *tags)
     post = booru.posts.index(random: 1, limit: 1, tags: tags.join(" ")).first
-
-    event.channel.send_embed do |embed|
-      embed_post(embed, event.channel.name, post)
-    end
+    post.send_embed(event.channel)
+    nil
   end
 
   def do_posts(event, *tags)
@@ -160,9 +153,7 @@ module Fumimi::Commands
     posts = booru.posts.index(limit: limit, tags: tags.join(" "))
 
     posts.each do |post|
-      event.channel.send_embed do |embed|
-        embed_post(embed, event.channel.name, post)
-      end
+      post.send_embed(event.channel)
     end
 
     nil
@@ -203,9 +194,7 @@ module Fumimi::Commands
     iqdb_queries = booru.iqdb_queries.index(url: url)
 
     iqdb_queries.map(&:post).each do |post|
-      event.channel.send_embed do |embed|
-        embed_post(embed, event.channel.name, post)
-      end
+      post.send_embed(event.channel)
     end
 
     nil
@@ -561,48 +550,6 @@ class Fumimi
     bot.command(:say, help_available: false, &method(:do_say))
   end
 
-  def embed_post(embed, channel_name, post, tags = nil)
-    embed.author = Discordrb::Webhooks::EmbedAuthor.new({
-      name: "@#{post.uploader_name}",
-      url: "https://danbooru.donmai.us/users?name=#{CGI::escape(post.uploader_name)}"
-    })
-
-    embed.title = "post ##{post.id}"
-    embed.url = post.url
-    embed.image = post.embed_image(channel_name)
-    embed.color = post.border_color
-
-    embed.footer = post.embed_footer
-
-    embed
-
-=begin
-    chartags = tags.select { |t| t.category == 4 }.sort_by(&:post_count).reverse.take(1).map do |tag|
-      p = tag.name.tr("_", " ").gsub(/\]/, "\]")
-      t = CGI::escape(tag.name)
-      "[#{p}](https://danbooru.donmai.us/posts?tags=#{t})"
-    end.join(", ")
-
-    copytags = tags.select { |t| t.category == 3 }.sort_by(&:post_count).reverse.take(1).map do |tag|
-      p = tag.name.tr("_", " ").gsub(/\]/, "\]")
-      t = CGI::escape(tag.name)
-      "[#{p}](https://danbooru.donmai.us/posts?tags=#{t})"
-    end.join(", ")
-
-    arttags = tags.select { |t| t.category == 1 }.sort_by(&:post_count).reverse.take(1).map do |tag|
-      p = tag.name.tr("_", " ").gsub(/\]/, "\]")
-      t = CGI::escape(tag.name)
-      "[#{p}](https://danbooru.donmai.us/posts?tags=#{t})"
-    end.join(", ")
-
-    gentags = tags.select { |t| t.category == 0 }.sort_by(&:post_count).take(10).map do |tag|
-      p = tag.name.tr("_", " ").tr("]", "\]")
-      t = CGI::escape(tag.name)
-      "[#{p}](https://danbooru.donmai.us/posts?tags=#{t})"
-    end.join(", ")
-=end
-  end
-
   def embed_comment(embed, channel_name, comment, users, posts)
     user = users[comment.creator_id]
     post = posts[comment.post_id]
@@ -722,9 +669,7 @@ class Fumimi
     posts = booru.posts.newest(last_checked_at, 50).reverse
 
     posts.each do |post|
-      channel.send_embed do |embed|
-        embed_post(embed, channel.name, post)
-      end
+      post.send_embed(event.channel)
     end
 
     posts.last&.created_at || last_checked_at

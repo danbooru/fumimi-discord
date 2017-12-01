@@ -8,6 +8,27 @@ class Fumimi
     NSFW_BLUR = ENV["FUMIMI_NSFW_BLUR"] || 50
     CENSORED_TAGS = ENV["FUMIMI_CENSORED_TAGS"].to_s.split
 
+    def send_embed(channel)
+      channel.send_embed do |embed|
+        embed(embed, channel)
+      end
+    end
+
+    def embed(embed, channel)
+      embed.author = Discordrb::Webhooks::EmbedAuthor.new({
+        name: "@#{uploader_name}",
+        url: "#{booru.host}users?name=#{CGI::escape(uploader_name)}"
+      })
+
+      embed.title = shortlink
+      embed.url = url
+      embed.image = embed_image(channel.name)
+      embed.color = border_color
+      embed.footer = embed_footer
+
+      embed
+    end
+
     def embed_image_url
       if file_ext.match?(/jpe?g|png|gif/i)
         file_url
