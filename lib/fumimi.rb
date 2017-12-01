@@ -44,18 +44,9 @@ module Fumimi::Events
   def do_forum_id(event)
     forum_post_ids = event.text.scan(/forum #[0-9]+/i).grep(/([0-9]+)/) { $1.to_i }
 
-    forum_post_ids.each do |forum_post_id|
-      forum_post = booru.forum_posts.show(forum_post_id)
-
-      topic_ids = [forum_post.topic_id].join(",")
-      forum_topics = booru.forum_topics.search(id: topic_ids).group_by(&:id).transform_values(&:first)
-
-      creator_ids = [forum_post.creator_id].join(",")
-      users = booru.users.search(id: creator_ids).group_by(&:id).transform_values(&:first)
-
-      event.channel.send_embed do |embed|
-        embed_forum_post(embed, forum_post, forum_topics, users)
-      end
+    forum_post_ids.each do |id|
+      forum_post = booru.forum_posts.show(id)
+      Fumimi::ForumPost.render_forum_posts(event.channel, [forum_post], booru)
     end
 
     nil
@@ -210,18 +201,7 @@ module Fumimi::Commands
 
     # XXX
     forum_posts = booru.forum_posts.search(body_matches: body).take(limit)
-
-    creator_ids = forum_posts.map(&:creator_id).join(",")
-    users = booru.users.search(id: creator_ids).group_by(&:id).transform_values(&:first)
-
-    topic_ids = forum_posts.map(&:topic_id).join(",")
-    forum_topics = booru.forum_topics.search(id: topic_ids).group_by(&:id).transform_values(&:first)
-
-    forum_posts.each do |forum_post|
-      event.channel.send_embed do |embed|
-        embed_forum_post(embed, forum_post, forum_topics, users)
-      end
-    end
+    Fumimi::ForumPost.render_forum_posts(event.channel, forum_posts, booru)
 
     nil
   end
@@ -569,22 +549,6 @@ class Fumimi
     embed.footer = comment.embed_footer
   end
 
-  def embed_forum_post(embed, forum_post, forum_topics, users)
-    user = users[forum_post.creator_id]
-    topic = forum_topics[forum_post.topic_id]
-
-    embed.author = Discordrb::Webhooks::EmbedAuthor.new({
-      name: "#{topic.title} (forum ##{forum_post.id})",
-      url: "https://danbooru.donmai.us/forum_posts/#{forum_post.id}"
-    })
-
-    embed.title = "@#{user.name}"
-    embed.url = "https://danbooru.donmai.us/users?name=#{user.name}"
-
-    embed.description = forum_post.pretty_body
-    embed.footer = forum_post.embed_footer
-  end
-
   def render_wiki(event, title)
     event.channel.start_typing
 
@@ -700,18 +664,7 @@ class Fumimi
     log.debug("Checking /forum_posts (last seen: #{last_checked_at}).")
 
     forum_posts = booru.forum_posts.newest(last_checked_at, 50).reverse
-
-    creator_ids = forum_posts.map(&:creator_id).join(",")
-    users = booru.users.search(id: creator_ids).group_by(&:id).transform_values(&:first)
-
-    topic_ids = forum_posts.map(&:topic_id).join(",")
-    forum_topics = booru.forum_topics.search(id: topic_ids).group_by(&:id).transform_values(&:first)
-
-    forum_posts.each do |forum_post|
-      channel.send_embed do |embed|
-        embed_forum_post(embed, forum_post, forum_topics, users)
-      end
-    end
+    Fumimi::ForumPost.render_forum_posts(channel, forum_posts, booru)
 
     forum_posts.last&.created_at || last_checked_at
   end
