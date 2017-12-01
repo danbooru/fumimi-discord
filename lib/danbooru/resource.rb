@@ -35,9 +35,9 @@ class Danbooru
 
       data = JSON.parse(resp.body)
       if data.is_a?(Array)
-        data.map { |hash| factory.new(booru, hash) }
+        data.map { |hash| factory.new(self, hash) }
       elsif data.is_a?(Hash)
-        factory.new(booru, data)
+        factory.new(self, data)
       else
         raise NotImplementedError
       end
@@ -46,7 +46,7 @@ class Danbooru
     def show(id)
       resp = self[id].get
       hash = JSON.parse(resp.body)
-      factory.new(booru, hash)
+      factory.new(self, hash)
     end
 
     def update!(id, **params)
@@ -54,7 +54,7 @@ class Danbooru
 
       if resp.code == 200
         hash = JSON.parse(resp.body)
-        factory.new(booru, hash)
+        factory.new(self, hash)
       else
         raise Danbooru::Resource::Error.new(resp)
       end

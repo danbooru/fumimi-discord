@@ -3,10 +3,11 @@ require "ostruct"
 
 class Danbooru
   class Model < OpenStruct
-    attr_reader :booru
+    attr_reader :api, :booru
 
-    def initialize(booru, attributes)
-      @booru = booru
+    def initialize(api, attributes)
+      @api = api
+      @booru = api.booru
 
       attributes = attributes.map do |attr, value|
         value =
@@ -25,8 +26,7 @@ class Danbooru
     end
 
     def url
-      endpoint = self.class.name.demodulize.underscore.pluralize
-      "#{booru.host}/#{endpoint}/#{id}"
+      "#{api.url}/#{id}"
     end
 
     def shortlink
