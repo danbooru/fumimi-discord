@@ -19,9 +19,8 @@ class Danbooru
     end
 
     def with(params)
-      resource = self.dup
-      resource.default_params.merge!(params)
-      resource
+      default_params.merge!(params)
+      self
     end
 
     def search(params = {})

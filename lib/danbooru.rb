@@ -11,8 +11,13 @@ require "danbooru/iqdb_query"
 require "danbooru/pool"
 
 class Danbooru
+  RESOURCES = %w[
+    bans comments iqdb_queries forum_posts forum_topics pools posts source tags users wiki_pages
+  ]
+
   attr_reader :host, :user, :api_key, :site
-  attr_reader :posts, :users, :comments, :forum_posts, :forum_topics, :wiki_pages, :tags, :bans, :iqdb_queries, :pools, :counts, :source
+  attr_reader *RESOURCES.map(&:to_sym) # attr_reader :bans, :comments, ...
+  attr_reader :count
 
   def initialize(host: ENV["BOORU_HOST"], user: ENV["BOORU_USER"], api_key: ENV["BOORU_API_KEY"], factories: {})
     @host, @user, @api_key = host, user, api_key
@@ -23,26 +28,17 @@ class Danbooru
       headers: { accept: :json },
     })
 
-    @posts = @site["/posts"]
-    @users = @site["/users"]
-    @comments = @site["/comments"].with(group_by: :comment)
-    @forum_posts = @site["/forum_posts"]
-    @forum_topics = @site["/forum_topics"]
-    @wiki_pages = @site["/wiki_pages"]
-    @tags = @site["/tags"].with("search[hide_empty]": "no")
-    @bans = @site["/bans"]
-    @iqdb_queries = @site["/iqdb_queries"]
-    @pools = @site["/pools"]
-    @counts = @site["/counts/posts"]
-    @source = @site["/source"]
+    RESOURCES.each do |name|
+      # @posts = @site["/posts"]
+      instance_variable_set("@#{name}", @site["/#{name}"])
 
-    posts.factory = Danbooru::Post
-    comments.factory = Danbooru::Comment
-    forum_posts.factory = Danbooru::ForumPost
-    forum_topics.factory = Danbooru::ForumTopic
-    tags.factory = Danbooru::Tag
-    wiki_pages.factory = Danbooru::WikiPage
-    iqdb_queries.factory = Danbooru::IqdbQuery
-    pools.factory = Danbooru::Pool
+      # posts.factory = Danbooru::Post
+      factory = "Danbooru::#{name.singularize.camelize}".safe_constantize
+      send(name).factory = factory if factory.present?
+    end
+
+    comments.with(group_by: :comment)
+    tags.with("search[hide_empty]": "no")
+    @counts = @site["/counts/posts"]
   end
 end
