@@ -1,14 +1,7 @@
 require "addressable"
 require "rest-client"
 
-require "danbooru/resource"
-require "danbooru/comment"
-require "danbooru/forum_post"
-require "danbooru/post"
-require "danbooru/tag"
-require "danbooru/wiki_page"
-require "danbooru/iqdb_query"
-require "danbooru/user"
+Dir[__dir__ + "/danbooru/**/*.rb"].each { |file| require file }
 
 class Danbooru
   RESOURCES = %i[
