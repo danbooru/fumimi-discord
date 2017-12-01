@@ -1,3 +1,6 @@
+require "dotenv"
+Dotenv.load
+
 require "fumimi/version"
 require "fumimi/bq"
 require "fumimi/post"
@@ -16,7 +19,6 @@ require "active_support"
 require "active_support/core_ext"
 require "bitly"
 require "discordrb"
-require "dotenv"
 require "google/cloud/storage"
 require "pg"
 require "pry"
@@ -24,8 +26,6 @@ require "pry-byebug"
 
 require "optparse"
 require "shellwords"
-
-Dotenv.load
 
 module Fumimi::Events
   def do_post_id(event)

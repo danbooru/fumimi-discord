@@ -3,7 +3,7 @@ require "danbooru/post"
 class Fumimi
   class Post < Danbooru::Post
     NSFW_BLUR = ENV["FUMIMI_NSFW_BLUR"] || 50
-    CENSORED_TAGS = ENV["FUMIMI_CENSORED_TAGS"]&.split || %w[loli shota toddlercon guro death decapitation scat]
+    CENSORED_TAGS = ENV["FUMIMI_CENSORED_TAGS"].to_s.split
 
     def embed_image_url
       if file_ext.match?(/jpe?g|png|gif/i)
