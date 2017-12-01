@@ -7,6 +7,7 @@ require "fumimi/comment"
 require "fumimi/forum_post"
 require "fumimi/post"
 require "fumimi/tag"
+require "fumimi/wiki_page"
 require "danbooru/resource"
 
 require "danbooru"
@@ -53,10 +54,11 @@ module Fumimi::Events
   end
 
   def do_wiki_link(event)
-    titles = event.text.scan(/\[\[ ( [^\]]+ ) \]\]/x).flatten
+    event.channel.start_typing
 
+    titles = event.text.scan(/\[\[ ( [^\]]+ ) \]\]/x).flatten
     titles.each do |title|
-      render_wiki(event, title.tr(" ", "_"))
+      Fumimi::WikiPage.render_wiki_page(event.channel, title, booru)
     end
 
     nil
@@ -470,7 +472,7 @@ class Fumimi
     @token = token
     @log = RestClient.log = log
 
-    @booru = Danbooru.new(factory: { posts: Fumimi::Post, tags: Fumimi::Tag, comments: Fumimi::Comment, forum_posts: Fumimi::ForumPost })
+    @booru = Danbooru.new(factory: { posts: Fumimi::Post, tags: Fumimi::Tag, comments: Fumimi::Comment, forum_posts: Fumimi::ForumPost, wiki_pages: Fumimi::WikiPage })
     @bq = Fumimi::BQ.new(project: "danbooru-1343", dataset: "danbooru_production")
     @storage = Google::Cloud::Storage.new
     @bitly = Bitly.new(bitly_username, bitly_api_key)
@@ -516,32 +518,6 @@ class Fumimi
     bot.command(:logs, description: "Dump channel log in JSON format: `/logs <channel-name>`", &method(:do_logs))
     bot.command(:sql, help_available: false, &method(:do_sql))
     bot.command(:say, help_available: false, &method(:do_say))
-  end
-
-  def render_wiki(event, title)
-    event.channel.start_typing
-
-    wiki = booru.wiki_pages.index(title: title).first
-    tag  = booru.tags.search(name: title).first
-
-    if tag && tag.post_count > 0
-      post = tag.example_post(booru)
-    end
-
-    event.channel.send_embed do |embed|
-      embed.author = Discordrb::Webhooks::EmbedAuthor.new({
-        name: title.tr("_", " "),
-        url: "https://danbooru.donmai.us/wiki_pages/#{title}"
-      })
-
-      embed.description = wiki.try(:pretty_body)
-
-      if post
-        embed.title = "post ##{post.id}"
-        embed.url = "https://danbooru.donmai.us/posts/#{post.id}"
-        embed.image = post.embed_image(event.channel.name)
-      end
-    end
   end
 
   def run_commands
