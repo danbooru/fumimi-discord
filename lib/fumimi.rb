@@ -8,7 +8,7 @@ require "danbooru/comment"
 require "danbooru/forum_post"
 require "danbooru/post"
 require "danbooru/tag"
-require "danbooru/wiki"
+require "danbooru/wiki_page"
 
 require "active_support"
 require "active_support/core_ext"
@@ -196,7 +196,7 @@ module Fumimi::Commands
     url = urls.first or return
 
     event.channel.start_typing
-    iqdb_queries = booru.iqdb.index(url: url)
+    iqdb_queries = booru.iqdb_queries.index(url: url)
 
     iqdb_queries.map(&:post).each do |post|
       event.channel.send_embed do |embed|
@@ -637,7 +637,7 @@ class Fumimi
   def render_wiki(event, title)
     event.channel.start_typing
 
-    wiki = booru.wiki.index(title: title).first
+    wiki = booru.wiki_pages.index(title: title).first
     tag  = booru.tags.search(name: title).first
 
     if tag && tag.post_count > 0
