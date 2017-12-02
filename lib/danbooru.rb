@@ -1,4 +1,6 @@
-require "addressable"
+require "active_support"
+require "active_support/core_ext/string/inflections"
+require "addressable/uri"
 require "rest-client"
 
 Dir[__dir__ + "/danbooru/**/*.rb"].each { |file| require file }
