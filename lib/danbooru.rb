@@ -17,7 +17,7 @@ class Danbooru
   attr_reader :host, :user, :api_key, :site
   attr_reader *RESOURCES
 
-  def initialize(host: ENV["BOORU_HOST"], user: ENV["BOORU_USER"], api_key: ENV["BOORU_API_KEY"], factory: {})
+  def initialize(host: ENV["BOORU_HOST"], user: ENV["BOORU_USER"], api_key: ENV["BOORU_API_KEY"], factory: {}, logger: nil)
     @user, @api_key = user, api_key
     @host = Addressable::URI.parse(host)
 
@@ -25,6 +25,7 @@ class Danbooru
       user: user,
       password: api_key,
       headers: { accept: :json },
+      log: logger,
     })
 
     RESOURCES.each do |name|
