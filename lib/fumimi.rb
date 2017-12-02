@@ -572,7 +572,7 @@ class Fumimi
     posts = booru.posts.newest(last_checked_at, 50).reverse
 
     posts.each do |post|
-      post.send_embed(event.channel)
+      post.send_embed(channel)
     end
 
     posts.last&.created_at || last_checked_at
@@ -583,7 +583,7 @@ class Fumimi
 
     comments = booru.comments.newest(last_checked_at, 50).reverse
     comments = comments.reject(&:do_not_bump_post)
-    Fumimi::Comment.render_comments(event.channel, comments, booru)
+    Fumimi::Comment.render_comments(channel, comments, booru)
 
     comments.last&.created_at || last_checked_at
   end
