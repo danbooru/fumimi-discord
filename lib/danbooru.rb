@@ -15,7 +15,7 @@ class Danbooru
   ]
 
   attr_reader :host, :user, :api_key, :site
-  attr_reader *RESOURCES.map(&:to_sym) # attr_reader :bans, :comments, ...
+  attr_reader *RESOURCES
 
   def initialize(host: ENV["BOORU_HOST"], user: ENV["BOORU_USER"], api_key: ENV["BOORU_API_KEY"], factory: {})
     @user, @api_key = user, api_key
