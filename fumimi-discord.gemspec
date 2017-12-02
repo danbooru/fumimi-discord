@@ -20,10 +20,10 @@ Gem::Specification.new do |spec|
   spec.executables   = %w[fumimi]
   spec.require_paths = ["lib"]
 
-  spec.required_ruby_version = '~> 2.4.0'
+  spec.required_ruby_version = '~> 2.4'
 
-  spec.add_runtime_dependency "activesupport", "~> 5.1"
-  spec.add_runtime_dependency "dotenv", "~> 2.2"
+  spec.add_runtime_dependency "activesupport", "~> 5"
+  spec.add_runtime_dependency "dotenv", "~> 2"
   spec.add_runtime_dependency "addressable", "~> 2.5"
   spec.add_runtime_dependency "google-cloud-bigquery", "~> 0.26"
   spec.add_runtime_dependency "google-cloud-storage", "~> 1.0"
@@ -32,8 +32,9 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency "gli", "~> 2.16"
   spec.add_runtime_dependency "sequel", "~> 5.2"
   spec.add_runtime_dependency "sqlite3", "~> 1.3"
-  spec.add_runtime_dependency "bitly", "~> 1.1.0"
+  spec.add_runtime_dependency "bitly", "~> 1.1"
   spec.add_runtime_dependency "rest-client", ">= 2.1.0.rc1", "< 3"
+  spec.add_runtime_dependency "dtext_rb", "~> 1.6"
 
   spec.add_development_dependency "bundler", "~> 1.14"
   spec.add_development_dependency "rake", "~> 12.0"
