@@ -50,7 +50,7 @@ def main(options)
   end
 
   if options[:console]
-    Pry.start
+    fumimi.pry
   elsif options[:feed]
     fumimi.run_feeds(comment_feed: "comment-feed", upload_feed: "upload-feed", forum_feed: "forum-feed", error_channel: "testing")
   else
