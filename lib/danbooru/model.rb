@@ -25,6 +25,10 @@ class Danbooru
       super(attributes)
     end
 
+    def update!(**params)
+      api.update!(id, **params)
+    end
+
     def url
       "#{api.url}/#{id}"
     end

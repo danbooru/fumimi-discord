@@ -160,7 +160,7 @@ module Fumimi::Commands
         progress_message.edit("Updating `#{search}` with `#{tags}`... (post ##{post.id})")
       end
 
-      booru.posts.update!(post.id, "post[old_tag_string]": "", "post[tag_string]": tags)
+      post.update!("post[old_tag_string]": "", "post[tag_string]": tags)
       n += 1
     end
 
