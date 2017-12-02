@@ -1,8 +1,8 @@
 require "danbooru/model"
 
 class Danbooru::Model::IqdbQuery < Danbooru::Model
-  def initialize(attributes)
+  def initialize(api, attributes)
     super
-    self.post = Danbooru::Post.new(self.post)
+    self.post = Danbooru::Model::Post.new(api, self.post)
   end
 end

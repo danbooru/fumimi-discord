@@ -38,7 +38,7 @@ class Danbooru
       send(name).booru = self
 
       # posts.factory = factory["posts"] || Danbooru::Post
-      default_factory = "Danbooru::#{name.to_s.singularize.camelize}".safe_constantize || Danbooru::Model
+      default_factory = "Danbooru::Model::#{name.to_s.singularize.camelize}".safe_constantize || Danbooru::Model
       send(name).factory = factory[name] || default_factory
     end
 
