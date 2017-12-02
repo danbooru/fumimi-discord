@@ -1,4 +1,3 @@
-require "addressable/uri"
 require "ostruct"
 
 class Danbooru
@@ -9,19 +8,7 @@ class Danbooru
       @api = api
       @booru = api.booru
 
-      attributes = attributes.map do |attr, value|
-        value =
-          case attr
-          when /_at$/
-            Time.parse(value) rescue nil
-          when /_url$/
-            Addressable::URI.parse(value)
-          else
-            value
-          end
-        [attr, value]
-      end.to_h
-
+      attributes = cast_attributes(attributes)
       super(attributes)
     end
 
@@ -40,6 +27,25 @@ class Danbooru
 
     def to_json
       to_h.to_json
+    end
+
+    protected
+
+    def cast_attributes(attributes)
+      attributes.map do |name, value|
+        [name, cast_attribute(name, value)]
+      end.to_h
+    end
+
+    def cast_attribute(name, value)
+      case name
+      when /_at$/
+        Time.parse(value) rescue nil
+      when /_url$/
+        Addressable::URI.parse(value)
+      else
+        value
+      end
     end
   end
 end
