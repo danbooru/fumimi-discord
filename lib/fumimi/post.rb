@@ -17,7 +17,7 @@ class Fumimi
     def embed(embed, channel)
       embed.author = Discordrb::Webhooks::EmbedAuthor.new({
         name: "@#{uploader_name}",
-        url: "#{booru.host}users?name=#{CGI::escape(uploader_name)}"
+        url: booru.host + "/users/#{uploader_id}"
       })
 
       embed.title = shortlink
