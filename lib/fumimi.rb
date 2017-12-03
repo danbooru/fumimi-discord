@@ -8,7 +8,6 @@ require "fumimi/forum_post"
 require "fumimi/post"
 require "fumimi/tag"
 require "fumimi/wiki_page"
-require "danbooru/resource"
 
 require "danbooru"
 
@@ -477,7 +476,7 @@ class Fumimi
   end
 
   def channels
-    server.channels.group_by(&:name).transform_values(&:first)
+    server.channels.index_by(&:name)
   end
 
   def shutdown!

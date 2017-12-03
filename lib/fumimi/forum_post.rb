@@ -7,10 +7,10 @@ class Fumimi
 
     def self.render_forum_posts(channel, forum_posts, booru)
       creator_ids = forum_posts.map(&:creator_id).join(",")
-      users = booru.users.search(id: creator_ids).group_by(&:id).transform_values(&:first)
+      users = booru.users.search(id: creator_ids).index_by(&:id)
 
       topic_ids = forum_posts.map(&:topic_id).join(",")
-      forum_topics = booru.forum_topics.search(id: topic_ids).group_by(&:id).transform_values(&:first)
+      forum_topics = booru.forum_topics.search(id: topic_ids).index_by(&:id)
 
       forum_posts.each do |forum_post|
         user = users[forum_post.creator_id]
