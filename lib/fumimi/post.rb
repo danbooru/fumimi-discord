@@ -41,7 +41,7 @@ class Fumimi
       if is_censored? || is_unsafe?(channel_name)
         Discordrb::Webhooks::EmbedThumbnail.new(url: "https://rsz.io/#{booru.host.host}#{preview_file_url}?blur=#{NSFW_BLUR}")
       else
-        Discordrb::Webhooks::EmbedThumbnail.new(url: absolute_preview_file_url)
+        Discordrb::Webhooks::EmbedThumbnail.new(url: absolute_preview_file_url.to_s)
       end
     end
 
