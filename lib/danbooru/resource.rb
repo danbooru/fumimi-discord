@@ -10,17 +10,14 @@ class Danbooru
     class Error < StandardError; end
     attr_accessor :booru, :factory
 
-    def factory
-      @factory ||= Danbooru::Model
+    def initialize(url, options = {})
+      @booru = options[:booru]
+      @factory = options[:factory] || Danbooru::Model
+      super(url, options)
     end
 
     def default_params
-      @default_params ||= { limit: 1000 }
-    end
-
-    def with(params)
-      default_params.merge!(params)
-      self
+      { limit: 1000 }
     end
 
     def search(params = {})
@@ -30,8 +27,7 @@ class Danbooru
 
     def index(params = {})
       params = default_params.merge(params)
-      params = "?" + params.to_query
-      resp = self[params].get
+      resp = self.get(params: params)
 
       data = JSON.parse(resp.body)
       if data.is_a?(Array)
