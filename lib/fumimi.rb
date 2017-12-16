@@ -14,6 +14,7 @@ require "danbooru"
 require "active_support"
 require "active_support/core_ext"
 require "bitly"
+require "dentaku"
 require "discordrb"
 require "google/cloud/storage"
 require "pg"
@@ -143,6 +144,13 @@ module Fumimi::Commands
     end
 
     nil
+  end
+
+  command :calc do |event, *args|
+    args = args.join(" ")
+
+    result = Dentaku::Calculator.new.evaluate(args)
+    event << "`#{args} = #{result}`"
   end
 
   command :mass_update do |event, *args|
@@ -494,6 +502,7 @@ class Fumimi
     bot.message(contains: /\[\[ [^\]]+ \]\]/x, &method(:do_wiki_link))
     bot.message(contains: %r!^https?://(?:danbooru|sonohara|hijiribe|safebooru)\.donmai\.us/posts/([0-9]+)(?:\?tags=.*)?$!, &method(:do_convert_post_links))
     bot.command(:hi, description: "Say hi to Fumimi: `/hi`", &method(:do_hi))
+    bot.command(:calc, description: "Calculate a math expression", &method(:do_calc))
     bot.command(:posts, description: "List posts: `/posts <tags>`", &method(:do_posts))
     bot.command(:mass, description: "Update posts: `/mass update <search> -> <tags>`", &method(:do_mass_update))
     bot.command(:count, description: "Count posts: `/count <tags>`", &method(:do_count))
