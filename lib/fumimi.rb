@@ -1,13 +1,7 @@
 require "dotenv"
 Dotenv.load
 
-require "fumimi/version"
-require "fumimi/bq"
-require "fumimi/comment"
-require "fumimi/forum_post"
-require "fumimi/post"
-require "fumimi/tag"
-require "fumimi/wiki_page"
+Dir[__dir__ + "/**/*.rb"].each { |file| require file }
 
 require "danbooru"
 
@@ -41,7 +35,7 @@ module Fumimi::Events
 
     forum_post_ids.each do |id|
       forum_post = booru.forum_posts.show(id)
-      Fumimi::ForumPost.render_forum_posts(event.channel, [forum_post], booru)
+      Fumimi::Model::ForumPost.render_forum_posts(event.channel, [forum_post], booru)
     end
 
     nil
@@ -52,7 +46,7 @@ module Fumimi::Events
 
     titles = event.text.scan(/\[\[ ( [^\]]+ ) \]\]/x).flatten
     titles.each do |title|
-      Fumimi::WikiPage.render_wiki_page(event.channel, title, booru)
+      Fumimi::Model::WikiPage.render_wiki_page(event.channel, title, booru)
     end
 
     nil
@@ -202,9 +196,8 @@ module Fumimi::Commands
     limit = [10, limit].min
     body = args.grep_v(/limit:(\d+)/i).join(" ")
 
-    # XXX
-    forum_posts = booru.forum_posts.search(body_matches: body).take(limit)
-    Fumimi::ForumPost.render_forum_posts(event.channel, forum_posts, booru)
+    forum_posts = booru.forum_posts.index("search[body_matches]": body)
+    Fumimi::Model::ForumPost.render_forum_posts(event.channel, forum_posts, booru)
 
     nil
   end
@@ -215,8 +208,8 @@ module Fumimi::Commands
     limit = [10, limit].min
     tags = tags.grep_v(/limit:(\d+)/i)
 
-    comments = booru.comments.search(post_tags_match: tags.join(" ")).take(limit)
-    Fumimi::Comment.render_comments(event.channel, comments, booru)
+    comments = booru.comments.index("search[post_tags_match]": tags.join(" "))
+    Fumimi::Model::Comment.render_comments(event.channel, comments, booru)
 
     nil
   end
@@ -471,9 +464,17 @@ class Fumimi
     @server_id = server_id
     @client_id = client_id
     @token = token
-    @log = RestClient.log = log
+    @log = log
 
-    @booru = Danbooru.new(factory: { posts: Fumimi::Post, tags: Fumimi::Tag, comments: Fumimi::Comment, forum_posts: Fumimi::ForumPost, wiki_pages: Fumimi::WikiPage })
+    factory = {
+      posts: Fumimi::Model::Post,
+      tags: Fumimi::Model::Tag,
+      comments: Fumimi::Model::Comment,
+      forum_posts: Fumimi::Model::ForumPost,
+      wiki_pages: Fumimi::Model::WikiPage,
+    }
+
+    @booru = Danbooru.new(factory: factory, log: log)
     @bq = Fumimi::BQ.new(project: "danbooru-1343", dataset: "danbooru_production")
     @storage = Google::Cloud::Storage.new
     @bitly = Bitly.new(bitly_username, bitly_api_key)
@@ -577,7 +578,7 @@ class Fumimi
   def update_uploads_feed(last_checked_at, channel)
     log.debug("Checking /posts (last seen: #{last_checked_at}).")
 
-    posts = booru.posts.newest(last_checked_at, 50).reverse
+    posts = booru.posts.index(limit: 50).select { |p| p.created_at > last_checked_at }
 
     posts.each do |post|
       post.send_embed(channel)
@@ -589,9 +590,9 @@ class Fumimi
   def update_comments_feed(last_checked_at, channel)
     log.debug("Checking /comments (last seen: #{last_checked_at}).")
 
-    comments = booru.comments.newest(last_checked_at, 50).reverse
+    comments = booru.comments.index(limit: 50).select { |c| c.created_at > last_checked_at }
     comments = comments.reject(&:do_not_bump_post)
-    Fumimi::Comment.render_comments(channel, comments, booru)
+    Fumimi::Model::Comment.render_comments(channel, comments, booru)
 
     comments.last&.created_at || last_checked_at
   end
@@ -599,8 +600,8 @@ class Fumimi
   def update_forum_feed(last_checked_at, channel)
     log.debug("Checking /forum_posts (last seen: #{last_checked_at}).")
 
-    forum_posts = booru.forum_posts.newest(last_checked_at, 50).reverse
-    Fumimi::ForumPost.render_forum_posts(channel, forum_posts, booru)
+    forum_posts = booru.forum_posts.index(limit: 50).select { |fp| fp.created_at > last_checked_at }
+    Fumimi::Model::ForumPost.render_forum_posts(channel, forum_posts, booru)
 
     forum_posts.last&.created_at || last_checked_at
   end
