@@ -37,7 +37,7 @@ class Fumimi::BQ
   def query(query, **params, &block)
     job = exec(query, **params, &block)
 
-    results = job.data(max: 200)
+    results = job.data(max: 1000)
     results.extend(BQMethods)
     results.instance_eval { @job = job }
 
