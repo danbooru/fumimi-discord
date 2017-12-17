@@ -60,7 +60,7 @@ module Fumimi::Events
   respond(:comment_id, /comment #[0-9]+/) do |event, text|
     id = text[/[0-9]+/]
 
-    comment = booru.comments.show(comment_id)
+    comment = booru.comments.show(id)
     Fumimi::Model::Comment.render_comments(event.channel, [comment], booru)
   end
 
