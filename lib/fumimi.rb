@@ -57,6 +57,13 @@ module Fumimi::Events
     Fumimi::Model::ForumPost.render_forum_posts(event.channel, [forum_post], booru)
   end
 
+  respond(:comment_id, /comment #[0-9]+/) do |event, text|
+    id = text[/[0-9]+/]
+
+    comment = booru.comments.show(comment_id)
+    Fumimi::Model::Comment.render_comments(event.channel, [comment], booru)
+  end
+
   respond(:wiki_link, /\[\[ [^\]]+ \]\]/x) do |event, text|
     title = text[/[^\[\]]+/]
 
@@ -73,6 +80,33 @@ module Fumimi::Events
     posts.each do |post|
       post.send_embed(event.channel)
     end
+  end
+
+  respond(:artist_id, /artist #[0-9]+/) do |event, text|
+    id = text[/[0-9]+/]
+    event << "https://danbooru.donmai.us/artists/#{id}"
+  end
+
+  respond(:note_id, /note #[0-9]+/) do |event, text|
+    id = text[/[0-9]+/]
+
+    note = booru.notes.show(id)
+    event << "https://danbooru.donmai.us/posts/#{note.post_id}#note-#{note.id}"
+  end
+
+  respond(:pixiv_id, /pixiv #[0-9]+/) do |event, text|
+    id = text[/[0-9]+/]
+    event << "https://www.pixiv.net/member_illust.php?mode=medium&illust_id=#{id}"
+  end
+
+  respond(:pool_id, /pool #[0-9]+/) do |event, text|
+    id = text[/[0-9]+/]
+    event << "https://danbooru.donmai.us/pools/#{id}"
+  end
+
+  respond(:user_id, /user #[0-9]+/) do |event, text|
+    id = text[/[0-9]+/]
+    event << "https://danbooru.donmai.us/users/#{id}"
   end
 
   respond(:issue_id, /issue #[0-9]+/) do |event, text|
