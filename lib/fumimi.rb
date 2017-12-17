@@ -20,7 +20,7 @@ require "shellwords"
 
 module Fumimi::Events
   def do_post_id(event)
-    post_ids = event.text.scan(/post #[0-9]+/i).grep(/([0-9]+)/) { $1.to_i }
+    post_ids = event.text.scan(/(?<!`)post #[0-9]+(?!`)/i).grep(/([0-9]+)/) { $1.to_i }
 
     post_ids.each do |post_id|
       post = booru.posts.show(post_id)
@@ -31,7 +31,7 @@ module Fumimi::Events
   end
 
   def do_forum_id(event)
-    forum_post_ids = event.text.scan(/forum #[0-9]+/i).grep(/([0-9]+)/) { $1.to_i }
+    forum_post_ids = event.text.scan(/(?<!`)forum #[0-9]+(?!`)/i).grep(/([0-9]+)/) { $1.to_i }
 
     forum_post_ids.each do |id|
       forum_post = booru.forum_posts.show(id)
@@ -42,10 +42,9 @@ module Fumimi::Events
   end
 
   def do_wiki_link(event)
-    event.channel.start_typing
-
-    titles = event.text.scan(/\[\[ ( [^\]]+ ) \]\]/x).flatten
+    titles = event.text.scan(/(?<!`) \[\[ ( [^\]]+ ) \]\] (?!`)/x).flatten
     titles.each do |title|
+      event.channel.start_typing
       Fumimi::Model::WikiPage.render_wiki_page(event.channel, title, booru)
     end
 
@@ -53,7 +52,7 @@ module Fumimi::Events
   end
 
   def do_issue_id(event)
-    issue_ids = event.text.scan(/issue #[0-9]+/i).grep(/([0-9]+)/) { $1.to_i }
+    issue_ids = event.text.scan(/(?<!`)issue #[0-9]+(?!`)/i).grep(/([0-9]+)/) { $1.to_i }
 
     issue_ids.each do |issue_id|
       event.send_message "https://github.com/r888888888/danbooru/issues/#{issue_id}"
