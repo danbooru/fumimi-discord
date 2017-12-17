@@ -19,61 +19,58 @@ require "optparse"
 require "shellwords"
 
 module Fumimi::Events
-  def do_post_id(event)
-    post_ids = event.text.scan(/(?<!`)post #[0-9]+(?!`)/i).grep(/([0-9]+)/) { $1.to_i }
+  extend ActiveSupport::Concern
 
-    post_ids.each do |post_id|
-      post = booru.posts.show(post_id)
+  def self.respond(name, regex, &block)
+    @@messages ||= []
+    @@messages << [{name: name, regex: regex}]
+
+    define_method(:"do_#{name}") do |event, *args|
+      matches = event.text.scan(/(?<!`)#{regex}(?!`)/)
+
+      matches.each do |match|
+        instance_exec(event, match, &block)
+      end
+
+      nil
+    end
+  end
+
+  respond(:post_id, /post #[0-9]+/i) do |event, text|
+    post_id = text[/[0-9]+/].to_i
+
+    post = booru.posts.show(post_id)
+    post.send_embed(event.channel)
+  end
+
+  respond(:forum_id, /forum #[0-9]+/i) do |event, text|
+    forum_post_id = text[/[0-9]+/].to_i
+
+    forum_post = booru.forum_posts.show(forum_post_id)
+    Fumimi::Model::ForumPost.render_forum_posts(event.channel, [forum_post], booru)
+  end
+
+  respond(:wiki_link, /\[\[ [^\]]+ \]\]/x) do |event, text|
+    title = text[/[^\[\]]+/]
+
+    event.channel.start_typing
+    Fumimi::Model::WikiPage.render_wiki_page(event.channel, title, booru)
+  end
+
+  respond(:search_link, /{{ [^\}]+ }}/x) do |event, text|
+    search = text[/[^{}]+/]
+
+    event.channel.start_typing
+    posts = booru.posts.index(limit: 3, tags: search)
+
+    posts.each do |post|
       post.send_embed(event.channel)
     end
-
-    nil
   end
 
-  def do_forum_id(event)
-    forum_post_ids = event.text.scan(/(?<!`)forum #[0-9]+(?!`)/i).grep(/([0-9]+)/) { $1.to_i }
-
-    forum_post_ids.each do |id|
-      forum_post = booru.forum_posts.show(id)
-      Fumimi::Model::ForumPost.render_forum_posts(event.channel, [forum_post], booru)
-    end
-
-    nil
-  end
-
-  def do_wiki_link(event)
-    titles = event.text.scan(/(?<!`) \[\[ ( [^\]]+ ) \]\] (?!`)/x).flatten
-    titles.each do |title|
-      event.channel.start_typing
-      Fumimi::Model::WikiPage.render_wiki_page(event.channel, title, booru)
-    end
-
-    nil
-  end
-
-  def do_search_link(event)
-    searches = event.text.scan(/(?<!`) {{ ( [^}]+ ) }} (?!`)/x).flatten
-
-    searches.each do |search|
-      event.channel.start_typing
-      posts = booru.posts.index(limit: 3, tags: search)
-
-      posts.each do |post|
-        post.send_embed(event.channel)
-      end
-    end
-
-    nil
-  end
-
-  def do_issue_id(event)
-    issue_ids = event.text.scan(/(?<!`)issue #[0-9]+(?!`)/i).grep(/([0-9]+)/) { $1.to_i }
-
-    issue_ids.each do |issue_id|
-      event.send_message "https://github.com/r888888888/danbooru/issues/#{issue_id}"
-    end
-
-    nil
+  respond(:issue_id, /issue #[0-9]+/) do |event, text|
+    issue_id = text[/[0-9]+/]
+    event.send_message "https://github.com/r888888888/danbooru/issues/#{issue_id}"
   end
 
   def do_convert_post_links(event)
@@ -512,11 +509,10 @@ class Fumimi
   def register_commands
     log.debug("Registering bot commands...")
 
-    bot.message(contains: /post #[0-9]+/i, &method(:do_post_id))
-    bot.message(contains: /forum #[0-9]+/i, &method(:do_forum_id))
-    bot.message(contains: /issue #[0-9]+/i, &method(:do_issue_id))
-    bot.message(contains: /\[\[ [^\]]+ \]\]/x, &method(:do_wiki_link))
-    bot.message(contains: /{{ [^}]+ }}/x, &method(:do_search_link))
+    @@messages.each do |name:, regex:|
+      bot.message(contains: regex, &method(:"do_#{name}"))
+    end
+
     bot.message(contains: %r!^https?://(?:danbooru|sonohara|hijiribe|safebooru)\.donmai\.us/posts/([0-9]+)(?:\?tags=.*)?$!, &method(:do_convert_post_links))
     bot.command(:hi, description: "Say hi to Fumimi: `/hi`", &method(:do_hi))
     bot.command(:calc, description: "Calculate a math expression", &method(:do_calc))
