@@ -51,6 +51,21 @@ module Fumimi::Events
     nil
   end
 
+  def do_search_link(event)
+    searches = event.text.scan(/(?<!`) {{ ( [^}]+ ) }} (?!`)/x).flatten
+
+    searches.each do |search|
+      event.channel.start_typing
+      posts = booru.posts.index(limit: 3, tags: search)
+
+      posts.each do |post|
+        post.send_embed(event.channel)
+      end
+    end
+
+    nil
+  end
+
   def do_issue_id(event)
     issue_ids = event.text.scan(/(?<!`)issue #[0-9]+(?!`)/i).grep(/([0-9]+)/) { $1.to_i }
 
@@ -501,6 +516,7 @@ class Fumimi
     bot.message(contains: /forum #[0-9]+/i, &method(:do_forum_id))
     bot.message(contains: /issue #[0-9]+/i, &method(:do_issue_id))
     bot.message(contains: /\[\[ [^\]]+ \]\]/x, &method(:do_wiki_link))
+    bot.message(contains: /{{ [^}]+ }}/x, &method(:do_search_link))
     bot.message(contains: %r!^https?://(?:danbooru|sonohara|hijiribe|safebooru)\.donmai\.us/posts/([0-9]+)(?:\?tags=.*)?$!, &method(:do_convert_post_links))
     bot.command(:hi, description: "Say hi to Fumimi: `/hi`", &method(:do_hi))
     bot.command(:calc, description: "Calculate a math expression", &method(:do_calc))
