@@ -64,10 +64,11 @@ module Fumimi::Events
   def do_convert_post_links(event)
     event.message.content =~ %r!^https?://(?:danbooru|sonohara|hijiribe|safebooru)\.donmai\.us/posts/([0-9]+)(?:\?tags=.*)?$!
     post_id = $1.to_i
+    post = booru.posts.show(post_id)
 
     event.message.delete
 
-    post = booru.posts.show(post_id)
+    event.send_message("#{event.author.username} posted: <#{event.message.content}>")
     post.send_embed(event.channel)
 
     nil
