@@ -50,6 +50,13 @@ module Fumimi::Events
     Fumimi::Model::ForumPost.render_forum_posts(event.channel, [forum_post], booru)
   end
 
+  respond(:topic_id, /topic #[0-9]+/) do |event, text|
+    topic_id = text[/[0-9]+/]
+
+    forum_post = booru.forum_posts.search(topic_id: topic_id).to_a.last
+    Fumimi::Model::ForumPost.render_forum_posts(event.channel, [forum_post], booru)
+  end
+
   respond(:wiki_link, /\[\[ [^\]]+ \]\]/x) do |event, text|
     title = text[/[^\[\]]+/]
 
