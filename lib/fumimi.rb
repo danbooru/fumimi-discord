@@ -200,6 +200,14 @@ module Fumimi::Commands
     event << "`#{args} = #{result}`"
   end
 
+  command :ruby do |event, *args|
+    return unless event.user.id == 310167383912349697
+
+    code = args.join(" ")
+    result = instance_eval(code)
+    event << "`#{result.inspect}`"
+  end
+
   command :mass_update do |event, *args|
     return unless event.user.id == 310167383912349697
 
@@ -557,6 +565,7 @@ class Fumimi
     bot.message(contains: %r!^https?://(?:danbooru|sonohara|hijiribe|safebooru)\.donmai\.us/posts/([0-9]+)(?:\?tags=.*)?$!, &method(:do_convert_post_links))
     bot.command(:hi, description: "Say hi to Fumimi: `/hi`", &method(:do_hi))
     bot.command(:calc, description: "Calculate a math expression", &method(:do_calc))
+    bot.command(:ruby, description: "Evaluate a ruby expression", &method(:do_ruby))
     bot.command(:posts, description: "List posts: `/posts <tags>`", &method(:do_posts))
     bot.command(:mass, description: "Update posts: `/mass update <search> -> <tags>`", &method(:do_mass_update))
     bot.command(:count, description: "Count posts: `/count <tags>`", &method(:do_count))
