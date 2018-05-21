@@ -15,17 +15,17 @@ class Fumimi::Model::WikiPage < Danbooru::Model::WikiPage
   end
 
   def self.embed(embed, channel, title, wiki_page = nil, post = nil)
-    embed.author = Discordrb::Webhooks::EmbedAuthor.new({
-      name: post.shortlink,
-      url: post.url,
-    })
-
+    embed.title = title.tr("_", " ")
+    embed.url = wiki_page.try(:url)
     embed.description = wiki_page.try(:pretty_body)
 
     if post
-      embed.title = title
-      embed.url = wiki_page.try(:url)
       embed.image = post.embed_image(channel.name)
+
+      embed.author = Discordrb::Webhooks::EmbedAuthor.new({
+        name: post.shortlink,
+        url: post.url,
+      })
     end
   end
 end
