@@ -38,18 +38,18 @@ class Fumimi::Model::Post < Danbooru::Model::Post
 
   def embed_thumbnail(channel_name)
     if is_censored? || is_unsafe?(channel_name)
-      Discordrb::Webhooks::EmbedThumbnail.new(url: "https://rsz.io/#{booru.url.host}#{preview_file_url}?blur=#{NSFW_BLUR}")
+      Discordrb::Webhooks::EmbedThumbnail.new(url: "https://rsz.io/#{preview_file_url.host + preview_file_url.path}?blur=#{NSFW_BLUR}")
     else
-      Discordrb::Webhooks::EmbedThumbnail.new(url: absolute_preview_file_url.to_s)
+      Discordrb::Webhooks::EmbedThumbnail.new(url: preview_file_url.to_s)
     end
   end
 
   def embed_image(channel_name)
     if is_censored? || is_unsafe?(channel_name)
       # XXX gifs don't work here.
-      Discordrb::Webhooks::EmbedImage.new(url: "https://rsz.io/#{booru.url.host}#{embed_image_url}?blur=#{NSFW_BLUR}")
+      Discordrb::Webhooks::EmbedImage.new(url: "https://rsz.io/#{embed_image_url.host + embed_image_url.path}?blur=#{NSFW_BLUR}")
     else
-      Discordrb::Webhooks::EmbedImage.new(url: "#{booru.url}#{embed_image_url}")
+      Discordrb::Webhooks::EmbedImage.new(url: embed_image_url.to_s)
     end
   end
 
