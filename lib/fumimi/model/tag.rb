@@ -9,7 +9,7 @@ class Fumimi::Model::Tag < Danbooru::Model::Tag
     when 1 # artist
       search = "#{name} rating:safe order:score filetype:jpg limit:1 status:any"
     when 3 # copy
-      search = "#{name} everyone rating:safe order:score filetype:jpg limit:1 status:any"
+      search = "#{name} everyone rating:safe order:score filetype:jpg limit:1 status:any copytags:<5 -parody -crossover"
     when 4 # char
       search = "#{name} chartags:1 rating:safe order:score filetype:jpg limit:1 status:any"
     else # meta or general
