@@ -380,7 +380,7 @@ class Fumimi::BQ
       footer_size = "XXXX of #{total} rows (updated XXm ago) | XXXX seconds | X.XX GB ($X.XX)".size
 
       table = Terminal::Table.new do |t|
-        t.headings = first.try(:keys)
+        t.headings = first.try(:keys) || []
 
         rows.each do |row|
           t << row
