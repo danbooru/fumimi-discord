@@ -615,13 +615,11 @@ class Fumimi
 
     bot.run(:async)
 
-    #last_upload_time = Time.now
-    #last_comment_time = Time.now
-    last_forum_post_time = Time.now
+    last_upload_time = Time.now
+    last_forum_post_time = Time.now.utc
 
     loop do
-      #last_upload_time = update_uploads_feed(last_upload_time, channels[upload_feed])
-      #last_comment_time = update_comments_feed(last_comment_time, channels[comment_feed])
+      last_upload_time = update_uploads_feed(last_upload_time, channels[upload_feed])
       last_forum_post_time = update_forum_feed(last_forum_post_time, channels[forum_feed])
 
       sleep 30
@@ -637,7 +635,6 @@ class Fumimi
     retry
   end
 
-=begin
   def update_uploads_feed(last_checked_at, channel)
     log.debug("Checking /posts (last seen: #{last_checked_at}).")
 
@@ -649,17 +646,6 @@ class Fumimi
 
     posts.last&.created_at || last_checked_at
   end
-
-  def update_comments_feed(last_checked_at, channel)
-    log.debug("Checking /comments (last seen: #{last_checked_at}).")
-
-    comments = booru.comments.index(limit: 50).select { |c| c.created_at > last_checked_at }
-    comments = comments.reject(&:do_not_bump_post)
-    Fumimi::Model::Comment.render_comments(channel, comments, booru)
-
-    comments.last&.created_at || last_checked_at
-  end
-=end
 
   def update_forum_feed(last_checked_at, channel)
     log.debug("Checking /forum_posts (last seen: #{last_checked_at}).")
