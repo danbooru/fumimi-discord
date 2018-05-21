@@ -651,7 +651,7 @@ class Fumimi
     log.debug("Checking /forum_posts (last seen: #{last_checked_at}).")
 
     forum_posts = booru.forum_posts.index(limit: 50).select { |fp| fp.created_at > last_checked_at }
-    Fumimi::Model::ForumPost.render_forum_posts(channel, forum_posts, booru)
+    Fumimi::Model::ForumPost.render_forum_posts(channel, forum_posts, booru) if forum_posts.size > 0
 
     forum_posts.last&.created_at || last_checked_at
   end
