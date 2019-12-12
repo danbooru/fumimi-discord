@@ -437,14 +437,14 @@ module Fumimi::Commands
     tags = args.join(" ")
     results = bq.search(booru, tags)
 
-    results.take(1000).flat_map(&:values).in_groups_of(250, false).each_with_index do |post_ids, i|
-      url = "https://danbooru.donmai.us/posts?tags=id:#{post_ids.join(",")}"
+    results.take(1000).flat_map(&:values).in_groups_of(200, false).each_with_index do |post_ids, i|
+      url = "https://danbooru.donmai.us/posts?tags=id:#{post_ids.join(",")}+order:custom+limit:200"
       short_url = bitly.shorten(url, domain: "j.mp").short_url
 
-      first = (i*250 + 1).to_s
-      last  = (i*250 + post_ids.size).to_s
+      first = (i*200 + 1).to_s
+      last  = (i*200 + post_ids.size).to_s
 
-      event << "`#{tags} | #{first} - #{last} of #{results.total} posts`: #{short_url}"
+      event << "`#{tags} | #{first} - #{last} of #{results.total} posts`: <#{short_url}>"
     end
 
     nil
