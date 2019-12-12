@@ -28,7 +28,7 @@ class Fumimi::Model::Comment < Danbooru::Model::Comment
     })
 
     embed.description = pretty_body
-    embed.thumbnail = post.embed_thumbnail(channel.name)
+    embed.thumbnail = post.embed_thumbnail(channel.nsfw?)
     embed.footer = embed_footer
   end
 end

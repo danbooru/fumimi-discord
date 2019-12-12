@@ -21,7 +21,7 @@ class Fumimi::Model::Post < Danbooru::Model::Post
 
     embed.title = shortlink
     embed.url = url
-    embed.image = embed_image(channel.name)
+    embed.image = embed_image(channel.nsfw?)
     embed.color = border_color
     embed.footer = embed_footer
 
@@ -36,16 +36,16 @@ class Fumimi::Model::Post < Danbooru::Model::Post
     end
   end
 
-  def embed_thumbnail(channel_name)
-    if is_censored? || is_unsafe?(channel_name)
+  def embed_thumbnail(nsfw_channel)
+    if is_censored? || is_unsafe?(nsfw_channel)
       Discordrb::Webhooks::EmbedThumbnail.new(url: "https://rsz.io/#{preview_file_url.host + preview_file_url.path}?blur=#{NSFW_BLUR}")
     else
       Discordrb::Webhooks::EmbedThumbnail.new(url: preview_file_url.to_s)
     end
   end
 
-  def embed_image(channel_name)
-    if is_censored? || is_unsafe?(channel_name)
+  def embed_image(nsfw_channel)
+    if is_censored? || is_unsafe?(nsfw_channel)
       # XXX gifs don't work here.
       Discordrb::Webhooks::EmbedImage.new(url: "https://rsz.io/#{embed_image_url.host + embed_image_url.path}?blur=#{NSFW_BLUR}")
     else
@@ -53,8 +53,7 @@ class Fumimi::Model::Post < Danbooru::Model::Post
     end
   end
 
-  def is_unsafe?(channel_name)
-    nsfw_channel = (channel_name =~ /^nsfw/i)
+  def is_unsafe?(nsfw_channel)
     rating != "s" && !nsfw_channel
   end
 
