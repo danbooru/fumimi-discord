@@ -318,9 +318,23 @@ module Fumimi::Commands
   end
 
   def do_logs(event, *args)
-    raise ArgumentError unless args.size == 1
-    raise ArgumentError unless channels[args[0]].present?
-    channel = channels[args[0]]
+    name = args.first
+    raise ArgumentError unless name.present?
+
+    if name[0] == "+"
+      raise ArgumentError unless event.user.id == 310167383912349697
+
+      username = name[1..-1]
+      id, user = bot.users.find do |id, user|
+        user.username == username
+      end
+
+      channel = user.pm
+    else
+      raise ArgumentError unless channels[name].present? && name.in?(%w[general nsfw offtopic tagging translations technical fumimi])
+
+      channel = channels[name]
+    end
 
     loading_message = event.send_message "*Please wait warmly until Fumimi is ready.*"
     event.channel.start_typing
@@ -369,11 +383,11 @@ module Fumimi::Commands
       end
     end
 
+    output.close
     filename = "fumimi/discord/logs/#{server.name}/#{channel.name}/#{Time.current.to_i}.json"
     file = storage.bucket("evazion").create_file(output.path, filename, acl: "public")
     event << file.public_url
 
-    output.close
     output.delete
 
     nil
