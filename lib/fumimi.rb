@@ -118,14 +118,21 @@ module Fumimi::Events
   end
 
   def do_convert_post_links(event)
-    event.message.content =~ %r!^https?://(?:danbooru|sonohara|hijiribe|safebooru)\.donmai\.us/posts/([0-9]+)(?:\?tags=.*)?$!
-    post_id = $1.to_i
-    post = booru.posts.show(post_id)
+    post_ids = []
+
+    message = event.message.content.gsub(%r!https?://\w+\.donmai\.us/posts/(\d+).*?\b!i) do |link|
+      post_ids << $1.to_i
+      "<#{link}>"
+    end
+
 
     event.message.delete
+    event.send_message("#{event.author.username} posted: #{message}")
 
-    event.send_message("#{event.author.username} posted: <#{event.message.content}>")
-    post.send_embed(event.channel)
+    post_ids.each do |post_id|
+      post = booru.posts.show(post_id)
+      post.send_embed(event.channel)
+    end
 
     nil
   end
@@ -594,7 +601,7 @@ class Fumimi
       bot.message(contains: regex, &method(:"do_#{name}"))
     end
 
-    bot.message(contains: %r!^https?://(?:danbooru|sonohara|hijiribe|safebooru)\.donmai\.us/posts/([0-9]+)(?:\?tags=.*)?$!, &method(:do_convert_post_links))
+    bot.message(contains: %r!https?://\w+\.donmai\.us/posts/\d+!i, &method(:do_convert_post_links))
     bot.command(:hi, description: "Say hi to Fumimi: `/hi`", &method(:do_hi))
     bot.command(:calc, description: "Calculate a math expression", &method(:do_calc))
     bot.command(:ruby, description: "Evaluate a ruby expression", &method(:do_ruby))
