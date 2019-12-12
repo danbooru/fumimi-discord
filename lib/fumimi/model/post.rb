@@ -78,11 +78,12 @@ class Fumimi::Model::Post < Danbooru::Model::Post
   end
 
   def embed_footer
+    post_info = "#{score}⇧ #{fav_count}♥ | Rating: #{rating.upcase}"
     file_info = "#{image_width}x#{image_height} (#{file_size.to_s(:human_size, precision: 4)} #{file_ext})"
-    timestamp = "#{created_at.strftime("%F")} at #{created_at.strftime("%l:%M %p")}"
+    timestamp = "#{created_at.strftime("%F")}"
 
     Discordrb::Webhooks::EmbedFooter.new({
-      text: "#{file_info} | #{timestamp}"
+      text: "#{post_info} | #{file_info} | #{timestamp}"
     })
   end
 end
