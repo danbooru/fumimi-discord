@@ -461,7 +461,7 @@ module Fumimi::Commands
 
   command :tag do |event, *args|
     opts = {}
-    argv = Shellwords.split(args.join(" "))
+    argv = Shellwords.split(args.map { |arg| Shellwords.escape(arg) }.join(" "))
 
     parser = OptionParser.new do |parser|
       parser.banner = "Usage: /tag [--creator|--users|--growth|--reverts|--all] [--help] <tag>"
@@ -469,7 +469,7 @@ module Fumimi::Commands
 
       parser.on("-c", "--creator", "Show creator of tag") { opts[:creator] = true }
       parser.on("-u", "--users", "Show top users of tag (default)") { opts[:users] = true }
-      parser.on("-g", "--growth", "Show tag growth over time") { opts[:growth] = true }
+      parser.on("-g", "--growth[=PERIOD]", "Show tag growth over time (year, month, week, or day)") { |period| opts[:growth] = (period || "year") }
       parser.on("-r", "--reverts", "Show most reverted posts for this tag") { opts[:reverts] = true }
       parser.on("-a", "--all", "Show all of the above") do
         opts[:creator] = opts[:users] = opts[:growth] = opts[:reverts] = true
@@ -493,13 +493,14 @@ module Fumimi::Commands
     end
 
     if opts[:users]
-      results = bq.tag_usage_by_group(tag, "updater_id", "updater_id", "added + removed DESC").resolve_user_ids!(booru)
+      results = bq.tag_usage_by_user(tag)
       event.send_message(results.to_table("'#{tag}' Usage By User"))
     end
 
     if opts[:growth]
-      results = bq.tag_usage_by_group(tag, "EXTRACT(year FROM updated_at)", "year", "year ASC").resolve_user_ids!(booru)
-      event.send_message(results.to_table("'#{tag}' Usage By Year"))
+      period = opts[:growth].in?(%w[year month week day]) ? opts[:growth] : "year"
+      results = bq.tag_usage_by_group(tag, "DATE_TRUNC(DATE(updated_at), #{period})", period, "#{period} DESC")
+      event.send_message(results.to_table("'#{tag}' Usage By #{period}"))
     end
 
     if opts[:reverts]

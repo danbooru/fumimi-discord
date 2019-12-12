@@ -327,6 +327,28 @@ class Fumimi::BQ
       query(query, tag: tag)
     end
 
+    def tag_usage_by_user(tag)
+      query = <<-SQL
+        SELECT
+          pv.updater_id AS user_id,
+          users.name AS user_name,
+          COUNTIF(added_tag = @tag) AS added,
+          COUNTIF(removed_tag = @tag) AS removed,
+          COUNTIF(added_tag = @tag) - COUNTIF(removed_tag = @tag) AS net_change
+        FROM
+          `post_versions_flat_part` pv
+        LEFT OUTER JOIN
+          `robot-maid-fumimi.danbooru.users` users ON users.id = pv.updater_id
+        WHERE
+          added_tag = @tag OR removed_tag = @tag
+        GROUP BY pv.updater_id, users.name
+        ORDER BY added + removed DESC
+        LIMIT 50;
+      SQL
+
+      query(query, tag: tag)
+    end
+
     def tag_usage_by_group(tag, group_key, alias_name, order)
       query = <<-SQL
         SELECT
@@ -339,7 +361,8 @@ class Fumimi::BQ
         WHERE
           added_tag = @tag OR removed_tag = @tag
         GROUP BY #{alias_name}
-        ORDER BY #{order};
+        ORDER BY #{order}
+        LIMIT 50;
       SQL
 
       query(query, tag: tag)
@@ -356,7 +379,7 @@ class Fumimi::BQ
             GROUP BY added_tag
           )
         SELECT
-          DISTINCT it.added_tag,
+          DISTINCT it.added_tag AS tag,
           t.count
         FROM `post_versions` AS pv
         JOIN initial_tags AS it ON pv.updated_at = it.updated_at
@@ -364,8 +387,9 @@ class Fumimi::BQ
         WHERE
           pv.updater_id = @user_id
           AND NOT REGEXP_CONTAINS(added_tag, '^source:|parent:')
-          AND t.category IN (#{categories.join(", ")})
-        ORDER BY count DESC;
+          AND (t.category IN (#{categories.join(", ")}) OR t.category IS NULL)
+        ORDER BY count DESC, it.added_tag ASC
+        LIMIT 50;
       SQL
 
       query(query, user_id: user_id)
@@ -405,7 +429,7 @@ class Fumimi::BQ
 
       id_fields = headers.grep(id_field)
       user_ids = map { |row| row.values_at(*id_fields) }.flatten.compact.sort.uniq
-      users = booru.users.search(id: user_ids.join(","))
+      users = booru.users.threads(1).search(id: user_ids.join(",")).to_a
 
       map! do |row|
         row.map do |k, v|
