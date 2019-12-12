@@ -428,6 +428,7 @@ module Fumimi::Commands
   end
 
   command :bq do |event, *args|
+    raise "disabled"
     query = args.join(" ")
     event << bq.query(query).to_table
   end
