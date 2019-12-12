@@ -14,6 +14,9 @@ require "google/cloud/storage"
 require "pg"
 require "pry"
 require "pry-byebug"
+require "mechanize"
+require "open-uri"
+require "addressable/uri"
 
 require "optparse"
 require "shellwords"
@@ -482,6 +485,35 @@ module Fumimi::Commands
     end
   end
 
+  command :tagme do |event, *args|
+    url = args.join(" ")
+    url = url[/^<(.*)>$/, 1] if url.match?(/^<.*>$/)
+    uri = Addressable::URI.parse(url)
+
+    file = Tempfile.new(["temp", uri.extname]) # XXX
+    file.write(open(url.to_s, "Referer" => uri.origin).read)
+    file.close
+
+    agent = ::Mechanize.new
+    response = agent.post("http://kanotype.iptime.org:8003/deepdanbooru/upload", network_type: "general", file: File.open(file))
+
+    tags = response.css("tbody tr").map do |row|
+      tag = row.css("td:first-child").text
+      confidence = row.css("td:last-child").text
+
+      [tag, confidence]
+    end
+
+    table = Terminal::Table.new
+    table.headings = ["Tag", "Confidence"]
+    tags.sort_by(&:second).reverse.each do |tag, confidence|
+      table << [tag, confidence] if tag.present?
+      break if table.to_s.size >= 1800
+    end
+
+    "```\n#{table}\n```"
+  end
+
   command :stats do |event, *args|
     if args == %w[longest tags]
       query = "SELECT name FROM `tags` AS t WHERE t.count > 0 ORDER BY LENGTH(t.name) DESC LIMIT 20"
@@ -575,6 +607,7 @@ class Fumimi
     bot.command(:random, description: "Show a random post: `/random <tags>`", &method(:do_random))
     bot.command(:stats, description: "Query various stats: `/stats help`", &method(:do_stats))
     bot.command(:tag, description: "Show tag information: `/tag <name>`", &method(:do_tag))
+    bot.command(:tagme, description: "Suggest tags for an image: `/tagme <image url>`", &method(:do_tagme))
     bot.command(:user, description: "Show information about user: `/user <name>`", &method(:do_user))
     bot.command(:search, description: "Search posts on BigQuery: `/search <tags>`", &method(:do_search))
     bot.command(:bq, description: "Run a query on BigQuery: `/bq <query>`", &method(:do_bq))
