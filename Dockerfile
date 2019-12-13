@@ -1,6 +1,6 @@
 FROM ruby:2.6.5 AS build
 WORKDIR /tmp
-COPY Gemfile Gemfile.lock fumimi-discord.gemspec .
+COPY Gemfile Gemfile.lock fumimi-discord.gemspec ./
 RUN bundle install --with=production
 
 FROM ruby:2.6.5-slim
