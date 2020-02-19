@@ -14,11 +14,6 @@ class Fumimi::Model::Post < Danbooru::Model::Post
   end
 
   def embed(embed, channel)
-    embed.author = Discordrb::Webhooks::EmbedAuthor.new({
-      name: "@#{uploader_name}",
-      url: "#{booru.url}/users/#{uploader_id}"
-    })
-
     embed.title = shortlink
     embed.url = url
     embed.image = embed_image(channel.nsfw?)
