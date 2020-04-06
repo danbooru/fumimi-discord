@@ -16,7 +16,7 @@ class Fumimi::Model::Tag < Danbooru::Model::Tag
       search = "#{name} rating:safe -animated -6+girls -comic order:score limit:1 status:any"
     end
 
-    post = booru.posts.index(tags: search).first
-    post
+    response = booru.posts.index(tags: search)
+    response.first unless response.failed?
   end
 end
