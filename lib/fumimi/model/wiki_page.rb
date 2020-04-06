@@ -7,7 +7,7 @@ class Fumimi::Model::WikiPage < Danbooru::Model::WikiPage
   def self.render_wiki_page(channel, title, booru)
     title = title.tr(" ", "_")
 
-    wiki_page = booru.wiki_pages.index(title: title).first
+    wiki_page = booru.wiki_pages.show(title)
     tag = booru.tags.search(name: title).first
     post = tag.example_post if tag && tag.post_count > 0
 
