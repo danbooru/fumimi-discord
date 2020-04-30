@@ -241,10 +241,14 @@ module Fumimi::Commands
   end
 
   command :count do |event, *tags|
-    query = (tags + ["id:>-#{rand(2**32)}"]).join(" ").downcase
-    resp = booru.counts.index(tags: query)
+    query = tags.join(" ")
+    resp = booru.counts.index(tags: query, skip_cache: true)
 
-    event << "`#{tags.join(" ")}`: #{resp.counts["posts"]} posts"
+    if resp.failed?
+      event << "`#{query}`: search timeout"
+    else
+      event << "`#{query}`: #{resp.counts["posts"]} posts"
+    end
   end
 
   def do_iqdb(event, *urls)
