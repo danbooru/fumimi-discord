@@ -128,7 +128,7 @@ module Fumimi::Events
 
 
     event.message.delete
-    event.send_message("#{event.author.username} posted: #{message}")
+    event.send_message("#{event.author.display_name} posted: #{message}")
 
     post_ids.each do |post_id|
       post = booru.posts.show(post_id)
