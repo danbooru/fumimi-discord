@@ -115,7 +115,7 @@ module Fumimi::Events
 
   respond(:issue_id, /issue #[0-9]+/i) do |event, text|
     issue_id = text[/[0-9]+/]
-    event.send_message "https://github.com/r888888888/danbooru/issues/#{issue_id}"
+    event.send_message "https://github.com/danbooru/danbooru/issues/#{issue_id}"
   end
 
   def do_convert_post_links(event)
@@ -191,7 +191,7 @@ module Fumimi::Commands
 
   def do_posts(event, *tags)
     limit = tags.grep(/limit:(\d+)/i) { $1.to_i }.first
-    limit ||= 3 
+    limit ||= 3
     limit = [10, limit].min
 
     tags = tags.grep_v(/limit:(\d+)/i)
@@ -268,7 +268,7 @@ module Fumimi::Commands
     event.channel.start_typing
 
     limit = args.grep(/limit:(\d+)/i) { $1.to_i }.first
-    limit ||= 3 
+    limit ||= 3
     limit = [10, limit].min
     body = args.grep_v(/limit:(\d+)/i).join(" ")
 
@@ -280,7 +280,7 @@ module Fumimi::Commands
 
   def do_comments(event, *tags)
     limit = tags.grep(/limit:(\d+)/i) { $1.to_i }.first
-    limit ||= 3 
+    limit ||= 3
     limit = [10, limit].min
     tags = tags.grep_v(/limit:(\d+)/i)
 
