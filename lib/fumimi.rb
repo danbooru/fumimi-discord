@@ -8,7 +8,6 @@ require "danbooru"
 
 require "active_support"
 require "active_support/core_ext"
-require "bitly"
 require "dentaku"
 require "discordrb"
 require "google/cloud/storage"
@@ -414,23 +413,6 @@ module Fumimi::Commands
     event << bq.query(query).to_table
   end
 
-  command :search do |event, *args|
-    tags = args.join(" ")
-    results = bq.search(booru, tags)
-
-    results.take(1000).flat_map(&:values).in_groups_of(200, false).each_with_index do |post_ids, i|
-      url = "https://danbooru.donmai.us/posts?tags=id:#{post_ids.join(",")}+order:custom+limit:200"
-      short_url = bitly.shorten(url, domain: "j.mp").short_url
-
-      first = (i*200 + 1).to_s
-      last  = (i*200 + post_ids.size).to_s
-
-      event << "`#{tags} | #{first} - #{last} of #{results.total} posts`: <#{short_url}>"
-    end
-
-    nil
-  end
-
   command :user do |event, *args|
     raise ArgumentError unless args.present?
 
@@ -555,10 +537,10 @@ class Fumimi
   include Fumimi::Events
 
   attr_reader :server_id, :client_id, :token, :log
-  attr_reader :bot, :server, :bitly, :booru, :bq, :storage
+  attr_reader :bot, :server, :booru, :bq, :storage
   attr_reader :initiate_shutdown
 
-  def initialize(server_id:, client_id:, token:, bitly_username:, bitly_api_key:, log: Logger.new(STDERR))
+  def initialize(server_id:, client_id:, token:, log: Logger.new(STDERR))
     @server_id = server_id
     @client_id = client_id
     @token = token
@@ -575,7 +557,6 @@ class Fumimi
     @booru = Danbooru.new(factory: factory, log: log)
     @bq = Fumimi::BQ.new(project: "danbooru-1343", dataset: "danbooru_production")
     @storage = Google::Cloud::Storage.new
-    @bitly = Bitly.new(bitly_username, bitly_api_key)
   end
 
   def server

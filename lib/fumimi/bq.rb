@@ -2,7 +2,6 @@ require "fumimi/util"
 
 require "google/cloud/bigquery"
 require "terminal-table"
-require "sequel"
 
 class Fumimi::BQ
   MAX_DISCORD_MESSAGE_SIZE = 1800
@@ -42,59 +41,6 @@ class Fumimi::BQ
     results.instance_eval { @job = job }
 
     results
-  end
-
-  module SearchMethods
-    DB = Sequel.sqlite
-    Post = DB[:"danbooru-data.danbooru.posts"]
-    PostVersionFlat = DB[:"danbooru-1343.danbooru_production.post_versions_flat_part"]
-
-    def search(booru, tags, columns = [:id])
-      posts = Post.select(*columns).reverse(:id)
-      post_versions = PostVersionFlat.select(:post_id)
-
-      tags = tags.split
-      tags.each do |tag|
-        case tag.downcase
-        when /^tagger:(.*)$/
-          username = $1
-          user_id = booru.users.search(name: username).first.try(:id) or raise ArgumentError, "invalid username"
-          post_versions = post_versions.where(updater_id: user_id)
-        end
-      end
-
-      tags.each do |tag|
-        case tag.downcase
-        when /^tagger:(.*)$/
-          # no op
-        when /^rating:([sqe]).*$/
-          posts = posts.where(rating: $1)
-        when /^user:(.*)$/
-          username = $1
-          user_id = booru.users.search(name: username).first.try(:id) or raise ArgumentError, "invalid username"
-          posts = posts.where(uploader_id: user_id)
-        when /^approver:(.*)$/
-          username = $1
-          user_id = booru.users.search(name: username).first.try(:id) or raise ArgumentError, "invalid username"
-          posts = posts.where(approver_id: user_id)
-        when /^removed:(.*)$/
-          post_versions = post_versions.where(removed_tag: $1)
-        when /^added:(.*)$/
-          post_versions = post_versions.where(added_tag: $1)
-        when /^-(.*)$/
-          posts = posts.where { id !~ Post.select(Sequel.qualify(:"danbooru-data.danbooru.posts", :id)).cross_join(Sequel.lit("UNNEST(tags)")).where("name": $1) }
-        else
-          posts = posts.where { id =~ Post.select(Sequel.qualify(:"danbooru-data.danbooru.posts", :id)).cross_join(Sequel.lit("UNNEST(tags)")).where("name": tag) }
-        end
-      end
-
-      if tags.grep(/^(tagger|added|removed):(.*)$/).any?
-        posts = posts.where(id: post_versions)
-      end
-
-      results = query(posts.sql)
-      results
-    end
   end
 
   module ReportMethods
