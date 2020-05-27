@@ -21,23 +21,23 @@ Gem::Specification.new do |spec|
 
   spec.required_ruby_version = '~> 2.4'
 
-  spec.add_runtime_dependency "activesupport", "~> 5"
+  spec.add_runtime_dependency "activesupport", "~> 6"
   spec.add_runtime_dependency "dotenv", "~> 2"
-  spec.add_runtime_dependency "addressable", "~> 2.5"
+  spec.add_runtime_dependency "addressable", "~> 2"
   spec.add_runtime_dependency "google-cloud-bigquery"
   spec.add_runtime_dependency "google-cloud-storage"
   spec.add_runtime_dependency "terminal-table", "~> 1.7"
-  spec.add_runtime_dependency "pg", "~> 0.20"
+  spec.add_runtime_dependency "pg", "~> 1"
   spec.add_runtime_dependency "gli", "~> 2.16"
   spec.add_runtime_dependency "sequel", "~> 5.2"
   spec.add_runtime_dependency "sqlite3", "~> 1.3"
   spec.add_runtime_dependency "bitly", "~> 1.1"
-  spec.add_runtime_dependency "dtext_rb", "~> 1.6"
+  spec.add_runtime_dependency "dtext_rb", "~> 1"
   spec.add_runtime_dependency "dentaku"
   spec.add_runtime_dependency "ruby-booru", "~> 0.2"
 
   spec.add_development_dependency "bundler", "~> 1.14"
-  spec.add_development_dependency "rake", "~> 12.0"
+  spec.add_development_dependency "rake", "~> 13.0"
   spec.add_development_dependency "pry", "~> 0.10"
   spec.add_development_dependency "pry-byebug", "~> 3.4"
   spec.add_development_dependency "minitest", "~> 5.0"
