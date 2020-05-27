@@ -290,30 +290,6 @@ module Fumimi::Commands
     nil
   end
 
-  command :sql do |event, *args|
-    return unless event.user.id == 310167383912349697
-
-    sql = args.join(" ")
-    @pg = PG::Connection.open(dbname: "danbooru2")
-    results = @pg.exec(sql)
-
-    headers = results.fields
-    rows = results.map(&:values)
-    table = Terminal::Table.new do |t|
-      t.headings = headers
-
-      rows.each do |row|
-        t << row
-        break if t.to_s.size >= 1600
-      end
-    end
-
-    event << "```"
-    event << table.to_s.force_encoding("UTF-8")
-    event << "#{table.rows.size} of #{results.ntuples} rows"
-    event << "```"
-  end
-
   def do_time(event, *args)
     # format: Thu, Nov 02 2017  6:11 PM CDT
     Time.use_zone("US/Pacific")       { event << "`US (west): #{Time.current.strftime("%a, %b %d %Y %l:%M %p %Z")}`" }
@@ -643,7 +619,6 @@ class Fumimi
     bot.command(:top, description: "Show leaderboards: `/top <uploaders|approvers|taggers|tags> in last <day|week|month|year>`", &method(:do_top))
     bot.command(:time, description: "Show current time in various time zones across the world", &method(:do_time))
     bot.command(:logs, description: "Dump channel log in JSON format: `/logs <channel-name>`", &method(:do_logs))
-    bot.command(:sql, help_available: false, &method(:do_sql))
     bot.command(:say, help_available: false, &method(:do_say))
   end
 

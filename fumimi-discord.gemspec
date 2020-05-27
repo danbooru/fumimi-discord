@@ -27,7 +27,6 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency "google-cloud-bigquery"
   spec.add_runtime_dependency "google-cloud-storage"
   spec.add_runtime_dependency "terminal-table", "~> 1.7"
-  spec.add_runtime_dependency "pg", "~> 1"
   spec.add_runtime_dependency "gli", "~> 2.16"
   spec.add_runtime_dependency "sequel", "~> 5.2"
   spec.add_runtime_dependency "sqlite3", "~> 1.3"
