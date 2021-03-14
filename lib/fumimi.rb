@@ -11,7 +11,6 @@ require "active_support/core_ext"
 require "dentaku"
 require "discordrb"
 require "google/cloud/storage"
-require "pg"
 require "pry"
 require "pry-byebug"
 require "mechanize"
@@ -595,8 +594,6 @@ class Fumimi
     bot.command(:tag, description: "Show tag information: `/tag <name>`", &method(:do_tag))
     bot.command(:tagme, description: "Suggest tags for an image: `/tagme <image url>`", &method(:do_tagme))
     bot.command(:user, description: "Show information about user: `/user <name>`", &method(:do_user))
-    bot.command(:search, description: "Search posts on BigQuery: `/search <tags>`", &method(:do_search))
-    bot.command(:bq, description: "Run a query on BigQuery: `/bq <query>`", &method(:do_bq))
     bot.command(:top, description: "Show leaderboards: `/top <uploaders|approvers|taggers|tags> in last <day|week|month|year>`", &method(:do_top))
     bot.command(:time, description: "Show current time in various time zones across the world", &method(:do_time))
     bot.command(:logs, description: "Dump channel log in JSON format: `/logs <channel-name>`", &method(:do_logs))
