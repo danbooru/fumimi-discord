@@ -481,7 +481,7 @@ module Fumimi::Commands
     file.close
 
     agent = ::Mechanize.new
-    response = agent.post("http://kanotype.iptime.org:8003/deepdanbooru/upload", network_type: "general", file: File.open(file))
+    response = agent.post("http://dev.kanotype.net:8003/deepdanbooru/upload", network_type: "general", file: File.open(file))
 
     tags = response.css("tbody tr").map do |row|
       tag = row.css("td:first-child").text
@@ -583,13 +583,13 @@ class Fumimi
     bot.command(:hi, description: "Say hi to Fumimi: `/hi`", &method(:do_hi))
     bot.command(:calc, description: "Calculate a math expression", &method(:do_calc))
     bot.command(:ruby, description: "Evaluate a ruby expression", &method(:do_ruby))
-    bot.command(:posts, description: "List posts: `/posts <tags>`", &method(:do_posts))
+    #bot.command(:posts, description: "List posts: `/posts <tags>`", &method(:do_posts))
     bot.command(:mass, description: "Update posts: `/mass update <search> -> <tags>`", &method(:do_mass_update))
-    bot.command(:count, description: "Count posts: `/count <tags>`", &method(:do_count))
+    #bot.command(:count, description: "Count posts: `/count <tags>`", &method(:do_count))
     bot.command(:iqdb, description: "Find similar posts: `/iqdb <url>`", &method(:do_iqdb))
     bot.command(:comments, description: "List comments: `/comments <tags>`", &method(:do_comments))
     bot.command(:forum, description: "List forum posts: `/forum <text>`", &method(:do_forum))
-    bot.command(:random, description: "Show a random post: `/random <tags>`", &method(:do_random))
+    #bot.command(:random, description: "Show a random post: `/random <tags>`", &method(:do_random))
     bot.command(:stats, description: "Query various stats: `/stats help`", &method(:do_stats))
     bot.command(:tag, description: "Show tag information: `/tag <name>`", &method(:do_tag))
     bot.command(:tagme, description: "Suggest tags for an image: `/tagme <image url>`", &method(:do_tagme))
