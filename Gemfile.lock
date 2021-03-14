@@ -7,9 +7,9 @@ GIT
 
 GIT
   remote: https://github.com/evazion/ruby-booru
-  revision: d24dda9caea6b56dd8c85f4ff1af01996dabb3c0
+  revision: 876cce6897af66e34b482cf94038b11ea6f3e013
   specs:
-    ruby-booru (0.2.3)
+    ruby-booru (0.2.4)
       activesupport (~> 6)
       addressable (~> 2)
       connection_pool (~> 2)
@@ -22,16 +22,6 @@ PATH
   remote: .
   specs:
     fumimi-discord (0.1.0)
-      activesupport (~> 6)
-      addressable (~> 2)
-      dentaku
-      dotenv (~> 2)
-      dtext_rb (~> 1)
-      gli (~> 2.16)
-      google-cloud-bigquery
-      google-cloud-storage
-      ruby-booru (~> 0.2)
-      terminal-table (~> 1.7)
 
 GEM
   remote: https://rubygems.org/
@@ -195,19 +185,27 @@ GEM
 
 PLATFORMS
   ruby
+  x86_64-linux
 
 DEPENDENCIES
+  activesupport
   addressable
   bundler (~> 2)
+  dentaku
   discordrb (~> 3.4)
+  dotenv
   dtext_rb!
   fumimi-discord!
+  gli
+  google-cloud-bigquery
+  google-cloud-storage
   mechanize
   minitest (~> 5.0)
   pry (~> 0.10)
   pry-byebug (~> 3.4)
   rake (~> 13.0)
-  ruby-booru!
+  ruby-booru (~> 0.2.4)!
+  terminal-table
 
 BUNDLED WITH
-   2.2.3
+   2.2.1
