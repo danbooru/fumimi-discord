@@ -41,8 +41,7 @@ class Fumimi::Model::Post < Danbooru::Model::Post
 
   def embed_image(nsfw_channel)
     if is_censored? || is_unsafe?(nsfw_channel)
-      # XXX gifs don't work here.
-      Discordrb::Webhooks::EmbedImage.new(url: "https://rsz.io/#{embed_image_url.host + embed_image_url.path}?blur=#{NSFW_BLUR}")
+      nil
     else
       Discordrb::Webhooks::EmbedImage.new(url: embed_image_url.to_s)
     end
