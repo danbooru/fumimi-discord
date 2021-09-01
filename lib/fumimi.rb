@@ -344,7 +344,7 @@ class Fumimi
       bot.message(contains: regex, &method(:"do_#{name}"))
     end
 
-    #bot.message(contains: %r!https?://\w+\.donmai\.us/posts/\d+!i, &method(:do_convert_post_links))
+    bot.message(contains: %r!https?://\w+\.donmai\.us/posts/\d+$!i, &method(:do_convert_post_links))
     bot.command(:hi, description: "Say hi to Fumimi: `/hi`", &method(:do_hi))
     bot.command(:calc, description: "Calculate a math expression", &method(:do_calc))
     bot.command(:ruby, description: "Evaluate a ruby expression", &method(:do_ruby))
