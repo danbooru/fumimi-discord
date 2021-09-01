@@ -7,12 +7,10 @@ require "fumimi"
 def parse_options
   options = {
     console: false,
-    feed: false
   }
 
   OptionParser.new do |opts|
     opts.on("-c", "--console", "open ruby console") { options[:console] = true }
-    opts.on("-f", "--feed", "update feeds") { options[:feed] = true }
     opts.on("-h", "--help", "display this help and exit") do
       puts opts
       exit 1
@@ -49,8 +47,6 @@ def main(options)
 
   if options[:console]
     fumimi.pry
-  elsif options[:feed]
-    fumimi.run_feeds(comment_feed: "comment-feed", upload_feed: "upload-feed", forum_feed: "forum-feed", error_channel: "testing")
   else
     fumimi.run_commands
   end
