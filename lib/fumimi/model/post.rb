@@ -8,8 +8,8 @@ class Fumimi::Model::Post < Danbooru::Model::Post
   CENSORED_TAGS = ENV["FUMIMI_CENSORED_TAGS"].to_s.split
 
   def send_embed(channel)
-    channel.send_embed do |embed|
-      embed(embed, channel)
+    channel.send_embed do |e|
+      embed(e, channel)
     end
   end
 
