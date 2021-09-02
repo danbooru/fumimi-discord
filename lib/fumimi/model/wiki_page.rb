@@ -16,8 +16,13 @@ class Fumimi::Model::WikiPage < Danbooru::Model::WikiPage
 
   def self.embed(embed, channel, title, wiki_page = nil, post = nil)
     embed.title = title.tr("_", " ")
-    embed.url = wiki_page.try(:url)
-    embed.description = wiki_page.try(:pretty_body)
+
+    if wiki_page.succeeded?
+      embed.url = wiki_page.try(:url)
+      embed.description = wiki_page.try(:pretty_body)
+    else
+      embed.description = "There is currently no wiki page for the tag #{title}."
+    end
 
     if post
       embed.image = post.embed_image(channel.name)
