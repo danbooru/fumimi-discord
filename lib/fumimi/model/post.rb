@@ -58,8 +58,6 @@ class Fumimi::Model::Post < Danbooru::Model::Post
   def border_color
     if is_flagged
       0xC41C19 # red
-    elsif pool_string =~ /pool:series/
-      0xAA00AA # purple
     elsif parent_id
       0xC0C000 # yellow
     elsif has_active_children
