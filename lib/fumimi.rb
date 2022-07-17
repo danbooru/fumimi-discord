@@ -96,7 +96,7 @@ module Fumimi::Events
 
   respond(:pixiv_id, /pixiv #[0-9]+/i) do |event, text|
     id = text[/[0-9]+/]
-    event << "https://www.pixiv.net/en/artworks/#{id}"
+    event << "https://www.pixiv.net/artworks/#{id}"
   end
 
   respond(:pool_id, /pool #[0-9]+/i) do |event, text|
