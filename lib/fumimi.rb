@@ -122,17 +122,19 @@ module Fumimi::Events
   def do_convert_post_links(event)
     post_ids = []
 
-    message = event.message.content.gsub(%r!https?://\w+\.donmai\.us/posts/(\d+).*?\b!i) do |link|
+    message = event.message.content.gsub(%r{\b(?!https?://\w+\.donmai\.us/posts/\d+/\w+)https?://(?!testbooru)\w+\.donmai\.us/posts/(\d+)\b[^[:space:]]*}i) do |link|
       post_ids << $1.to_i
       "<#{link}>"
     end
 
-    event.message.delete
-    event.send_message("#{event.author.display_name} posted: #{message}", false, nil, nil, false) # tts, embed, attachments, allowed_mentions
+    if post_ids.present?
+      event.message.delete
+      event.send_message("#{event.author.display_name} posted: #{message}", false, nil, nil, false) # tts, embed, attachments, allowed_mentions
 
-    post_ids.each do |post_id|
-      post = booru.posts.show(post_id)
-      post.send_embed(event.channel)
+      post_ids.each do |post_id|
+        post = booru.posts.show(post_id)
+        post.send_embed(event.channel)
+      end
     end
 
     nil
