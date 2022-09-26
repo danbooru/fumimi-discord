@@ -127,9 +127,8 @@ module Fumimi::Events
       "<#{link}>"
     end
 
-
     event.message.delete
-    event.send_message("#{event.author.display_name} posted: #{message}")
+    event.send_message("#{event.author.display_name} posted: #{message}", false, nil, nil, false) # tts, embed, attachments, allowed_mentions
 
     post_ids.each do |post_id|
       post = booru.posts.show(post_id)
