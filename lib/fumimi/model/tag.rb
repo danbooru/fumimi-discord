@@ -13,7 +13,7 @@ class Fumimi::Model::Tag < Danbooru::Model::Tag
     when 4 # char
       search = "#{name} solo chartags:<5 rating:general order:score filetype:jpg limit:1 status:any"
     else # meta or general
-      search = "#{name} rating:general -animated -6+girls -comic order:score limit:1 status:any"
+      search = "#{name} rating:general -animated -6+girls -6+others -6+boys -crowd -people -comic order:score limit:1 status:any"
     end
 
     response = booru.posts.index(tags: search)
