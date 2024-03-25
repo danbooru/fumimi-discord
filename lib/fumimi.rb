@@ -36,28 +36,28 @@ module Fumimi::Events
     end
   end
 
-  respond(:post_id, /post #[0-9]+/i) do |event, text|
+  respond(:post_id, /post #[0-9]+(?![0-9])/i) do |event, text|
     post_id = text[/[0-9]+/].to_i
 
     post = booru.posts.show(post_id)
     post.send_embed(event.channel)
   end
 
-  respond(:forum_id, /forum #[0-9]+/i) do |event, text|
+  respond(:forum_id, /forum #[0-9]+(?![0-9])/i) do |event, text|
     forum_post_id = text[/[0-9]+/].to_i
 
     forum_post = booru.forum_posts.show(forum_post_id)
     Fumimi::Model::ForumPost.render_forum_posts(event.channel, [forum_post], booru)
   end
 
-  respond(:topic_id, /topic #[0-9]+/i) do |event, text|
+  respond(:topic_id, /topic #[0-9]+(?![0-9])/i) do |event, text|
     topic_id = text[/[0-9]+/]
 
     forum_post = booru.forum_posts.search(topic_id: topic_id).to_a.last
     Fumimi::Model::ForumPost.render_forum_posts(event.channel, [forum_post], booru)
   end
 
-  respond(:comment_id, /comment #[0-9]+/i) do |event, text|
+  respond(:comment_id, /comment #[0-9]+(?![0-9])/i) do |event, text|
     id = text[/[0-9]+/]
 
     comment = booru.comments.show(id)
@@ -82,39 +82,39 @@ module Fumimi::Events
     end
   end
 
-  respond(:artist_id, /artist #[0-9]+/i) do |event, text|
+  respond(:artist_id, /artist #[0-9]+(?![0-9])/i) do |event, text|
     id = text[/[0-9]+/]
     event << "https://danbooru.donmai.us/artists/#{id}"
   end
 
-  respond(:note_id, /note #[0-9]+/i) do |event, text|
+  respond(:note_id, /note #[0-9]+(?![0-9])/i) do |event, text|
     id = text[/[0-9]+/]
 
     note = booru.notes.show(id)
     event << "https://danbooru.donmai.us/posts/#{note.post_id}#note-#{note.id}"
   end
 
-  respond(:pixiv_id, /pixiv #[0-9]+/i) do |event, text|
+  respond(:pixiv_id, /pixiv #[0-9]+(?![0-9])/i) do |event, text|
     id = text[/[0-9]+/]
     event << "https://www.pixiv.net/member_illust.php?mode=medium&illust_id=#{id}"
   end
 
-  respond(:pool_id, /pool #[0-9]+/i) do |event, text|
+  respond(:pool_id, /pool #[0-9]+(?![0-9])/i) do |event, text|
     id = text[/[0-9]+/]
     event << "https://danbooru.donmai.us/pools/#{id}"
   end
 
-  respond(:user_id, /user #[0-9]+/i) do |event, text|
+  respond(:user_id, /user #[0-9]+(?![0-9])/i) do |event, text|
     id = text[/[0-9]+/]
     event << "https://danbooru.donmai.us/users/#{id}"
   end
 
-  respond(:issue_id, /issue #[0-9]+/i) do |event, text|
+  respond(:issue_id, /issue #[0-9]+(?![0-9])/i) do |event, text|
     issue_id = text[/[0-9]+/]
     event.send_message "https://github.com/danbooru/danbooru/issues/#{issue_id}"
   end
 
-  respond(:pull_id, /pull #[0-9]+/i) do |event, text|
+  respond(:pull_id, /pull #[0-9]+(?![0-9])/i) do |event, text|
     pull_id = text[/[0-9]+/]
     event.send_message "https://github.com/danbooru/danbooru/pull/#{pull_id}"
   end
