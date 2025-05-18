@@ -12,6 +12,7 @@ module Fumimi::Commands
         event << "```#{e.to_s}```"
       rescue StandardError, RestClient::Exception => e
         event.drain
+        @log.error e
         event << "Exception: #{e.to_s}.\n"
         event << "https://i.imgur.com/0CsFWP3.png"
       ensure
@@ -34,7 +35,7 @@ module Fumimi::Commands
   end
 
   def do_say(event, *args)
-    return unless event.user.id == 310167383912349697 || event.user.id == 326364297561243649
+    return unless event.user.owner?
 
     channel_name = args.shift
     message = args.join(" ")
@@ -50,7 +51,7 @@ module Fumimi::Commands
   end
 
   command :ruby do |event, *args|
-    return unless event.user.id == 310167383912349697
+    return unless event.user.owner?
 
     code = args.join(" ")
     result = instance_eval(code)
@@ -88,7 +89,7 @@ module Fumimi::Commands
     raise ArgumentError unless name.present?
 
     if name[0] == "+"
-      raise ArgumentError unless event.user.id == 310167383912349697
+      raise ArgumentError unless event.user.owner?
 
       username = name[1..-1]
       id, user = bot.users.find do |id, user|
