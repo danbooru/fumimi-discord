@@ -20,10 +20,10 @@ class Fumimi::Model::ForumPost < Danbooru::Model::ForumPost
   end
 
   def embed(embed, topic, user)
-    embed.author = Discordrb::Webhooks::EmbedAuthor.new({
+    embed.author = Discordrb::Webhooks::EmbedAuthor.new(
       name: user.at_name,
       url: user.url
-    })
+    )
 
     embed.title = topic.title
     embed.url = url

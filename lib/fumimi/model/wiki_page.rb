@@ -27,10 +27,10 @@ class Fumimi::Model::WikiPage < Danbooru::Model::WikiPage
     if post
       embed.image = post.embed_image(channel.name)
 
-      embed.author = Discordrb::Webhooks::EmbedAuthor.new({
+      embed.author = Discordrb::Webhooks::EmbedAuthor.new(
         name: post.shortlink,
         url: post.url,
-      })
+      )
     end
   end
 end

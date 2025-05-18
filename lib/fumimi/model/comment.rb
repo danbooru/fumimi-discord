@@ -22,10 +22,10 @@ class Fumimi::Model::Comment < Danbooru::Model::Comment
     embed.title = shortlink
     embed.url = url
 
-    embed.author = Discordrb::Webhooks::EmbedAuthor.new({
+    embed.author = Discordrb::Webhooks::EmbedAuthor.new(
       name: user.at_name,
       url: user.url
-    })
+    )
 
     embed.description = pretty_body
     embed.thumbnail = post.embed_thumbnail(channel.nsfw?)

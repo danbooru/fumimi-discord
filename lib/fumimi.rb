@@ -23,7 +23,7 @@ module Fumimi::Events
 
   def self.respond(name, regex, &block)
     @@messages ||= []
-    @@messages << [{name: name, regex: regex}]
+    @@messages << { name: name, regex: regex }
 
     define_method(:"do_#{name}") do |event, *args|
       matches = event.text.scan(/(?<!`)#{regex}(?!`)/)
@@ -346,29 +346,29 @@ class Fumimi
   def register_commands
     log.debug("Registering bot commands...")
 
-    @@messages.each do |name:, regex:|
-      bot.message(contains: regex, &method(:"do_#{name}"))
+    @@messages.each do |msg|
+      bot.message(contains: msg[:regex], &method(:"do_#{msg[:name]}"))
     end
 
-    bot.message(contains: %r!https?://\w+\.donmai\.us/posts/\d+!i, &method(:do_convert_post_links))
+    bot.message(contains: %r{https?://\w+\.donmai\.us/posts/\d+}i, &method(:do_convert_post_links))
     bot.command(:hi, description: "Say hi to Fumimi: `/hi`", &method(:do_hi))
     bot.command(:calc, description: "Calculate a math expression", &method(:do_calc))
     bot.command(:ruby, description: "Evaluate a ruby expression", &method(:do_ruby))
     bot.command(:comments, description: "List comments: `/comments <tags>`", &method(:do_comments))
     bot.command(:forum, description: "List forum posts: `/forum <text>`", &method(:do_forum))
-    #bot.command(:logs, description: "Dump channel log in JSON format: `/logs <channel-name>`", &method(:do_logs))
+    # bot.command(:logs, description: "Dump channel log in JSON format: `/logs <channel-name>`", &method(:do_logs))
     bot.command(:say, help_available: false, &method(:do_say))
   end
 
   def run_commands
     log.debug("Starting bot...")
 
-    @bot = Discordrb::Commands::CommandBot.new({
+    @bot = Discordrb::Commands::CommandBot.new(
       name: "Robot Maid Fumimi",
       client_id: client_id,
       token: token,
       prefix: '/',
-    })
+    )
 
     register_commands
     bot.run(:async)
