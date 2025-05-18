@@ -31,10 +31,13 @@ def main(options)
   log = Logger.new(STDERR)
   log.level = Logger::DEBUG
 
+  server_id = ENV["DISCORD_SERVER_ID"].presence || raise("No DISCORD_SERVER_ID env var provided.")
+  token = ENV["DISCORD_TOKEN"].presence || raise("No DISCORD_TOKEN env var provided.")
+
   fumimi = Fumimi.new(
-    server_id: ENV["DISCORD_SERVER_ID"].to_i,
+    server_id: server_id.to_i,
     client_id: ENV.fetch("DISCORD_CLIENT_ID", nil),
-    token: ENV.fetch("DISCORD_TOKEN", nil),
+    token: token,
     log: log
   )
 
