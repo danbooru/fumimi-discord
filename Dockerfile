@@ -2,6 +2,7 @@ FROM ruby:3.4.4 AS build
 WORKDIR /tmp
 COPY Gemfile Gemfile.lock fumimi-discord.gemspec ./
 RUN gem install bundler:2.6.9
+RUN bundle config set without 'development'
 RUN bundle install
 
 FROM ruby:3.4.4-slim
