@@ -1,8 +1,10 @@
 GIT
-  remote: https://github.com/danbooru/dtext_rb
-  revision: 906a6b2f7979ff7bc6f57143f41ddcf559d63eeb
+  remote: https://github.com/danbooru/danbooru.git
+  revision: cb4061ef17b284451734e10409f57e6b552b699a
+  ref: cb4061ef17b284451734e10409f57e6b552b699a
+  glob: lib/dtext_rb/dtext_rb.gemspec
   specs:
-    dtext_rb (1.12.8)
+    dtext_rb (1.13.0)
 
 GIT
   remote: https://github.com/shardlab/discordrb.git
@@ -154,7 +156,7 @@ DEPENDENCIES
   dentaku (~> 3.5)
   discordrb!
   dotenv (~> 3.1)
-  dtext_rb!
+  dtext_rb (~> 1.13)!
   fumimi-discord!
   gli (~> 2.22)
   http (~> 4.4)
