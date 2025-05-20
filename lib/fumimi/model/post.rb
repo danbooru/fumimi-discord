@@ -33,7 +33,7 @@ class Fumimi::Model::Post < Danbooru::Model::Post
 
   def embed_thumbnail(nsfw_channel)
     if is_censored? || is_unsafe?(nsfw_channel)
-      Discordrb::Webhooks::EmbedThumbnail.new(url: "https://rsz.io/#{preview_file_url.host + preview_file_url.path}?blur=#{NSFW_BLUR}")
+      Discordrb::Webhooks::EmbedThumbnail.new(url: "https://rsz.io/#{preview_file_url.host + preview_file_url.path}?blur=#{NSFW_BLUR}") # TODO: replace with blurhash or something
     else
       Discordrb::Webhooks::EmbedThumbnail.new(url: preview_file_url.to_s)
     end
@@ -48,7 +48,7 @@ class Fumimi::Model::Post < Danbooru::Model::Post
   end
 
   def is_unsafe?(nsfw_channel)
-    rating != 'g' && !nsfw_channel
+    rating != "g" && !nsfw_channel
   end
 
   def is_censored?

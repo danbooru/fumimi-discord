@@ -26,6 +26,9 @@ Layout/FirstHashElementIndentation:
 Style/FormatString:
   Enabled: false
 
+Style/FrozenStringLiteralComment:
+  Enabled: false
+
 Metrics/MethodLength:
   Max: 100
 

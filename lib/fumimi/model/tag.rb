@@ -1,7 +1,6 @@
-require "danbooru/model/tag"
 require "fumimi/model"
 
-class Fumimi::Model::Tag < Danbooru::Model::Tag
+class Fumimi::Model::Tag < Danbooru::Model
   include Fumimi::Model
 
   def example_post

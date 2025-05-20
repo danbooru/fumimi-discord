@@ -6,6 +6,8 @@ require "addressable/uri"
 Dir[__dir__ + "/danbooru/**/*.rb"].each { |file| require file }
 
 class Danbooru
+  attr_reader :url, :user, :api_key, :log, :http, :resources, :factory
+
   RESOURCES = {
     "AliasAndImplicationImports" => { url: "admin/alias_and_implication_import" },
     "AdminUsers" => { url: "admin/users" },
@@ -31,7 +33,7 @@ class Danbooru
     "ArtistVersions" => {},
     "Bans" => {},
     "BulkUpdateRequests" => {},
-    "Comments" => { default_params: { group_by: "comment" } },
+    "Comments" => { default_params: { group_by: "comment", only: "id,body,created_at,creator,post" } },
     "CommentVotes" => {},
     "Counts" => { url: "counts/posts", default_params: { limit: nil } },
     "DelayedJobs" => {},
@@ -39,7 +41,7 @@ class Danbooru
     "DtextPreviews" => {},
     "FavoriteGroups" => {},
     "Favorites" => {},
-    "ForumPosts" => {},
+    "ForumPosts" => { default_params: { only: "id,body,created_at,creator,topic" } },
     "ForumTopics" => {},
     "IpBans" => {},
     "IqdbQueries" => {},
@@ -65,21 +67,26 @@ class Danbooru
     "Source" => {},
     "TagAliases" => {},
     "TagImplications" => {},
-    "Tags" => { default_params: { "search[hide_empty]": "no" } },
+    "Tags" => { default_params: { "search[hide_empty]": "no", only: "id,name,post_count,wiki_page" } },
     "Uploads" => {},
     "Users" => {},
     "UserFeedback" => { url: "user_feedbacks" },
     "UserNameChangeRequests" => {},
     "UserRevert" => {},
-    "WikiPages" => {},
+    "WikiPages" => { default_params: { only: "id,title,body,tag" } },
     "WikiPageVersions" => {},
-  }
-end
+  }.freeze
 
-class Danbooru
-  attr_reader :url, :user, :api_key, :log, :http, :resources, :factory
+  INCLUDE_MAP = {
+    creator: "users",
+    topic: "forum_posts",
+  }.with_indifferent_access.freeze
 
-  def initialize(url: ENV["BOORU_URL"], user: ENV["BOORU_USER"], api_key: ENV["BOORU_API_KEY"], factory: {}, log: Logger.new(nil))
+  def initialize(url: ENV["BOORU_URL"], # rubocop:disable Style/FetchEnvVar
+                 user: ENV["BOORU_USER"], # rubocop:disable Style/FetchEnvVar
+                 api_key: ENV["BOORU_API_KEY"], # rubocop:disable Style/FetchEnvVar
+                 factory: {},
+                 log: Logger.new(nil))
     url ||= "https://danbooru.donmai.us"
 
     @url, @user, @api_key, @log = Addressable::URI.parse(url), user, api_key, log
@@ -93,6 +100,7 @@ class Danbooru
 
   def logged_in?
     return false unless user.present? && api_key.present?
+
     users.index(name: user).succeeded?
   end
 
@@ -100,6 +108,7 @@ class Danbooru
     name = name.to_s.camelize
 
     raise ArgumentError, "invalid resource name '#{name}'" unless RESOURCES.has_key?(name)
+
     resources[name] ||= Resource.const_get(name).new(name.underscore, self, **RESOURCES[name])
   end
 
@@ -109,5 +118,9 @@ class Danbooru
     define_method(name.underscore) do
       self[name]
     end
+  end
+
+  def self.map_attribute(attribute)
+    INCLUDE_MAP[attribute]
   end
 end

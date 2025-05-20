@@ -4,31 +4,22 @@ require "fumimi/model"
 class Fumimi::Model::ForumPost < Danbooru::Model::ForumPost
   include Fumimi::Model
 
-  def self.render_forum_posts(channel, forum_posts, booru)
-    creator_ids = forum_posts.map(&:creator_id).join(",")
-    users = booru.users.each("search[id]": creator_ids).index_by(&:id)
-
-    topic_ids = forum_posts.map(&:topic_id).join(",")
-    forum_topics = booru.forum_topics.each("search[id]": topic_ids).index_by(&:id)
-
+  def self.render_forum_posts(channel, forum_posts)
     forum_posts.each do |forum_post|
-      user = users[forum_post.creator_id]
-      topic = forum_topics[forum_post.topic_id]
-
-      channel.send_embed { |embed| forum_post.embed(embed, topic, user) }
+      channel.send_embed { |embed| forum_post.embed(embed, forum_post) }
     end
   end
 
-  def embed(embed, topic, user)
+  def embed(embed, forum_post)
+    embed.title = forum_post.topic.title
+    embed.url = forum_post.url
+
     embed.author = Discordrb::Webhooks::EmbedAuthor.new(
-      name: user.at_name,
-      url: user.url
+      name: forum_post.creator.at_name,
+      url: forum_post.creator.url
     )
 
-    embed.title = topic.title
-    embed.url = url
-
-    embed.description = pretty_body
+    embed.description = forum_post.pretty_body
     embed.footer = embed_footer
   end
 end

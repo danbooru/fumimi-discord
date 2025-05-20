@@ -1,5 +1,5 @@
-require 'test_helper'
-require 'danbooru'
+require "test_helper"
+require "danbooru"
 
 class DanbooruTest < ActiveSupport::TestCase
   setup do
@@ -9,24 +9,14 @@ class DanbooruTest < ActiveSupport::TestCase
   context "Danbooru:" do
     context "Danbooru#initialize" do
       should "take default params from the environment" do
-        assert_equal(ENV["BOORU_URL"], @booru.url.to_s)
-        assert_equal(ENV["BOORU_USER"], @booru.user)
-        assert_equal(ENV["BOORU_API_KEY"], @booru.api_key)
+        assert_equal(ENV.fetch("BOORU_URL", nil), @booru.url.to_s)
+        assert_equal(ENV.fetch("BOORU_USER", nil), @booru.user)
+        assert_equal(ENV.fetch("BOORU_API_KEY", nil), @booru.api_key)
       end
 
       should "create classes and getters for every resource" do
         assert_equal(true, @booru.respond_to?(:favorites))
         assert_kind_of(Danbooru::Resource::Favorites, @booru.send(:favorites))
-      end
-    end
-
-    context "Danbooru#ping" do
-      should "return true if the request succeeds" do
-        assert(@booru.ping)
-      end
-
-      should "return false if the request fails" do
-        assert_equal(false, @booru.ping(limit: -100))
       end
     end
 
@@ -75,7 +65,7 @@ class DanbooruTest < ActiveSupport::TestCase
       @logger = Logger.new(@io, level: :debug)
 
       response = Danbooru::HTTP.new(@booru.url, log: @logger).get("/")
-      assert_match(%r!code=200 method=GET!, @io.string)
+      assert_match(/code=200 method=GET/, @io.string)
     end
   end
 
@@ -182,16 +172,6 @@ class DanbooruTest < ActiveSupport::TestCase
         assert_kind_of(Danbooru::Model::Post, post.model)
         assert_equal(false, post.failed?)
         assert_equal(1, post.id)
-      end
-    end
-
-    context "the #update method" do
-      should "work" do
-        post = @booru.posts.update(1, post: { rating: "e" })
-        assert_equal("e", post.rating)
-
-        post = @booru.posts.update(1, post: { rating: "s" })
-        assert_equal("s", post.rating)
       end
     end
   end

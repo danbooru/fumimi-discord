@@ -29,21 +29,21 @@ module Fumimi::Events
     forum_post_id = text[/[0-9]+/].to_i
 
     forum_post = booru.forum_posts.show(forum_post_id)
-    Fumimi::Model::ForumPost.render_forum_posts(event.channel, [forum_post], booru)
+    Fumimi::Model::ForumPost.render_forum_posts(event.channel, [forum_post])
   end
 
   respond(:topic_id, /topic #[0-9]+/i) do |event, text|
     topic_id = text[/[0-9]+/]
 
     forum_post = booru.forum_posts.search(topic_id: topic_id).to_a.last
-    Fumimi::Model::ForumPost.render_forum_posts(event.channel, [forum_post], booru)
+    Fumimi::Model::ForumPost.render_forum_posts(event.channel, [forum_post])
   end
 
   respond(:comment_id, /comment #[0-9]+/i) do |event, text|
     id = text[/[0-9]+/]
 
     comment = booru.comments.show(id)
-    Fumimi::Model::Comment.render_comments(event.channel, [comment], booru)
+    Fumimi::Model::Comment.render_comments(event.channel, [comment])
   end
 
   respond(:wiki_link, /\[\[ [^\]]+ \]\]/x) do |event, text|
@@ -105,7 +105,7 @@ module Fumimi::Events
     post_ids = []
 
     message = event.message.content.gsub(%r{\b(?!https?://\w+\.donmai\.us/posts/\d+/\w+)https?://(?!testbooru)\w+\.donmai\.us/posts/(\d+)\b[^[:space:]]*}i) do |link|
-      post_ids << $1.to_i
+      post_ids << ::Regexp.last_match(1).to_i
       "<#{link}>"
     end
 

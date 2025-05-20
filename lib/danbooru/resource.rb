@@ -2,7 +2,6 @@ require "active_support"
 require "active_support/core_ext/hash/keys"
 require "retriable"
 
-require "danbooru/model"
 require "danbooru/fluent"
 
 class Danbooru
@@ -13,14 +12,14 @@ class Danbooru
     class Error < StandardError; end
 
     attr_reader :booru, :name, :url, :default_options
-    attr_fluent :by, :threads, :default_params
+
+    attr_fluent :by, :default_params
 
     def initialize(name, booru, url: nil, default_params: {}, default_options: {})
       @name = name
       @booru = booru
       @url = booru.url.to_s + "/" + (url || name)
       @by = :id
-      @threads = 2
       @default_params = { limit: 1000 }.merge(default_params)
       @default_options = { tries: 1_000, max_interval: 15, max_elapsed_time: 90 }.merge(default_options)
     end
@@ -59,11 +58,7 @@ class Danbooru
 
     def search(**params)
       params = params.transform_keys { |k| :"search[#{k}]" }
-      self.default_params(params)
-    end
-
-    def ping(params = {})
-      request(:get, "/", { params: { limit: 0 }.merge(params) }, tries: 1).succeeded?
+      default_params(params)
     end
 
     def first
@@ -123,7 +118,7 @@ class Danbooru
       end
     end
 
-    def each_by_id(from: 0, to: 100_000_000, **params)
+    def each_by_id(from: 0, to: 100_000_000, **params, &block)
       params = default_params.merge(params)
       n = to
 
@@ -133,19 +128,20 @@ class Danbooru
 
         items = index(**params, page: "b#{n}")
         items.select! { |item| item.id >= from && item.id < to }
-        items.each { |item| yield item }
+        items.each(&block)
 
         return items if items.empty? || items.size < params[:limit]
+
         n = items.last.id
       end
     end
 
-    def each_by_page(from: 1, to: 5_000, **params)
+    def each_by_page(from: 1, to: 5_000, **params, &block)
       params = default_params.merge(params)
 
       from.upto(to - 1) do |n|
         items = index(**params, page: n)
-        items.each { |item| yield item }
+        items.each(&block)
 
         return items if items.empty? || items.size < params[:limit]
       end

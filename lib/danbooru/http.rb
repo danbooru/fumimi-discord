@@ -27,11 +27,12 @@ class Danbooru::HTTP
   end
 
   private
+
   def connect(url, user = "", pass = "", timeout = 60)
     conn = HTTP::Client.new
     conn = conn.basic_auth(user: user, pass: pass) unless user.empty? || pass.empty?
     conn = conn.accept("application/json")
-    #conn = conn.timeout(:global, read: timeout, write: timeout, connect: timeout)
+    # conn = conn.timeout(:global, read: timeout, write: timeout, connect: timeout)
     conn = conn.use(:auto_inflate).headers("Accept-Encoding": "gzip")
     conn = conn.follow
     conn = conn.nodelay
@@ -53,7 +54,7 @@ class Danbooru::HTTP
   def log_response(response, method, duration)
     @log.debug "http" do
       runtime = (response.headers["X-Runtime"].try(&:to_f) || 0) * 1000
-      latency = (duration * 1000 - runtime)
+      latency = ((duration * 1000) - runtime)
       socket = response.connection.instance_variable_get("@socket").socket
       ip = socket.local_address.inspect_sockaddr rescue nil
       fd = socket.fileno rescue nil

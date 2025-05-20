@@ -7,7 +7,8 @@ class Danbooru
   class Response
     class TemporaryError < StandardError; end
 
-    attr_reader :model, :json, :resource, :response
+    attr_reader :model, :resource, :response
+
     delegate_missing_to :model
 
     def initialize(resource, response)
@@ -20,7 +21,7 @@ class Danbooru
       elsif json.is_a?(Hash)
         @model = factory.new(json, resource)
       else
-        raise RuntimeError.new("Unrecognized response type (#{json.class})")
+        raise "Unrecognized response type (#{json.class})"
       end
     end
 

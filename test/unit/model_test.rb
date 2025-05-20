@@ -7,18 +7,6 @@ class DanbooruModelTest < ActiveSupport::TestCase
   end
 
   context "Danbooru::Model:" do
-    context "the #update method" do
-      should "work" do
-        post = @booru.posts.show(1)
-
-        post.update(rating: "e")
-        assert_equal("e", post.rating)
-
-        post.update(rating: "s")
-        assert_equal("s", post.rating)
-      end
-    end
-
     should "have an #url" do
       assert_match(%r{/posts/1$}, @booru.posts.show(1).url)
     end

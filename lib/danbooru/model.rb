@@ -7,11 +7,12 @@ require "pp"
 class Danbooru
   class Model
     attr_reader :api, :attributes
+
     delegate_missing_to :attributes
 
     def initialize(attributes, api = nil)
-      self.attributes = attributes
       @api = api
+      self.attributes = attributes
     end
 
     def attributes=(attributes)
@@ -20,12 +21,6 @@ class Danbooru
 
     def resource_name
       api.name.singularize
-    end
-
-    def update(params = {}, options = {})
-      response = api.update(id, { resource_name => params }, options)
-      self.attributes = response.model.as_json
-      self
     end
 
     def url
@@ -48,6 +43,7 @@ class Danbooru
     end
 
     protected
+
     def cast_attributes(attributes)
       OpenStruct.new(attributes.map do |name, value|
         [name, cast_attribute(name, value)]
@@ -60,7 +56,9 @@ class Danbooru
       elsif name =~ /(^|_)url$/
         Addressable::URI.parse(value) rescue value
       elsif value.is_a?(Hash)
-        Danbooru::Model.new(value, nil)
+        name = Danbooru.map_attribute(name) || name
+        model = api.booru.factory[name.pluralize] || "Danbooru::Model::#{name.singularize.capitalize}".safe_constantize || Danbooru::Model
+        model.new(value, api)
       elsif value.is_a?(Array)
         value.map { |item| cast_attribute(name, item) }
       else

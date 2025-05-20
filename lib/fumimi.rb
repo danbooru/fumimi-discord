@@ -33,8 +33,9 @@ class Fumimi
       tags: Fumimi::Model::Tag,
       comments: Fumimi::Model::Comment,
       forum_posts: Fumimi::Model::ForumPost,
+      users: Fumimi::Model::User,
       wiki_pages: Fumimi::Model::WikiPage,
-    }
+    }.with_indifferent_access
 
     @booru = Danbooru.new(factory: factory, log: log)
     # @storage = Google::Cloud::Storage.new

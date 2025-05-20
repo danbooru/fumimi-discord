@@ -67,7 +67,7 @@ module Fumimi::Commands
     body = args.grep_v(/limit:(\d+)/i).join(" ")
 
     forum_posts = booru.forum_posts.index("search[body_matches]": body, limit: limit)
-    Fumimi::Model::ForumPost.render_forum_posts(event.channel, forum_posts, booru)
+    Fumimi::Model::ForumPost.render_forum_posts(event.channel, forum_posts)
 
     nil
   end
@@ -79,7 +79,7 @@ module Fumimi::Commands
     tags = tags.grep_v(/limit:(\d+)/i)
 
     comments = booru.comments.index("search[post_tags_match]": tags.join(" "), limit: limit)
-    Fumimi::Model::Comment.render_comments(event.channel, comments, booru)
+    Fumimi::Model::Comment.render_comments(event.channel, comments)
 
     nil
   end
