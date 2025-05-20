@@ -53,7 +53,7 @@ GEM
       bigdecimal
       concurrent-ruby
     domain_name (0.6.20240107)
-    dotenv (2.8.1)
+    dotenv (3.1.8)
     drb (2.2.1)
     event_emitter (0.2.6)
     ffi (1.17.2-x86_64-linux-gnu)
@@ -147,16 +147,16 @@ PLATFORMS
   x86_64-linux
 
 DEPENDENCIES
-  activesupport
-  addressable
+  activesupport (~> 8.0)
+  addressable (~> 2.8)
   bundler (~> 2)
   connection_pool (~> 2.5)
-  dentaku
+  dentaku (~> 3.5)
   discordrb!
-  dotenv
+  dotenv (~> 3.1)
   dtext_rb!
   fumimi-discord!
-  gli
+  gli (~> 2.22)
   http (~> 4.4)
   minitest (~> 5.0)
   nokogiri (~> 1.18)
