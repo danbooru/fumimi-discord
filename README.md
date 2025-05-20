@@ -14,14 +14,14 @@ Fumimi is a Danbooru Discord bot.
 
 ## Manual Installation
 
-1. `git clone https://github.com/evazion/fumimi-discord.git`
+1. `git clone https://github.com/danbooru/fumimi-discord.git`
 2. Configure `.env` from `.env.local`
 3. `bundle install`
 4. Run `bin/fumimi`
 
 ## Installation with Docker
 
-1. `git clone https://github.com/evazion/fumimi-discord.git`
+1. `git clone https://github.com/danbooru/fumimi-discord.git`
 2. Configure `.env` from `.env.local`
 3. Run `docker build . -t fumimi-discord`
 4. Run `docker run --rm --env-file=.env fumimi-discord`
