@@ -151,7 +151,7 @@ PLATFORMS
 DEPENDENCIES
   activesupport (~> 8.0)
   addressable (~> 2.8)
-  bundler (~> 2)
+  bundler (~> 2.6)
   connection_pool (~> 2.5)
   dentaku (~> 3.5)
   discordrb!
@@ -160,11 +160,11 @@ DEPENDENCIES
   fumimi-discord!
   gli (~> 2.22)
   http (~> 4.4)
-  minitest (~> 5.0)
+  minitest (~> 5.25)
   nokogiri (~> 1.18)
-  pry (~> 0.10)
-  pry-byebug (~> 3.4)
-  rake (~> 13.0)
+  pry (~> 0.15.2)
+  pry-byebug (~> 3.11)
+  rake (~> 13.2)
   retriable (~> 3.1)
   rubocop (~> 1.75)
 

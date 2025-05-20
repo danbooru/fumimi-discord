@@ -8,8 +8,6 @@ require "active_support"
 require "active_support/core_ext"
 require "dentaku"
 require "discordrb"
-require "pry"
-require "pry-byebug"
 require "open-uri"
 require "addressable/uri"
 

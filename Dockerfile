@@ -3,7 +3,7 @@ WORKDIR /tmp
 RUN apt update && apt install -y ragel
 COPY Gemfile Gemfile.lock fumimi-discord.gemspec ./
 RUN gem install bundler:2.6.9
-RUN bundle config set without 'development'
+RUN bundle config set without "development test"
 RUN bundle install
 
 FROM ruby:3.4.4-slim

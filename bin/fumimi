@@ -19,9 +19,9 @@ def parse_options
     begin
       opts.parse!
       yield(options)
-    rescue OptionParser::ParseError => error
-      STDERR.puts(error)
-      STDERR.puts "Try 'fumimi --help' for more information."
+    rescue OptionParser::ParseError => e
+      warn(e)
+      warn "Try 'fumimi --help' for more information."
       exit 1
     end
   end
@@ -43,7 +43,7 @@ def main(options)
 
   %w[INT TERM].each do |signal|
     trap signal do
-      STDERR.puts "SIG#{signal} received, initiating shutdown..."
+      warn "SIG#{signal} received, initiating shutdown..."
       fumimi.initiate_shutdown!
     end
   end

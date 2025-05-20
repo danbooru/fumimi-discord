@@ -15,4 +15,14 @@ gem "http", "~> 4.4"
 gem "nokogiri", "~> 1.18"
 gem "retriable", "~> 3.1"
 
-gem "rubocop", "~> 1.75", group: :development
+group :development do
+  gem "bundler", "~> 2.6"
+  gem "pry", "~> 0.15.2"
+  gem "pry-byebug", "~> 3.11"
+  gem "rake", "~> 13.2"
+  gem "rubocop", "~> 1.75"
+end
+
+group :test do
+  gem "minitest", "~> 5.25"
+end
