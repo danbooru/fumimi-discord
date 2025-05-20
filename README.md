@@ -2,7 +2,7 @@
 
 Fumimi is a Danbooru Discord bot.
 
-## Installation
+## Bot Creation
 
 1. Go to https://discordapp.com/developers/applications/me
 2. Click 'New App'
@@ -11,6 +11,8 @@ Fumimi is a Danbooru Discord bot.
 5. Add a bot user.
 6. Save your bot token.
 7. Invite bot to server.
+
+## Manual Installation
 
 1. `git clone https://github.com/evazion/fumimi-discord.git`
 2. Configure `.env` from `.env.local`
