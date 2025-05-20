@@ -5,23 +5,6 @@ GIT
     dtext_rb (1.12.8)
 
 GIT
-  remote: https://github.com/nonamethanks/ruby-booru
-  revision: 77d5a9ea4d86abe33c687e060b8d54076bdbf53e
-  specs:
-    ruby-booru (0.2.4)
-      activesupport (~> 8)
-      addressable (~> 2)
-      connection_pool (~> 2)
-      dotenv (~> 2)
-      dtext_rb (~> 1)
-      gli (~> 2.22)
-      http (~> 4)
-      nokogiri (~> 1.18)
-      rdoc (~> 6.13)
-      rest-client (~> 2.1)
-      retriable (~> 3)
-
-GIT
   remote: https://github.com/shardlab/discordrb.git
   revision: 402bebe1d075796f5fdee1223fc883e24756b6e0
   ref: 402bebe1d075796f5fdee1223fc883e24756b6e0
@@ -66,7 +49,6 @@ GEM
     coderay (1.1.3)
     concurrent-ruby (1.3.5)
     connection_pool (2.5.3)
-    date (3.4.1)
     dentaku (3.5.4)
       bigdecimal
       concurrent-ruby
@@ -121,15 +103,10 @@ GEM
     pry-byebug (3.11.0)
       byebug (~> 12.0)
       pry (>= 0.13, < 0.16)
-    psych (5.2.6)
-      date
-      stringio
     public_suffix (6.0.2)
     racc (1.8.1)
     rainbow (3.1.1)
     rake (13.2.1)
-    rdoc (6.13.1)
-      psych (>= 4.0.0)
     regexp_parser (2.10.0)
     rest-client (2.1.0)
       http-accept (>= 1.7.0, < 2.0)
@@ -153,7 +130,6 @@ GEM
       prism (~> 1.4)
     ruby-progressbar (1.13.0)
     securerandom (0.4.1)
-    stringio (3.1.7)
     tzinfo (2.0.6)
       concurrent-ruby (~> 1.0)
     unicode-display_width (3.1.4)
@@ -174,18 +150,21 @@ DEPENDENCIES
   activesupport
   addressable
   bundler (~> 2)
+  connection_pool (~> 2.5)
   dentaku
   discordrb!
   dotenv
   dtext_rb!
   fumimi-discord!
   gli
+  http (~> 4.4)
   minitest (~> 5.0)
+  nokogiri (~> 1.18)
   pry (~> 0.10)
   pry-byebug (~> 3.4)
   rake (~> 13.0)
+  retriable (~> 3.1)
   rubocop (~> 1.75)
-  ruby-booru (~> 0.2.4)!
 
 BUNDLED WITH
    2.6.9

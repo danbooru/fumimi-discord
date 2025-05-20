@@ -4,8 +4,6 @@ Dotenv.load
 class Fumimi; end
 Dir[__dir__ + "/**/*.rb"].each { |file| require file }
 
-require "danbooru"
-
 require "active_support"
 require "active_support/core_ext"
 require "dentaku"
@@ -22,9 +20,7 @@ class Fumimi
   include Fumimi::Commands
   include Fumimi::Events
 
-  attr_reader :server_id, :client_id, :token, :log
-  attr_reader :bot, :server, :booru, :storage
-  attr_reader :initiate_shutdown
+  attr_reader :server_id, :client_id, :token, :log, :bot, :server, :booru, :storage, :initiate_shutdown
 
   def initialize(server_id:, client_id:, token:, log: Logger.new(STDERR))
     @server_id = server_id
@@ -41,7 +37,7 @@ class Fumimi
     }
 
     @booru = Danbooru.new(factory: factory, log: log)
-    #@storage = Google::Cloud::Storage.new
+    # @storage = Google::Cloud::Storage.new
   end
 
   def server
@@ -82,7 +78,7 @@ class Fumimi
       name: "Robot Maid Fumimi",
       client_id: client_id,
       token: token,
-      prefix: '/',
+      prefix: "/"
     )
 
     register_commands
