@@ -68,7 +68,6 @@ class Fumimi
     bot.command(:ruby, description: "Evaluate a ruby expression", &method(:do_ruby))
     bot.command(:comments, description: "List comments: `/comments <tags>`", &method(:do_comments))
     bot.command(:forum, description: "List forum posts: `/forum <text>`", &method(:do_forum))
-    # bot.command(:logs, description: "Dump channel log in JSON format: `/logs <channel-name>`", &method(:do_logs))
     bot.command(:say, help_available: false, &method(:do_say))
   end
 
