@@ -9,9 +9,9 @@ class DanbooruTest < ActiveSupport::TestCase
   context "Danbooru:" do
     context "Danbooru#initialize" do
       should "take default params from the environment" do
-        assert_equal(ENV.fetch("BOORU_URL", nil), @booru.url.to_s)
-        assert_equal(ENV.fetch("BOORU_USER", nil), @booru.user)
-        assert_equal(ENV.fetch("BOORU_API_KEY", nil), @booru.api_key)
+        assert_equal(ENV["BOORU_URL"], @booru.url.to_s) # rubocop:disable Style/FetchEnvVar
+        assert_equal(ENV["BOORU_USER"], @booru.user) # rubocop:disable Style/FetchEnvVar
+        assert_equal(ENV["BOORU_API_KEY"], @booru.api_key) # rubocop:disable Style/FetchEnvVar
       end
 
       should "create classes and getters for every resource" do
