@@ -1,11 +1,16 @@
-require "danbooru/model/post"
 require "fumimi/model"
 
-class Fumimi::Model::Post < Danbooru::Model::Post
-  include Fumimi::Model
-
+class Fumimi::Model::Post < Fumimi::Model
   NSFW_BLUR = ENV["FUMIMI_NSFW_BLUR"] || 50
   CENSORED_TAGS = ENV["FUMIMI_CENSORED_TAGS"].to_s.split
+
+  def source_url
+    Addressable::URI.heuristic_parse(source) rescue nil
+  end
+
+  def tags
+    tag_string.split
+  end
 
   def send_embed(channel)
     channel.send_embed do |e|

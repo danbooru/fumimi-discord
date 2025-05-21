@@ -15,7 +15,7 @@ class Danbooru
       @resource, @response = resource, response
 
       if failed?
-        @model = Danbooru::Model.new(json, resource)
+        @model = Fumimi::Model.new(json, resource)
       elsif json.is_a?(Array)
         @model = json.map { |item| factory.new(item, resource) }
       elsif json.is_a?(Hash)
@@ -49,7 +49,7 @@ class Danbooru
 
     def factory
       name = resource.name
-      resource.booru.factory[name] || "Danbooru::Model::#{name.singularize.capitalize}".safe_constantize || Danbooru::Model
+      resource.booru.factory[name] || "Fumimi::Model::#{name.singularize.capitalize}".safe_constantize || Fumimi::Model
     end
 
     def error

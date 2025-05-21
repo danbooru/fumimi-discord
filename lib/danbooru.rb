@@ -3,6 +3,7 @@ require "active_support/core_ext/string/inflections"
 require "active_support/core_ext/hash/indifferent_access"
 require "addressable/uri"
 
+class Danbooru; end
 Dir[__dir__ + "/danbooru/**/*.rb"].each { |file| require file }
 
 class Danbooru

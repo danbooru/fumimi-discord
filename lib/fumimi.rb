@@ -2,6 +2,8 @@ require "dotenv"
 Dotenv.load
 
 class Fumimi; end
+
+require "danbooru"
 Dir[__dir__ + "/**/*.rb"].each { |file| require file }
 
 require "active_support"

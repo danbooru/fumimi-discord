@@ -1,8 +1,7 @@
-require "danbooru/model/wiki_page"
 require "fumimi/model"
 
-class Fumimi::Model::WikiPage < Danbooru::Model::WikiPage
-  include Fumimi::Model
+class Fumimi::Model::WikiPage < Fumimi::Model
+  include Fumimi::HasDTextFields
 
   def self.render_wiki_page(channel, title, booru)
     title = title.tr(" ", "_")

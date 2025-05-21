@@ -1,7 +1,7 @@
 require "dtext"
 require "nokogiri"
 
-class Danbooru
+class Fumimi
   module HasDTextFields
     def html_body
       DText.parse(body)
@@ -13,9 +13,9 @@ class Danbooru
       nodes.children.map do |node|
         case node.name
         when "i"
-          "*#{node.text.gsub(/\*/, "\*")}*"
+          "*#{node.text.gsub("*", "*")}*"
         when "b"
-          "**#{node.text.gsub(/\*\*/, "\*\*")}**"
+          "**#{node.text.gsub("**", "**")}**"
         when "div", "blockquote"
           # no-op
           nil

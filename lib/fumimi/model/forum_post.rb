@@ -1,8 +1,7 @@
-require "danbooru/model/forum_post"
 require "fumimi/model"
 
-class Fumimi::Model::ForumPost < Danbooru::Model::ForumPost
-  include Fumimi::Model
+class Fumimi::Model::ForumPost < Fumimi::Model
+  include Fumimi::HasDTextFields
 
   def self.render_forum_posts(channel, forum_posts)
     forum_posts.each do |forum_post|

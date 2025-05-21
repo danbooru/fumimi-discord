@@ -168,8 +168,8 @@ class DanbooruTest < ActiveSupport::TestCase
       should "work" do
         post = @booru.posts.show(1)
 
-        assert_kind_of(Danbooru::Response, post)
-        assert_kind_of(Danbooru::Model::Post, post.model)
+        assert_kind_of(Fumimi::Response, post)
+        assert_kind_of(Fumimi::Model::Post, post.model)
         assert_equal(false, post.failed?)
         assert_equal(1, post.id)
       end

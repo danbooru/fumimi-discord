@@ -1,8 +1,7 @@
-require "danbooru/model/comment"
 require "fumimi/model"
 
-class Fumimi::Model::Comment < Danbooru::Model::Comment
-  include Fumimi::Model
+class Fumimi::Model::Comment < Fumimi::Model
+  include Fumimi::HasDTextFields
 
   def self.render_comments(channel, comments)
     comments.each do |comment|
