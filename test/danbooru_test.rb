@@ -144,19 +144,6 @@ class DanbooruTest < ActiveSupport::TestCase
       end
     end
 
-    context "the #all method" do
-      should "work with a block" do
-        @booru.posts.all(tags: "id:1,2", limit: 1) do |post|
-          assert_equal(true, post.id <= 2)
-        end
-      end
-
-      should "work without a block" do
-        posts = @booru.posts.all(tags: "id:1,2", limit: 1).to_a
-        assert_equal([2, 1], posts.map(&:id))
-      end
-    end
-
     context "the #index method" do
       should "work" do
         post = @booru.posts.index(tags: "id:1").first

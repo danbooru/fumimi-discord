@@ -69,45 +69,6 @@ class Danbooru
       index(limit: 1, page: "b100000000").first
     end
 
-    def partition(by = :id, size = nil)
-      if by == :id
-        max = last.id + 1
-        size ||= 1000
-        partition_by_id(0, max, size)
-      elsif by == :page
-        size ||= 1
-        partition_by_page(1, 5000, size)
-      end
-    end
-
-    def partition_by_id(min = 0, max = 100_000_000, size = 1_000)
-      endpoints = max.step(min, -size).lazy                       # [1000, 900, 800, ..., 100]
-      endpoints = [endpoints, [min]].lazy.flat_map { |e| e.lazy } # [1000, 900, 800, ..., 100, 0]
-      subranges = endpoints.each_cons(2)                          # [[1000, 900], [900, 800], ..., [100, 0]]
-      subranges = subranges.map { |upper, lower| [lower, upper] } # [[900, 1000], [800, 900], ..., [0, 100]]
-      subranges
-    end
-
-    def partition_by_page(min = 1, max = 5000, size = 1)
-      min.step(max, size).lazy.each_cons(2)
-    end
-
-    def all(size: nil, dedupe: 1000, **params, &block)
-      params = default_params.merge(params)
-      subranges = partition(by, size)
-
-      results = subranges.pmap(threads) do |from, to|
-        response = each(from: from, to: to, **params)
-        response.to_a
-      end
-
-      results = results.take_until { |items| items.size < params[:limit] } if by == :page
-      results = results.flat_map(&:itself)
-      results = results.dedupe(dedupe) if by == :page
-      results = results.each(&block)
-      results
-    end
-
     def each(**params, &block)
       return enum_for(:each, **params) unless block_given?
 
