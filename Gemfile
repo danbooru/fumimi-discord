@@ -12,6 +12,7 @@ gem "dtext_rb", "~> 1.13", github: "danbooru/danbooru", glob: "lib/dtext_rb/dtex
                            ref: "cb4061ef17b284451734e10409f57e6b552b699a"
 gem "http", "~> 4.4"
 gem "nokogiri", "~> 1.18"
+gem "ostruct", "~> 0.6.1"
 gem "retriable", "~> 3.1"
 
 group :development do

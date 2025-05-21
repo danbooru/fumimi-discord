@@ -91,6 +91,7 @@ GEM
       racc (~> 1.4)
     opus-ruby (1.0.1)
       ffi
+    ostruct (0.6.1)
     parallel (1.27.0)
     parser (3.3.8.0)
       ast (~> 2.4.1)
@@ -158,6 +159,7 @@ DEPENDENCIES
   http (~> 4.4)
   minitest (~> 5.25)
   nokogiri (~> 1.18)
+  ostruct (~> 0.6.1)
   pry (~> 0.15.2)
   pry-byebug (~> 3.11)
   rake (~> 13.2)
