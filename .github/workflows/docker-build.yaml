@@ -51,7 +51,6 @@ jobs:
         id: metadata
         with:
           images: |
-            docker.io/evazion/fumimi-discord
             ghcr.io/danbooru/fumimi-discord
           tags: |
             type=sha,format=long,prefix=
