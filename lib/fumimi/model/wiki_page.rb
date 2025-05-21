@@ -20,10 +20,11 @@ class Fumimi::Model::WikiPage < Fumimi::Model
       embed.url = wiki_page.try(:url)
       embed.description = wiki_page.try(:pretty_body)
     else
-      embed.description = "There is currently no wiki page for the tag #{title}."
+      embed.url = "#{wiki_page.booru.url}/posts?tags=#{CGI.escape(title)}"
+      embed.description = "There is currently no wiki page for the tag `#{title}`."
     end
 
-    return unless post
+    return embed unless post
 
     embed.image = post.embed_image(channel.name)
 
