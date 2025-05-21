@@ -62,8 +62,6 @@ GEM
     ffi-compiler (1.3.2)
       ffi (>= 1.15.5)
       rake
-    gli (2.22.2)
-      ostruct
     http (4.4.1)
       addressable (~> 2.3)
       http-cookie (~> 1.0)
@@ -93,7 +91,6 @@ GEM
       racc (~> 1.4)
     opus-ruby (1.0.1)
       ffi
-    ostruct (0.6.1)
     parallel (1.27.0)
     parser (3.3.8.0)
       ast (~> 2.4.1)
@@ -158,7 +155,6 @@ DEPENDENCIES
   dotenv (~> 3.1)
   dtext_rb (~> 1.13)!
   fumimi-discord!
-  gli (~> 2.22)
   http (~> 4.4)
   minitest (~> 5.25)
   nokogiri (~> 1.18)

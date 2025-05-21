@@ -10,7 +10,6 @@ gem "discordrb", github: "shardlab/discordrb", require: false, ref: "402bebe1d07
 gem "dotenv", "~> 3.1"
 gem "dtext_rb", "~> 1.13", github: "danbooru/danbooru", glob: "lib/dtext_rb/dtext_rb.gemspec",
                            ref: "cb4061ef17b284451734e10409f57e6b552b699a"
-gem "gli", "~> 2.22"
 gem "http", "~> 4.4"
 gem "nokogiri", "~> 1.18"
 gem "retriable", "~> 3.1"
