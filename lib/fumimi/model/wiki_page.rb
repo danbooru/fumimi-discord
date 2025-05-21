@@ -18,7 +18,7 @@ class Fumimi::Model::WikiPage < Fumimi::Model
       embed.url = wiki_page.try(:url)
       embed.description = wiki_page.try(:pretty_body)
     else
-      embed.url = "#{booru.url}/posts?tags=#{CGI.escape(title)}"
+      embed.url = "#{booru.url}/posts?tags=#{CGI.escape(title.tr(" ", "_"))}"
       embed.description = "There is currently no wiki page for the tag `#{title}`."
     end
 
