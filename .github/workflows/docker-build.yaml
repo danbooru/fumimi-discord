@@ -1,5 +1,4 @@
-# On every commit, build and push a Docker image to the GitHub Container
-# registry and to DockerHub.
+# On every commit, build and push a Docker image to the GitHub Container Registry
 #
 # The resulting Docker images are tagged with the full commit hash, the git
 # branch name, the git tag, and the 'latest' tag for the latest commit to
@@ -51,12 +50,6 @@ jobs:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ github.token }}
-
-      - name: Login to DockerHub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       # Generate Docker tags from Git tags.
       # https://github.com/docker/metadata-action
