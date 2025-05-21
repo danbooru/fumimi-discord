@@ -1,11 +1,16 @@
-require "danbooru/model/post"
 require "fumimi/model"
 
-class Fumimi::Model::Post < Danbooru::Model::Post
-  include Fumimi::Model
-
+class Fumimi::Model::Post < Fumimi::Model
   NSFW_BLUR = ENV["FUMIMI_NSFW_BLUR"] || 50
   CENSORED_TAGS = ENV["FUMIMI_CENSORED_TAGS"].to_s.split
+
+  def source_url
+    Addressable::URI.heuristic_parse(source) rescue nil
+  end
+
+  def tags
+    tag_string.split
+  end
 
   def send_embed(channel)
     channel.send_embed do |e|
@@ -33,7 +38,7 @@ class Fumimi::Model::Post < Danbooru::Model::Post
 
   def embed_thumbnail(nsfw_channel)
     if is_censored? || is_unsafe?(nsfw_channel)
-      Discordrb::Webhooks::EmbedThumbnail.new(url: "https://rsz.io/#{preview_file_url.host + preview_file_url.path}?blur=#{NSFW_BLUR}")
+      Discordrb::Webhooks::EmbedThumbnail.new(url: "https://rsz.io/#{preview_file_url.host + preview_file_url.path}?blur=#{NSFW_BLUR}") # TODO: replace with blurhash or something
     else
       Discordrb::Webhooks::EmbedThumbnail.new(url: preview_file_url.to_s)
     end
@@ -48,7 +53,7 @@ class Fumimi::Model::Post < Danbooru::Model::Post
   end
 
   def is_unsafe?(nsfw_channel)
-    rating != 'g' && !nsfw_channel
+    rating != "g" && !nsfw_channel
   end
 
   def is_censored?
@@ -71,11 +76,11 @@ class Fumimi::Model::Post < Danbooru::Model::Post
 
   def embed_footer
     post_info = "#{score}⇧ #{fav_count}♥ | Rating: #{rating.upcase}"
-    file_info = "#{image_width}x#{image_height} (#{file_size.to_s(:human_size, precision: 4)} #{file_ext})"
+    file_info = "#{image_width}x#{image_height} (#{file_size.to_fs(:human_size, precision: 4)} #{file_ext})"
     timestamp = "#{created_at.strftime("%F")}"
 
-    Discordrb::Webhooks::EmbedFooter.new({
+    Discordrb::Webhooks::EmbedFooter.new(
       text: "#{post_info} | #{file_info} | #{timestamp}"
-    })
+    )
   end
 end

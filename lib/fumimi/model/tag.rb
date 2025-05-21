@@ -1,9 +1,6 @@
-require "danbooru/model/tag"
 require "fumimi/model"
 
-class Fumimi::Model::Tag < Danbooru::Model::Tag
-  include Fumimi::Model
-
+class Fumimi::Model::Tag < Fumimi::Model
   def example_post
     case category
     when 1 # artist

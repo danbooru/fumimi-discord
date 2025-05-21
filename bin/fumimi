@@ -19,9 +19,9 @@ def parse_options
     begin
       opts.parse!
       yield(options)
-    rescue OptionParser::ParseError => error
-      STDERR.puts(error)
-      STDERR.puts "Try 'fumimi --help' for more information."
+    rescue OptionParser::ParseError => e
+      warn(e)
+      warn "Try 'fumimi --help' for more information."
       exit 1
     end
   end
@@ -31,16 +31,19 @@ def main(options)
   log = Logger.new(STDERR)
   log.level = Logger::DEBUG
 
-  fumimi = Fumimi.new({
-    server_id: ENV["DISCORD_SERVER_ID"].to_i,
-    client_id: ENV["DISCORD_CLIENT_ID"],
-    token: ENV["DISCORD_TOKEN"],
-    log: log,
-  })
+  server_id = ENV["DISCORD_SERVER_ID"].presence || raise("No DISCORD_SERVER_ID env var provided.")
+  token = ENV["DISCORD_TOKEN"].presence || raise("No DISCORD_TOKEN env var provided.")
+
+  fumimi = Fumimi.new(
+    server_id: server_id.to_i,
+    client_id: ENV.fetch("DISCORD_CLIENT_ID", nil),
+    token: token,
+    log: log
+  )
 
   %w[INT TERM].each do |signal|
     trap signal do
-      STDERR.puts "SIG#{signal} received, initiating shutdown..."
+      warn "SIG#{signal} received, initiating shutdown..."
       fumimi.initiate_shutdown!
     end
   end

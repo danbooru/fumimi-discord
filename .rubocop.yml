@@ -1,0 +1,57 @@
+AllCops:
+  NewCops: enable
+  TargetRubyVersion: 3.4
+
+Metrics/AbcSize:
+  Enabled: false
+
+Naming/BlockForwarding:
+  Enabled: false
+
+Style/Alias:
+  EnforcedStyle: prefer_alias_method
+
+Style/ArgumentsForwarding:
+  Enabled: false
+
+Style/ClassAndModuleChildren:
+  Enabled: false
+
+Style/Documentation:
+  Enabled: false
+
+Layout/FirstHashElementIndentation:
+  EnforcedStyle: consistent
+
+Style/FormatString:
+  Enabled: false
+
+Style/FrozenStringLiteralComment:
+  Enabled: false
+
+Metrics/MethodLength:
+  Max: 100
+
+Style/ParallelAssignment:
+  Enabled: false
+
+Metrics/ParameterLists:
+  Max: 6
+
+Style/RedundantAssignment:
+  Enabled: false
+
+Style/RescueModifier:
+  Enabled: false
+
+Style/StringLiterals:
+  EnforcedStyle: double_quotes
+
+Style/StringLiteralsInInterpolation:
+  Enabled: false
+
+Style/TrailingCommaInArrayLiteral:
+  EnforcedStyleForMultiline: consistent_comma
+
+Style/TrailingCommaInHashLiteral:
+  EnforcedStyleForMultiline: consistent_comma
