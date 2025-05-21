@@ -106,17 +106,20 @@ module Fumimi::Events
   def do_convert_post_links(event)
     post_ids = []
 
-    message = event.message.content.gsub(%r{\b(?!https?://\w+\.donmai\.us/posts/\d+/\w+)https?://(?!testbooru)\w+\.donmai\.us/posts/(\d+)\b[^[:space:]]*}i) do |link|
+    message = event.message.content.gsub(%r{\b(?!https?://\w+\.donmai\.us/posts/\d+/\w+)https?://(?!testbooru)\w+\.donmai\.us/posts/(\d+)\b[^[:space:]]*}i) do |link| # rubocop:disable Layout/LineLength
       post_ids << ::Regexp.last_match(1).to_i
       "<#{link}>"
     end
 
+    post_ids.uniq!
+
     if post_ids.present?
       event.message.delete
-      event.send_message("#{event.author.display_name} posted: #{message}", false, nil, nil, false) # tts, embed, attachments, allowed_mentions
+      log.info("Converting post links in message '#{event.message.content}' from user #'#{event&.user&.id}' '#{event&.user&.username}' to post embeds") # rubocop:disable Layout/LineLength
+      event.send_message("<@#{event.author.id}> posted: #{message}", false, nil, nil, false) # tts, embed, attachments, allowed_mentions  # rubocop:disable Layout/LineLength
 
-      post_ids.each do |post_id|
-        post = booru.posts.show(post_id)
+      posts = booru.posts.index(tags: "id:#{post_ids.join(",")} order:custom")
+      posts.first(3).each do |post|
         post.send_embed(event.channel)
       end
     end
