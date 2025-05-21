@@ -6,11 +6,10 @@ class Fumimi::Model::WikiPage < Fumimi::Model
   def self.render_wiki_page(channel, title, booru)
     title = title.tr(" ", "_")
 
-    wiki_page = booru.wiki_pages.show(title)
+    wiki_page = booru.wiki_pages.show(CGI.escape(title))
     tag = wiki_page.tag rescue nil
 
     post = tag.example_post if tag&.post_count.to_i.positive?
-
     channel.send_embed { |embed| embed(embed, channel, title, wiki_page, post) }
   end
 
