@@ -11,7 +11,7 @@ module Fumimi::Events
       matches = event.text.scan(/(?<!`)#{regex}(?!`)/)
 
       matches.each do |match|
-        log.info("Received command '#{match}' from user #'#{event&.user&.id}' '#{event&.user&.username}' in channel '##{event&.channel&.name}'") # rubocop:disable Layout/LineLength
+        log.info("Received command '#{match}' from user ##{event&.user&.id} '#{event&.user&.username}' in channel '##{event&.channel&.name}'") # rubocop:disable Layout/LineLength
         instance_exec(event, match, &block)
       end
 
@@ -105,25 +105,19 @@ module Fumimi::Events
 
   def do_convert_post_links(event)
     post_ids = []
-
     message = event.message.content.gsub(%r{\b(?!https?://\w+\.donmai\.us/posts/\d+/\w+)https?://(?!testbooru)\w+\.donmai\.us/posts/(\d+)\b[^[:space:]]*}i) do |link| # rubocop:disable Layout/LineLength
       post_ids << ::Regexp.last_match(1).to_i
       "<#{link}>"
     end
-
     post_ids.uniq!
 
-    if post_ids.present?
-      event.message.delete
-      log.info("Converting post links in message '#{event.message.content}' from user #'#{event&.user&.id}' '#{event&.user&.username}' to post embeds") # rubocop:disable Layout/LineLength
-      event.send_message("<@#{event.author.id}> posted: #{message}", false, nil, nil, false) # tts, embed, attachments, allowed_mentions  # rubocop:disable Layout/LineLength
+    return unless post_ids.present?
 
-      posts = booru.posts.index(tags: "id:#{post_ids.join(",")} order:custom")
-      posts.first(3).each do |post|
-        post.send_embed(event.channel)
-      end
-    end
+    event.message.delete
+    log.info("Converting post links in message '#{event.message.content}' from user ##{event&.user&.id} '#{event&.user&.username}' to post embeds") # rubocop:disable Layout/LineLength
+    event.send_message("<@#{event.author.id}> posted: #{message}")
 
-    nil
+    posts = booru.posts.index(tags: "id:#{post_ids.join(",")} order:custom")
+    posts.first(3).each { |post| post.send_embed(event.channel) }
   end
 end
