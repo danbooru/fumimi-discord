@@ -6,7 +6,7 @@ RUN gem install bundler:2.6.9
 RUN bundle config set without "development test"
 RUN bundle install
 
-FROM ruby:3.4.4-slim
+FROM ruby:3.4.4-slim AS fumimi
 WORKDIR /root
 RUN apt update && apt install -y libsodium-dev libglib2.0-dev libpq-dev
 COPY --from=build /usr/local/bundle /usr/local/bundle
