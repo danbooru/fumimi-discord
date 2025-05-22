@@ -1,0 +1,61 @@
+require "test_helper"
+
+class PostEmbedTest < Minitest::Test
+  def setup
+    factory = {
+      posts: Fumimi::Model::Post,
+      tags: Fumimi::Model::Tag,
+      comments: Fumimi::Model::Comment,
+      forum_posts: Fumimi::Model::ForumPost,
+      users: Fumimi::Model::User,
+      wiki_pages: Fumimi::Model::WikiPage,
+    }.with_indifferent_access
+
+    @booru = Danbooru.new(factory: factory)
+    @nsfw_post = @booru.posts.show(1)
+    @sfw_post = @booru.posts.index(tags: "rating:general order:random", limit: 1).first
+
+    @sfw_channel = Minitest::Mock.new
+    def @sfw_channel.nsfw?
+      false
+    end
+
+    @nsfw_channel = Minitest::Mock.new
+    def @nsfw_channel.nsfw?
+      true
+    end
+  end
+
+  def test_nsfw_post_on_sfw_channel
+    embed = Discordrb::Webhooks::Embed.new
+    post_embed = @nsfw_post.embed(embed, @sfw_channel)
+
+    assert_equal post_embed.title, "post #1"
+    assert_equal post_embed.url, "https://danbooru.donmai.us/posts/1"
+    assert_nil post_embed.image
+    assert_equal post_embed.color, 0xC0C000
+    assert post_embed.footer&.text.present?
+  end
+
+  def test_nsfw_post_on_nsfw_channel
+    embed = Discordrb::Webhooks::Embed.new
+    post_embed = @nsfw_post.embed(embed, @nsfw_channel)
+
+    assert_equal post_embed.title, "post #1"
+    assert_equal post_embed.url, "https://danbooru.donmai.us/posts/1"
+    assert_equal post_embed.image&.url, "https://cdn.donmai.us/original/d3/4e/d34e4cf0a437a5d65f8e82b7bcd02606.jpg"
+    assert_equal post_embed.color, 0xC0C000
+    assert post_embed.footer&.text.present?
+  end
+
+  def test_sfw_post_on_nsfw_channel
+    embed = Discordrb::Webhooks::Embed.new
+    post_embed = @sfw_post.embed(embed, @sfw_channel)
+
+    assert_match(/^post #(\d+)$/, post_embed.title)
+    assert_equal post_embed&.url, "https://danbooru.donmai.us/posts/#{@sfw_post.id}"
+    assert_equal post_embed.image&.url, @sfw_post.file_url.to_s
+
+    assert post_embed.footer&.text.present?
+  end
+end
