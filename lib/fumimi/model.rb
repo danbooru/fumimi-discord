@@ -24,7 +24,7 @@ class Fumimi::Model
   end
 
   def shortlink
-    "#{resource_name} ##{id}"
+    "#{resource_name.singularize} ##{id}"
   end
 
   def as_json(options = {})
