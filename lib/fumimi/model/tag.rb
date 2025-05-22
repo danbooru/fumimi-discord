@@ -11,9 +11,7 @@ class Fumimi::Model::Tag < Fumimi::Model
   def self.embed(embed, channel, title, tag)
     embed.description = ""
 
-    if tag&.resolved_name&.downcase != title.tr(" ", "_").downcase
-      embed.description << "-# Aliased from `#{title}`.\n\n"
-    end
+    embed.description << "-# Aliased from `#{title}`.\n\n" if alias_search?(tag, title)
 
     embed.title = (tag&.resolved_name || title).tr("_", " ")
     embed.url = tag&.embed_url
@@ -24,6 +22,13 @@ class Fumimi::Model::Tag < Fumimi::Model
     embed.image = post.embed_image(channel.name) if post.present?
 
     embed.author = tag&.embed_author
+  end
+
+  def self.alias_search?(tag, title)
+    # rubocop:disable Style/SafeNavigationChainLength
+    found_name = tag&.resolved_name&.downcase&.strip
+    searched_name = title.strip.tr(" ", "_").downcase
+    found_name != searched_name
   end
 
   def resolved_name
