@@ -30,21 +30,21 @@ module Fumimi::Events
     forum_post_id = text[/[0-9]+/].to_i
 
     forum_post = booru.forum_posts.show(forum_post_id)
-    Fumimi::Model::ForumPost.render_forum_posts(event.channel, [forum_post])
+    forum_post.send_embed(event.channel)
   end
 
   respond(:topic_id, /topic #[0-9]+/i) do |event, text|
     topic_id = text[/[0-9]+/]
 
     forum_post = booru.forum_posts.search(topic_id: topic_id).to_a.last
-    Fumimi::Model::ForumPost.render_forum_posts(event.channel, [forum_post])
+    forum_post.send_embed(event.channel)
   end
 
   respond(:comment_id, /comment #[0-9]+/i) do |event, text|
     id = text[/[0-9]+/]
 
     comment = booru.comments.show(id)
-    Fumimi::Model::Comment.render_comments(event.channel, [comment])
+    comment.send_embed(event.channel)
   end
 
   respond(:tag_link, /\[\[ [^\]]+ \]\]/x) do |event, text|
@@ -54,8 +54,17 @@ module Fumimi::Events
     if title =~ /^user:(.*)/
       user = booru.users.index(name: ::Regexp.last_match(1))
       user.send_embed(event.channel)
+    elsif (tag = booru.tags.search(name_or_alias_matches: title).max_by(&:post_count)).present?
+      tag.send_embed(event.channel, searched_tag: title)
     else
-      Fumimi::Model::Tag.render_tag_preview(event.channel, title, booru)
+      wiki_page = booru.wiki_pages.search(title_normalize: title).first
+      if wiki_page.present?
+        wiki_page.send_embed(event.channel)
+      else
+        event.channel.send_embed do |e|
+          Fumimi::Model::WikiPage.fallback_embed(e, title, booru)
+        end
+      end
     end
   end
 

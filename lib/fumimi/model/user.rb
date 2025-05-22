@@ -2,11 +2,7 @@ require "fumimi/model"
 require "active_support/core_ext"
 
 class Fumimi::Model::User < Fumimi::Model
-  def send_embed(channel)
-    channel.send_embed { |embed| embed(embed) }
-  end
-
-  def embed(embed)
+  def embed(embed, channel) # rubocop:disable Lint/UnusedMethodArgument
     embed.title = at_name
     embed.url = url
     embed.color = discord_color

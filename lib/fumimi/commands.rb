@@ -67,24 +67,22 @@ module Fumimi::Commands
 
     limit = args.grep(/limit:(\d+)/i) { ::Regexp.last_match(1).to_i }.first
     limit ||= 3
-    limit = [10, limit].min
+    limit = [5, limit].min
     body = args.grep_v(/limit:(\d+)/i).join(" ")
 
     forum_posts = booru.forum_posts.index("search[body_matches]": body, limit: limit)
-    Fumimi::Model::ForumPost.render_forum_posts(event.channel, forum_posts)
-
+    forum_posts.each { |forum_post| forum_post.send_embed(event.channel) }
     nil
   end
 
   def do_comments(event, *tags)
     limit = tags.grep(/limit:(\d+)/i) { ::Regexp.last_match(1).to_i }.first
     limit ||= 3
-    limit = [10, limit].min
+    limit = [5, limit].min
     tags = tags.grep_v(/limit:(\d+)/i)
 
     comments = booru.comments.index("search[post_tags_match]": tags.join(" "), limit: limit)
-    Fumimi::Model::Comment.render_comments(event.channel, comments)
-
-    nil
+    comments.each { |comment| comment.send_embed(event.channel) }
   end
+  nil
 end

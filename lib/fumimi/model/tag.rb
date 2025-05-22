@@ -1,34 +1,27 @@
 require "fumimi/model"
 
 class Fumimi::Model::Tag < Fumimi::Model
-  def self.render_tag_preview(channel, title, booru)
-    tags = booru.tags.search(name_or_alias_matches: title)
-    tag = tags.max_by(&:post_count) || tags.first
+  def embed(embed, channel, **options)
+    searched_tag = options[:searched_tag]
 
-    channel.send_embed { |embed| embed(embed, channel, title, tag) }
-  end
-
-  def self.embed(embed, channel, title, tag)
     embed.description = ""
 
-    embed.description << "-# Aliased from `#{title.downcase.strip}`.\n\n" if alias_search?(tag, title)
+    embed.description << "-# Aliased from `#{searched_tag.downcase.strip}`.\n\n" if alias_search?(searched_tag)
 
-    embed.title = (tag&.resolved_name || title).tr("_", " ")
-    embed.url = tag&.embed_url
+    embed.title = resolved_name.tr("_", " ")
+    embed.url = embed_url
 
-    embed.description << wiki_preview(tag, embed.title)
+    embed.description << wiki_preview
 
-    post = tag&.example_post
-    embed.image = post.embed_image(channel.name) if post.present?
+    embed.image = example_post.embed_image(channel) if example_post.present?
 
-    embed.author = tag&.embed_author
+    embed.author = embed_author
   end
 
-  def self.alias_search?(tag, title)
-    found_name = tag&.resolved_name&.downcase&.strip # rubocop:disable Style/SafeNavigationChainLength
-    return false unless found_name
+  def alias_search?(searched_tag)
+    found_name = resolved_name.downcase.strip
+    searched_name = searched_tag.strip.tr(" ", "_").downcase
 
-    searched_name = title.strip.tr(" ", "_").downcase
     found_name != searched_name
   end
 
@@ -44,9 +37,8 @@ class Fumimi::Model::Tag < Fumimi::Model
     end
   end
 
-  def self.wiki_preview(tag, fallback_name)
-    tag.try(:wiki_page).try(:pretty_body) ||
-      "There is currently no wiki page for the tag `#{tag&.resolved_name || fallback_name}`."
+  def wiki_preview
+    try(:wiki_page).try(:pretty_body) || Fumimi::Model::WikiPage.empty_wiki_for(name)
   end
 
   def embed_author

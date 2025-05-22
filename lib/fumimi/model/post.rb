@@ -12,12 +12,6 @@ class Fumimi::Model::Post < Fumimi::Model
     tag_string.split
   end
 
-  def send_embed(channel)
-    channel.send_embed do |e|
-      embed(e, channel)
-    end
-  end
-
   def embed(embed, channel)
     embed.title = shortlink
     embed.url = url
