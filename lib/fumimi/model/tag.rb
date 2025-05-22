@@ -96,7 +96,7 @@ class Fumimi::Model::Tag < Fumimi::Model
     when 3 # copy
       "everyone copytags:<5 -parody -crossover"
     when 4 # char
-      "solo chartags:<5 -alternate_* -cosplay -fusion -character_doll -character_hair_ornament -character_print -crossover" # rubocop:disable Layout/LineLength
+      "solo chartags:<5 -alternate_* -cosplay -fusion -character_doll -character_hair_ornament -character_print -crossover -very_wide_shot" # rubocop:disable Layout/LineLength
     else # meta or general
       "-6+girls -6+boys -comic"
     end
