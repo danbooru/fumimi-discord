@@ -107,9 +107,9 @@ class Fumimi::Model::Tag < Fumimi::Model
     when 1 # artist
       ""
     when 3 # copy
-      "#{name} everyone copytags:<5"
+      "everyone copytags:<5"
     when 4 # char
-      "#{name} solo chartags:<5"
+      "solo chartags:<5"
     else # meta or general # rubocop:disable Lint/DuplicateBranch
       ""
     end
