@@ -11,12 +11,12 @@ class Fumimi::Model::Tag < Fumimi::Model
   def self.embed(embed, channel, title, tag)
     embed.description = ""
 
-    embed.description << "-# Aliased from `#{title}`.\n\n" if alias_search?(tag, title)
+    embed.description << "-# Aliased from `#{title.downcase.strip}`.\n\n" if alias_search?(tag, title)
 
     embed.title = (tag&.resolved_name || title).tr("_", " ")
     embed.url = tag&.embed_url
 
-    embed.description << tag&.wiki_preview
+    embed.description << wiki_preview(tag, embed.title)
 
     post = tag&.example_post
     embed.image = post.embed_image(channel.name) if post.present?
@@ -26,6 +26,8 @@ class Fumimi::Model::Tag < Fumimi::Model
 
   def self.alias_search?(tag, title)
     found_name = tag&.resolved_name&.downcase&.strip # rubocop:disable Style/SafeNavigationChainLength
+    return false unless found_name
+
     searched_name = title.strip.tr(" ", "_").downcase
     found_name != searched_name
   end
@@ -42,12 +44,9 @@ class Fumimi::Model::Tag < Fumimi::Model
     end
   end
 
-  def wiki_preview
-    if try(:wiki_page).present?
-      wiki_page.try(:pretty_body)
-    else
-      "There is currently no wiki page for the tag `#{resolved_name}`."
-    end
+  def self.wiki_preview(tag, fallback_name)
+    tag.try(:wiki_page).try(:pretty_body) ||
+      "There is currently no wiki page for the tag `#{tag&.resolved_name || fallback_name}`."
   end
 
   def embed_author
