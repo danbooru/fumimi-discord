@@ -49,9 +49,14 @@ module Fumimi::Events
 
   respond(:tag_link, /\[\[ [^\]]+ \]\]/x) do |event, text|
     title = text[/[^\[\]]+/]
-
     event.channel.start_typing
-    Fumimi::Model::Tag.render_tag_preview(event.channel, title, booru)
+
+    if title =~ /^user:(.*)/
+      user = booru.users.index(name: ::Regexp.last_match(1))
+      user.send_embed(event.channel)
+    else
+      Fumimi::Model::Tag.render_tag_preview(event.channel, title, booru)
+    end
   end
 
   respond(:search_link, /{{ [^\}]+ }}/x) do |event, text|
