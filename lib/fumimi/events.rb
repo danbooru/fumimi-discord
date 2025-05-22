@@ -131,9 +131,8 @@ module Fumimi::Events
 
     return unless post_ids.present?
 
-    event.message.delete
+    event.message.suppress_embeds
     log.info("Converting post links in message '#{event.message.content}' from user ##{event&.user&.id} '#{event&.user&.username}' to post embeds") # rubocop:disable Layout/LineLength
-    event.send_message("<@#{event.author.id}> posted: #{message}")
 
     posts = booru.posts.index(tags: "id:#{post_ids.join(",")} order:custom")
     posts.first(3).each { |post| post.send_embed(event.channel) }
