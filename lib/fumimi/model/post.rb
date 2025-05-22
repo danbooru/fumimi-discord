@@ -24,7 +24,7 @@ class Fumimi::Model::Post < Fumimi::Model
 
   def embed_image_url
     if file_ext.match?(/jpe?g|png|gif/i)
-      file_url
+      try(:file_url)
     else
       preview_file_url
     end
