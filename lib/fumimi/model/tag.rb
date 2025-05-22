@@ -53,20 +53,65 @@ class Fumimi::Model::Tag < Fumimi::Model
   def example_post
     return if post_count.to_i.zero?
 
+    @example_post ||= example_post_from_wiki || example_post_narrow || example_post_wide
+  end
+
+  def example_post_from_wiki
+    return unless (wiki_body = try(:wiki_page)&.body).present?
+
+    post_ids = wiki_body.scan(/!post #(\d+)/)
+    return if post_ids.blank?
+
+    tag_string = "id:#{post_ids.join(",")} #{always_present_tags} order:custom"
+    return if tag_string.split.include? name
+
+    response = booru.posts.index(limit: 1, tags: tag_string)
+    response.first unless response.failed?
+  end
+
+  def example_post_narrow
+    tag_string = "#{narrow_search_tags} #{always_present_tags} order:score"
+    return if tag_string.split.include? name
+
+    response = booru.posts.index(limit: 1, tags: "#{name} #{tag_string}")
+    response.first unless response.failed?
+  end
+
+  def example_post_wide
+    tag_string = "#{wide_search_tags} #{always_present_tags} order:score"
+    return if tag_string.split.include? name
+
+    response = booru.posts.index(limit: 1, tags: "#{name} #{tag_string}")
+    response.first unless response.failed?
+  end
+
+  def always_present_tags
+    "status:any rating:general -animated -flash" # discord rich embeds don't allow video previews
+  end
+
+  def narrow_search_tags
     case category
     when 1 # artist
-      search = "#{name} rating:general order:score filetype:jpg limit:1 status:any"
+      ""
     when 3 # copy
-      search = "#{name} everyone rating:general order:score filetype:jpg limit:1 status:any copytags:<5 -parody -crossover"
+      "everyone copytags:<5 -parody -crossover"
     when 4 # char
-      search = "#{name} solo chartags:<5 rating:general order:score filetype:jpg limit:1 status:any"
+      "solo chartags:<5 -alternate_* -cosplay -fusion -character_doll -character_hair_ornament -character_print -crossover" # rubocop:disable Layout/LineLength
     else # meta or general
-      search = "#{name} rating:general -animated -6+girls -comic order:score limit:1 status:any"
+      "-6+girls -6+boys -comic"
     end
+  end
 
-    @example_post ||= begin
-      response = booru.posts.index(tags: search)
-      response.first unless response.failed?
+  def wide_search_tags
+    case category
+    when 1 # artist
+      ""
+    when 3 # copy
+      "#{name} everyone copytags:<5"
+    when 4 # char
+      "#{name} solo chartags:<5"
+    else # meta or general # rubocop:disable Lint/DuplicateBranch
+      ""
     end
   end
 end
