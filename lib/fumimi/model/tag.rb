@@ -25,8 +25,7 @@ class Fumimi::Model::Tag < Fumimi::Model
   end
 
   def self.alias_search?(tag, title)
-    # rubocop:disable Style/SafeNavigationChainLength
-    found_name = tag&.resolved_name&.downcase&.strip
+    found_name = tag&.resolved_name&.downcase&.strip # rubocop:disable Style/SafeNavigationChainLength
     searched_name = title.strip.tr(" ", "_").downcase
     found_name != searched_name
   end

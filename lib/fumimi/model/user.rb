@@ -13,17 +13,12 @@ class Fumimi::Model::User < Fumimi::Model
 
     embed.fields << embed_field_for("Level", is_banned ? "Banned" : level_string)
     embed.fields << embed_field_for("Created", "<t:#{created_at.to_time.to_i}:R>")
-    embed.fields << embed_field_for("Feedbacks", feedback_string)
+    embed.fields << embed_field_for("", "")
 
     embed.fields << embed_field_for("Uploads", upload_string)
-    embed.fields << embed_field_for("Appeals", appeal_string)
-    embed.fields << embed_field_for("Flags", flag_string)
-
     embed.fields << embed_field_for("Edits", edit_string)
-    embed.fields << embed_field_for("Wiki Edits", wiki_string)
-    embed.fields << embed_field_for("Artist Edits", artist_string)
-
     embed.fields << embed_field_for("Notes", note_string)
+
     embed.fields << embed_field_for("Forum posts", forum_string)
     embed.fields << embed_field_for("Comments", comment_string)
   end
