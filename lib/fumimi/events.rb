@@ -70,10 +70,10 @@ module Fumimi::Events
 
   respond(:search_link, /{{ [^\}]+ }}/x) do |event, text|
     search = text[/[^{}]+/]
-    limit = text[/limit:(\d+)/, 1].to_i
+    limit = (text[/limit:(\d+)/, 1] || 3).to_i
 
     event.channel.start_typing
-    posts = booru.posts.index(limit: limit.clamp(1, 3), tags: search)
+    posts = booru.posts.index(limit: limit.clamp(1, 5), tags: search)
 
     posts.each do |post|
       post.send_embed(event.channel)
