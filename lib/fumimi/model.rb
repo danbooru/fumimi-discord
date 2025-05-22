@@ -36,6 +36,10 @@ class Fumimi::Model
     end
   end
 
+  def embed_field_for(name, value, inline: true)
+    Discordrb::Webhooks::EmbedField.new(inline: inline, name: name, value: value)
+  end
+
   def embed_footer
     timestamp = "#{created_at.strftime("%F")} at #{created_at.strftime("%l:%M %p")}"
     Discordrb::Webhooks::EmbedFooter.new(text: timestamp)

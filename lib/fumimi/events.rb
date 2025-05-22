@@ -90,7 +90,11 @@ module Fumimi::Events
 
   respond(:user_id, /user #[0-9]+/i) do |event, text|
     id = text[/[0-9]+/]
-    event << "https://danbooru.donmai.us/users/#{id}"
+
+    event.channel.start_typing
+
+    user = booru.users.show(id)
+    user.send_embed(event.channel)
   end
 
   respond(:issue_id, /issue #[0-9]+/i) do |event, text|
@@ -119,5 +123,25 @@ module Fumimi::Events
 
     posts = booru.posts.index(tags: "id:#{post_ids.join(",")} order:custom")
     posts.first(3).each { |post| post.send_embed(event.channel) }
+  end
+
+  def do_convert_user_links(event)
+    user_ids = []
+    event.message.content.gsub(%r{\b(?!https?://\w+\.donmai\.us/users/\d+/\w+)https?://(?!testbooru)\w+\.donmai\.us/users/(\d+)\b[^[:space:]]*}i) do |link| # rubocop:disable Layout/LineLength
+      user_ids << ::Regexp.last_match(1).to_i
+      "<#{link}>"
+    end
+    user_ids.uniq!
+
+    return unless user_ids.present?
+
+    log.info("Converting user links in message '#{event.message.content}' from user ##{event&.user&.id} '#{event&.user&.username}' to user embeds") # rubocop:disable Layout/LineLength
+    user_ids.each do |user_id|
+      user = booru.users.show(user_id)
+
+      next unless user.succeeded?
+
+      user.send_embed(event.channel)
+    end
   end
 end
