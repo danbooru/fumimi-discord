@@ -1,5 +1,6 @@
 module Fumimi::Commands
   class CommandArgumentError < StandardError; end
+  class PermissionError < StandardError; end
 
   def self.command(name, &block)
     define_method(:"do_#{name}") do |event, *args|
@@ -7,6 +8,8 @@ module Fumimi::Commands
       event.channel.start_typing
 
       instance_exec(event, *args, &block)
+    rescue PermissionError
+      event.drain
     rescue CommandArgumentError => e
       event << "```#{e}```"
     rescue StandardError, RestClient::Exception => e
@@ -39,7 +42,7 @@ module Fumimi::Commands
   end
 
   def do_say(event, *args)
-    return unless event.user.owner?
+    raise PermissionError if event.user.id != 310167383912349697 # rubocop:disable Style/NumericLiterals
 
     channel_name = args.shift
     message = args.join(" ")
@@ -55,7 +58,7 @@ module Fumimi::Commands
   end
 
   command :ruby do |event, *args|
-    return unless event.user.owner?
+    raise PermissionError if event.user.id != 310167383912349697 # rubocop:disable Style/NumericLiterals
 
     code = args.join(" ")
     result = instance_eval(code)
