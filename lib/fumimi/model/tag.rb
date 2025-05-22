@@ -10,7 +10,10 @@ class Fumimi::Model::Tag < Fumimi::Model
 
   def self.embed(embed, channel, title, tag)
     embed.description = ""
-    embed.description << "-# Aliased from `#{title}`.\n\n" if tag&.resolved_name != title.tr(" ", "_")
+
+    if tag&.resolved_name&.downcase != title.tr(" ", "_").downcase
+      embed.description << "-# Aliased from `#{title}`.\n\n"
+    end
 
     embed.title = (tag&.resolved_name || title).tr("_", " ")
     embed.url = tag&.embed_url
