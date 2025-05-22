@@ -47,11 +47,11 @@ module Fumimi::Events
     Fumimi::Model::Comment.render_comments(event.channel, [comment])
   end
 
-  respond(:wiki_link, /\[\[ [^\]]+ \]\]/x) do |event, text|
+  respond(:tag_link, /\[\[ [^\]]+ \]\]/x) do |event, text|
     title = text[/[^\[\]]+/]
 
     event.channel.start_typing
-    Fumimi::Model::WikiPage.render_wiki_page(event.channel, title, booru)
+    Fumimi::Model::Tag.render_tag_preview(event.channel, title, booru)
   end
 
   respond(:search_link, /{{ [^\}]+ }}/x) do |event, text|
