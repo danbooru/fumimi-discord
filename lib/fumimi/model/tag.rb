@@ -98,7 +98,7 @@ class Fumimi::Model::Tag < Fumimi::Model
     when 4 # char
       "solo chartags:<5 -alternate_* -cosplay -fusion -character_doll -character_hair_ornament -character_print -crossover -very_wide_shot" # rubocop:disable Layout/LineLength
     else # meta or general
-      "-6+girls -6+boys -comic"
+      "-6+girls -6+boys -comic -very_wide_shot"
     end
   end
 
