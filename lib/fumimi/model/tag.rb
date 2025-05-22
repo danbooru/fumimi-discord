@@ -31,7 +31,7 @@ class Fumimi::Model::Tag < Fumimi::Model
 
   def embed_url
     if try(:wiki_page).present?
-      "#{api.booru.url}/wiki_pages/#{wiki_page.id}"
+      wiki_page.url
     else
       "#{api.booru.url}/posts?tags=#{CGI.escape(resolved_name)}"
     end

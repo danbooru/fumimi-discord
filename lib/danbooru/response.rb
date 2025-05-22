@@ -15,11 +15,11 @@ class Danbooru
       @resource, @response = resource, response
 
       if failed?
-        @model = Fumimi::Model.new(json, resource)
+        @model = Fumimi::Model.new(json, resource.name, resource)
       elsif json.is_a?(Array)
-        @model = json.map { |item| factory.new(item, resource) }
+        @model = json.map { |item| factory.new(item, resource.name, resource) }
       elsif json.is_a?(Hash)
-        @model = factory.new(json, resource)
+        @model = factory.new(json, resource.name, resource)
       else
         raise "Unrecognized response type (#{json.class})"
       end

@@ -5,12 +5,13 @@ require "ostruct"
 require "pp"
 
 class Fumimi::Model
-  attr_reader :api, :attributes
+  attr_reader :api, :attributes, :resource_name
 
   delegate_missing_to :attributes
 
-  def initialize(attributes, api = nil)
+  def initialize(attributes, resource_name, api = nil)
     @api = api
+    @resource_name = resource_name
     self.attributes = attributes
   end
 
@@ -18,12 +19,8 @@ class Fumimi::Model
     @attributes = cast_attributes(attributes)
   end
 
-  def resource_name
-    api.name.singularize
-  end
-
   def url
-    "#{api.url}/#{id}"
+    "#{api.booru.url}/#{resource_name.pluralize}/#{id}"
   end
 
   def shortlink
@@ -76,7 +73,7 @@ class Fumimi::Model
     elsif value.is_a?(Hash)
       name = Danbooru.map_attribute(name) || name
       model = api.booru.factory[name.pluralize] || "Fumimi::Model::#{name.singularize.capitalize}".safe_constantize || Fumimi::Model
-      model.new(value, api)
+      model.new(value, name, api)
     elsif value.is_a?(Array)
       value.map { |item| cast_attribute(name, item) }
     else
