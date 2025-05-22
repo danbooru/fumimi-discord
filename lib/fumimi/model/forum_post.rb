@@ -14,5 +14,7 @@ class Fumimi::Model::ForumPost < Fumimi::Model
 
     embed.description = pretty_body
     embed.footer = embed_footer
+
+    embed
   end
 end

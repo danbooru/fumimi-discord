@@ -17,6 +17,8 @@ class Fumimi::Model::User < Fumimi::Model
 
     embed.fields << embed_field_for("Forum posts", forum_string)
     embed.fields << embed_field_for("Comments", comment_string)
+
+    embed
   end
 
   def at_name

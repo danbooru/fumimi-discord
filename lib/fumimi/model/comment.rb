@@ -15,5 +15,7 @@ class Fumimi::Model::Comment < Fumimi::Model
     embed.description = pretty_body
     embed.thumbnail = post.embed_thumbnail(channel.nsfw?)
     embed.footer = embed_footer
+
+    embed
   end
 end

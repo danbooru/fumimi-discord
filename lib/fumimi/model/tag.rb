@@ -5,17 +5,15 @@ class Fumimi::Model::Tag < Fumimi::Model
     searched_tag = options[:searched_tag]
 
     embed.description = ""
-
     embed.description << "-# Aliased from `#{searched_tag.downcase.strip}`.\n\n" if alias_search?(searched_tag)
+    embed.description << wiki_preview
 
     embed.title = resolved_name.tr("_", " ")
     embed.url = embed_url
-
-    embed.description << wiki_preview
-
     embed.image = example_post.embed_image(channel) if example_post.present?
-
     embed.author = embed_author
+
+    embed
   end
 
   def alias_search?(searched_tag)

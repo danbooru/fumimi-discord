@@ -23,28 +23,29 @@ module Fumimi::Events
     post_id = text[/[0-9]+/].to_i
 
     post = booru.posts.show(post_id)
-    post.send_embed(event.channel)
+
+    post.send_embed(event.channel) if post.succeeded?
   end
 
   respond(:forum_id, /forum #[0-9]+/i) do |event, text|
     forum_post_id = text[/[0-9]+/].to_i
 
     forum_post = booru.forum_posts.show(forum_post_id)
-    forum_post.send_embed(event.channel)
+    forum_post.send_embed(event.channel) if forum_post.succeeded?
   end
 
   respond(:topic_id, /topic #[0-9]+/i) do |event, text|
     topic_id = text[/[0-9]+/]
 
     forum_post = booru.forum_posts.search(topic_id: topic_id).to_a.last
-    forum_post.send_embed(event.channel)
+    forum_post.send_embed(event.channel) if forum_post.succeeded?
   end
 
   respond(:comment_id, /comment #[0-9]+/i) do |event, text|
     id = text[/[0-9]+/]
 
     comment = booru.comments.show(id)
-    comment.send_embed(event.channel)
+    comment.send_embed(event.channel) if comment.succeeded?
   end
 
   respond(:tag_link, /\[\[ [^\]]+ \]\]/x) do |event, text|
@@ -53,7 +54,7 @@ module Fumimi::Events
 
     if title =~ /^user:(.*)/
       user = booru.users.index(name: ::Regexp.last_match(1))
-      user.send_embed(event.channel)
+      user.send_embed(event.channel) if user.succeeded?
     elsif (tag = booru.tags.search(name_or_alias_matches: title).max_by(&:post_count)).present?
       tag.send_embed(event.channel, searched_tag: title)
     else
@@ -61,9 +62,8 @@ module Fumimi::Events
       if wiki_page.present?
         wiki_page.send_embed(event.channel)
       else
-        event.channel.send_embed do |e|
-          Fumimi::Model::WikiPage.fallback_embed(e, title, booru)
-        end
+        embed = Fumimi::Model::WikiPage.fallback_embed(title, booru)
+        event.channel.send_embed(embed)
       end
     end
   end
@@ -75,9 +75,11 @@ module Fumimi::Events
     event.channel.start_typing
     posts = booru.posts.index(limit: limit.clamp(1, 5), tags: search)
 
-    posts.each do |post|
-      post.send_embed(event.channel)
+    embeds = posts.map do |post|
+      embed = Discordrb::Webhooks::Embed.new
+      post.embed(embed, event.channel)
     end
+    event.channel.send_embed("", embeds) unless embeds.blank?
   end
 
   respond(:artist_id, /artist #[0-9]+/i) do |event, text|
@@ -108,7 +110,7 @@ module Fumimi::Events
     event.channel.start_typing
 
     user = booru.users.show(id)
-    user.send_embed(event.channel)
+    user.send_embed(event.channel) if user.succeeded?
   end
 
   respond(:issue_id, /issue #[0-9]+/i) do |event, text|
@@ -135,7 +137,12 @@ module Fumimi::Events
     log.info("Converting post links in message '#{event.message.content}' from user ##{event&.user&.id} '#{event&.user&.username}' to post embeds") # rubocop:disable Layout/LineLength
 
     posts = booru.posts.index(tags: "id:#{post_ids.join(",")} order:custom")
-    posts.first(3).each { |post| post.send_embed(event.channel) }
+    embeds = posts.first(3).map do |post|
+      embed = Discordrb::Webhooks::Embed.new
+      post.embed(embed, event.channel)
+    end
+
+    event.channel.send_embed("", embeds) unless embeds.blank?
   end
 
   def do_convert_user_links(event)
@@ -149,12 +156,15 @@ module Fumimi::Events
     return unless user_ids.present?
 
     log.info("Converting user links in message '#{event.message.content}' from user ##{event&.user&.id} '#{event&.user&.username}' to user embeds") # rubocop:disable Layout/LineLength
-    user_ids.each do |user_id|
+    embeds = user_ids.map do |user_id|
       user = booru.users.show(user_id)
 
       next unless user.succeeded?
 
-      user.send_embed(event.channel)
+      embed = Discordrb::Webhooks::Embed.new
+      user.embed(embed, event.channel)
     end
+
+    event.channel.send_embed("", embeds) unless embeds.blank?
   end
 end

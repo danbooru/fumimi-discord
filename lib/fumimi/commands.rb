@@ -74,7 +74,11 @@ module Fumimi::Commands
     body = args.grep_v(/limit:(\d+)/i).join(" ")
 
     forum_posts = booru.forum_posts.index("search[body_matches]": body, limit: limit)
-    forum_posts.each { |forum_post| forum_post.send_embed(event.channel) }
+    embeds = forum_posts.map do |forum_post|
+      embed = Discordrb::Webhooks::Embed.new
+      forum_post.embed(embed, event.channel)
+    end
+    event.channel.send_embed("", embeds) unless embeds.blank?
     nil
   end
 
@@ -85,7 +89,12 @@ module Fumimi::Commands
     tags = tags.grep_v(/limit:(\d+)/i)
 
     comments = booru.comments.index("search[post_tags_match]": tags.join(" "), limit: limit)
-    comments.each { |comment| comment.send_embed(event.channel) }
+    embeds = comments.map do |comment|
+      embed = Discordrb::Webhooks::Embed.new
+      comment.embed(embed, event.channel)
+    end
+    event.channel.send_embed("", embeds) unless embeds.blank?
+    nil
   end
   nil
 end
