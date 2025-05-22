@@ -52,6 +52,7 @@ class Fumimi::Model::Tag < Fumimi::Model
     return if post_count.to_i.zero?
 
     @example_post ||= example_post_from_wiki || example_post_narrow || example_post_wide
+    @example_post
   end
 
   def example_post_from_wiki
@@ -61,26 +62,35 @@ class Fumimi::Model::Tag < Fumimi::Model
     return if post_ids.blank?
 
     tag_string = "id:#{post_ids.join(",")} #{always_present_tags} order:custom"
-    return if tag_string.split.include? name
+    return if tag_string.split.include? "-#{name}"
 
     response = booru.posts.index(limit: 1, tags: tag_string)
     response.first unless response.failed?
   end
 
   def example_post_narrow
-    tag_string = "#{narrow_search_tags} #{always_present_tags} order:score"
-    return if tag_string.split.include? name
+    return if final_narrow_search.strip == final_wide_search.strip
+    return if final_narrow_search.split.include? "-#{name}"
 
-    response = booru.posts.index(limit: 1, tags: "#{name} #{tag_string}")
+    response = booru.posts.index(limit: 1, tags: "#{name} #{final_narrow_search}")
     response.first unless response.failed?
   end
 
   def example_post_wide
-    tag_string = "#{wide_search_tags} #{always_present_tags} order:score"
-    return if tag_string.split.include? name
+    return if final_wide_search.split.include? "-#{name}"
 
-    response = booru.posts.index(limit: 1, tags: "#{name} #{tag_string}")
+    response = booru.posts.index(limit: 1, tags: "#{name} #{final_wide_search}")
     response.first unless response.failed?
+  end
+
+  def final_narrow_search
+    tag_string = "#{narrow_search_tags} #{always_present_tags} order:score"
+    tag_string = "#{tag_string} age:<1y" if post_count.to_i > 250_000 # otherwise the search is going to be too slow
+    tag_string
+  end
+
+  def final_wide_search
+    "#{wide_search_tags} #{always_present_tags} order:score"
   end
 
   def always_present_tags

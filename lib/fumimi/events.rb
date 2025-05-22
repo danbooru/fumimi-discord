@@ -62,8 +62,9 @@ module Fumimi::Events
       if wiki_page.present?
         wiki_page.send_embed(event.channel)
       else
-        embed = Fumimi::Model::WikiPage.fallback_embed(title, booru)
-        event.channel.send_embed(embed)
+        event.channel.send_embed do |embed|
+          Fumimi::Model::WikiPage.fallback_embed(embed, title, booru)
+        end
       end
     end
   end
