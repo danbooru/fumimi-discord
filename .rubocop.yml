@@ -2,6 +2,9 @@ AllCops:
   NewCops: enable
   TargetRubyVersion: 3.4
 
+Layout/FirstHashElementIndentation:
+  EnforcedStyle: consistent
+
 Metrics/AbcSize:
   Enabled: false
 
@@ -17,11 +20,11 @@ Style/ArgumentsForwarding:
 Style/ClassAndModuleChildren:
   Enabled: false
 
-Style/Documentation:
+Style/ConditionalAssignment:
   Enabled: false
 
-Layout/FirstHashElementIndentation:
-  EnforcedStyle: consistent
+Style/Documentation:
+  Enabled: false
 
 Style/FormatString:
   Enabled: false
