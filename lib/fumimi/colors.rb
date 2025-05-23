@@ -1,6 +1,7 @@
 class Fumimi::Colors
   RED = 0xC41C19
-  BLUE = 0x0000FF
+  # BLUE = 0x0000FF
+  BLUE = 0x009BE6
   GREEN = 0x00FF00
 
   PURPLE = 0x6A09BF
