@@ -1,0 +1,11 @@
+class Fumimi::Colors
+  RED = 0xC41C19
+  BLUE = 0x0000FF
+  GREEN = 0x00FF00
+
+  PURPLE = 0x6A09BF
+  YELLOW = 0xC0C000
+
+  GREY = 0x777892
+  WHITE = 0xFFFFFF
+end

@@ -56,15 +56,15 @@ class Fumimi::Model::Post < Fumimi::Model
 
   def border_color
     if is_flagged
-      0xC41C19 # red
+      Fumimi::Colors::RED
     elsif parent_id
-      0xC0C000 # yellow
+      Fumimi::Colors::YELLOW
     elsif has_active_children
-      0x00FF00 # green
+      Fumimi::Colors::GREEN
     elsif is_pending
-      0x0000FF # blue
+      Fumimi::Colors::BLUE
     elsif is_deleted
-      0xFFFFFF # white
+      Fumimi::Colors::WHITE
     end
   end
 

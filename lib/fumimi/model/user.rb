@@ -92,17 +92,17 @@ class Fumimi::Model::User < Fumimi::Model
 
     case level_string
     in "Member" | "Restricted"
-      0x0075F8
+      Fumimi::Colors::BLUE
     in "Gold"
-      0xFD9200
+      Fumimi::Colors::YELLOW
     in "Platinum"
-      0x777892
+      Fumimi::Colors::GREY
     in "Builder" | "Contributor" | "Approver"
-      0x6a09bf
+      Fumimi::Colors::PURPLE
     in "Moderator"
-      0x00AB2C
+      Fumimi::Colors::GREEN
     in "Admin" | "Owner"
-      0xED2426
+      Fumimi::Colors::RED
     else
       nil
     end

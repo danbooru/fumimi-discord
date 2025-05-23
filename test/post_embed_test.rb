@@ -35,7 +35,7 @@ class PostEmbedTest < Minitest::Test
     assert_equal post_embed.title, "post #1"
     assert_equal post_embed.url, "https://danbooru.donmai.us/posts/1"
     assert_nil post_embed.image
-    assert_equal post_embed.color, 0xC0C000
+    assert_equal post_embed.color, Fumimi::Colors::YELLOW
     assert_match(POST_FOOTER_PATTERN, post_embed.footer&.text)
   end
 
@@ -46,7 +46,7 @@ class PostEmbedTest < Minitest::Test
     assert_equal post_embed.title, "post #1"
     assert_equal post_embed.url, "https://danbooru.donmai.us/posts/1"
     assert_equal post_embed.image&.url, "https://cdn.donmai.us/original/d3/4e/d34e4cf0a437a5d65f8e82b7bcd02606.jpg"
-    assert_equal post_embed.color, 0xC0C000
+    assert_equal post_embed.color, Fumimi::Colors::YELLOW
     assert_match(POST_FOOTER_PATTERN, post_embed.footer&.text)
   end
 
