@@ -5,33 +5,62 @@ class Fumimi::Model::Tag < Fumimi::Model
     searched_tag = options[:searched_tag]
 
     embed.description = ""
-    embed.description << "-# Aliased from `#{searched_tag.downcase.strip}`.\n\n" if alias_search?(searched_tag)
-    embed.description << wiki_preview
+    embed.description << "-# Category: #{category_name.capitalize} | Post Count: #{post_count.to_fs(:delimited)}\n"
+    embed.description << "-# Aliased from `#{searched_tag.downcase.strip}`.\n" if alias_search?(searched_tag)
+    embed.description << "\n#{wiki_preview}"
 
-    embed.title = resolved_name.tr("_", " ")
+    embed.title = name.tr("_", " ")
     embed.url = embed_url
     embed.image = example_post.embed_image(channel) if example_post.present?
     embed.author = embed_author
+
+    embed.color = embed_border
 
     embed
   end
 
   def alias_search?(searched_tag)
-    found_name = resolved_name.downcase.strip
+    found_name = name.downcase.strip
     searched_name = searched_tag.strip.tr(" ", "_").downcase
 
     found_name != searched_name
   end
 
-  def resolved_name
-    try(:antecedent_alias).try(:consequent_name) || name
+  def category_name
+    case category
+    when 1
+      "artist"
+    when 3
+      "copyright"
+    when 4
+      "character"
+    when 5
+      "meta"
+    else
+      "general"
+    end
+  end
+
+  def embed_border
+    case category
+    when 1
+      Fumimi::Colors::RED
+    when 3
+      Fumimi::Colors::PURPLE
+    when 4
+      Fumimi::Colors::GREEN
+    when 5
+      Fumimi::Colors::YELLOW
+    else
+      Fumimi::Colors::BLUE
+    end
   end
 
   def embed_url
     if try(:wiki_page).present?
       wiki_page.url
     else
-      "#{api.booru.url}/posts?tags=#{CGI.escape(resolved_name)}"
+      "#{api.booru.url}/posts?tags=#{CGI.escape(name)}"
     end
   end
 
