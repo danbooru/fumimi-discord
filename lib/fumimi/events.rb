@@ -50,6 +50,8 @@ module Fumimi::Events
 
   respond(:tag_link, /\[\[ [^\]]+ \]\]/x) do |event, text|
     title = text[/[^\[\]]+/]
+    next unless title.present?
+
     event.channel.start_typing
 
     if title =~ /^user:(.*)/
