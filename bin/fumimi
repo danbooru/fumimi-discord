@@ -28,7 +28,7 @@ def parse_options
 end
 
 def main(options)
-  log = Logger.new(STDERR)
+  log = Logger.new($stderr)
   log.level = Logger::DEBUG
 
   server_id = ENV["DISCORD_SERVER_ID"].presence || raise("No DISCORD_SERVER_ID env var provided.")

@@ -22,7 +22,7 @@ class Fumimi
 
   attr_reader :server_id, :client_id, :token, :log, :bot, :server, :booru, :storage, :initiate_shutdown
 
-  def initialize(server_id:, client_id:, token:, log: Logger.new(STDERR))
+  def initialize(server_id:, client_id:, token:, log: Logger.new($stderr))
     @server_id = server_id
     @client_id = client_id
     @token = token

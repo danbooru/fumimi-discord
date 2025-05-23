@@ -88,8 +88,10 @@ class Danbooru
                  user: ENV["BOORU_USER"], # rubocop:disable Style/FetchEnvVar
                  api_key: ENV["BOORU_API_KEY"], # rubocop:disable Style/FetchEnvVar
                  factory: {},
-                 log: Logger.new(nil))
+                 log: Logger.new($stderr))
     url ||= "https://danbooru.donmai.us"
+
+    log.info("Running on instance: #{url}, with user: '#{user}'")
 
     @url, @user, @api_key, @log = Addressable::URI.parse(url), user, api_key, log
     @http = Danbooru::HTTP.new(url, user: user, pass: api_key, log: log)
