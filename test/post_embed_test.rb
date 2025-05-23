@@ -1,6 +1,8 @@
 require "test_helper"
 
 class PostEmbedTest < Minitest::Test
+  POST_FOOTER_PATTERN = /\d+⇧ \d+♥ | Rating: [G|SQE] | \d+x\d+ (\d+.\d+ \d+ \w+) | \d{4}-\d{2}-\d{2}/
+
   def setup
     factory = {
       posts: Fumimi::Model::Post,
@@ -34,7 +36,7 @@ class PostEmbedTest < Minitest::Test
     assert_equal post_embed.url, "https://danbooru.donmai.us/posts/1"
     assert_nil post_embed.image
     assert_equal post_embed.color, 0xC0C000
-    assert post_embed.footer&.text.present?
+    assert_match(POST_FOOTER_PATTERN, post_embed.footer&.text)
   end
 
   def test_nsfw_post_on_nsfw_channel
@@ -45,7 +47,7 @@ class PostEmbedTest < Minitest::Test
     assert_equal post_embed.url, "https://danbooru.donmai.us/posts/1"
     assert_equal post_embed.image&.url, "https://cdn.donmai.us/original/d3/4e/d34e4cf0a437a5d65f8e82b7bcd02606.jpg"
     assert_equal post_embed.color, 0xC0C000
-    assert post_embed.footer&.text.present?
+    assert_match(POST_FOOTER_PATTERN, post_embed.footer&.text)
   end
 
   def test_sfw_post_on_nsfw_channel
@@ -56,6 +58,6 @@ class PostEmbedTest < Minitest::Test
     assert_equal post_embed&.url, "https://danbooru.donmai.us/posts/#{@sfw_post.id}"
     assert_equal post_embed.image&.url, @sfw_post.file_url.to_s
 
-    assert post_embed.footer&.text.present?
+    assert_match(POST_FOOTER_PATTERN, post_embed.footer&.text)
   end
 end
