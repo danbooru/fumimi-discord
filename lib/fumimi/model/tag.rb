@@ -50,9 +50,9 @@ class Fumimi::Model::Tag < Fumimi::Model
 
   def example_post
     return if post_count.to_i.zero?
+    return @example_post if defined? @example_post
 
     @example_post ||= example_post_from_wiki || example_post_narrow || example_post_wide
-    @example_post
   end
 
   def example_post_from_wiki
