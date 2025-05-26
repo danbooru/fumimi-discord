@@ -10,10 +10,14 @@ class Fumimi::Model::WikiPage < Fumimi::Model
     embed.description = pretty_body
   end
 
+  def pretty_body(max_lines: 10)
+    super
+  end
+
   def self.fallback_embed(embed, title, booru)
     embed.title = title.tr("_", " ")
     embed.description = empty_wiki_for(title)
-    embed.url = "#{booru.url}/posts?tags=#{CGI.escape(title)}"
+    embed.url = "#{booru.url}/posts?tags=#{CGI.escape(title.tr(" ", "_"))}"
   end
 
   def self.empty_wiki_for(name)

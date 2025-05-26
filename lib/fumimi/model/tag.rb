@@ -60,12 +60,16 @@ class Fumimi::Model::Tag < Fumimi::Model
     if try(:wiki_page).present?
       wiki_page.url
     else
-      "#{api.booru.url}/posts?tags=#{CGI.escape(name)}"
+      "#{api.booru.url}/posts?tags=#{CGI.escape(name.tr(" ", "_"))}"
     end
   end
 
   def wiki_preview
-    try(:wiki_page).try(:pretty_body) || Fumimi::Model::WikiPage.empty_wiki_for(name)
+    if try(:wiki_page).present?
+      wiki_page.pretty_body
+    else
+      Fumimi::Model::WikiPage.empty_wiki_for(name)
+    end
   end
 
   def embed_author
