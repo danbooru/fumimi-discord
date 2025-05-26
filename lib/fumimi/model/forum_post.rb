@@ -17,6 +17,12 @@ class Fumimi::Model::ForumPost < Fumimi::Model
     )
 
     embed.description = pretty_body
+
+    if try(:bulk_update_request).present?
+      embed.description += "\n\n**Bulk Update Request (#{bulk_update_request.status}):**"
+      embed.description += "\n#{bulk_update_request.pretty_bur}"
+    end
+
     embed.footer = embed_footer
 
     embed

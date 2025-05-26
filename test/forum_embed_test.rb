@@ -26,7 +26,7 @@ class ForumEmbedTest < Minitest::Test
     assert_equal forum_post_embed.title, @forum_post.topic.title
     assert_equal forum_post_embed.url, "https://danbooru.donmai.us/forum_posts/#{@forum_post.id}"
     assert_nil forum_post_embed.image
-    assert forum_post_embed.color
+    assert_nil forum_post_embed.color
     assert_equal forum_post_embed&.author&.name, "@#{@forum_post.creator.name}"
     assert_equal forum_post_embed&.author&.url, "https://danbooru.donmai.us/users/#{@forum_creator.id}"
     assert_match(FORUM_POST_FOOTER_PATTERN, forum_post_embed.footer&.text)

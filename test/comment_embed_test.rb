@@ -34,7 +34,7 @@ class CommentEmbedTest < Minitest::Test
 
     assert_equal comment_embed.title, "comment #67906"
     assert_equal comment_embed.url, "https://danbooru.donmai.us/comments/67906"
-    assert_nil comment_embed.thumbnail
+    assert_match %r{rsz.io/.*blur=}, comment_embed.thumbnail&.url
     assert_nil comment_embed.color
     assert_match(COMMENT_FOOTER_PATTERN, comment_embed.footer&.text)
   end

@@ -49,7 +49,7 @@ class Danbooru
 
     def factory
       name = resource.name
-      resource.booru.factory[name] || "Fumimi::Model::#{name.singularize.capitalize}".safe_constantize || Fumimi::Model
+      resource.booru.factory[name] || "Fumimi::Model::#{name.singularize.camelize}".safe_constantize || Fumimi::Model
     end
 
     def error

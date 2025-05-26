@@ -49,6 +49,13 @@ module Fumimi::Events
     comment.send_embed(event.channel) if comment.succeeded?
   end
 
+  respond(:bur_id, /bur #[0-9]+/i) do |event, text|
+    id = text[/[0-9]+/]
+
+    bur = booru.bulk_update_requests.show(id)
+    bur.send_embed(event.channel) if bur.succeeded?
+  end
+
   respond(:tag_link, /\[\[ [^\]]+ \]\]/x) do |event, text|
     title = text[/[^\[\]]+/]
     next unless title.present?
