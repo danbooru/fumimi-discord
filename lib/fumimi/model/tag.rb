@@ -14,7 +14,7 @@ class Fumimi::Model::Tag < Fumimi::Model
     embed.image = example_post.embed_image(channel) if example_post.present?
     embed.author = embed_author
 
-    embed.color = embed_border
+    # embed.color = embed_border
 
     embed
   end
