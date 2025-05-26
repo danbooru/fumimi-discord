@@ -17,8 +17,8 @@ class Fumimi
 
       nodes = nodes.compact.map { |node| node.split("\n") }.flatten
       if max_lines.present?
-        nodes = nodes.first(max_lines)
         was_cut_off = nodes.size > max_lines
+        nodes = nodes.first(max_lines)
       end
       nodes = nodes.join("\n\n").gsub(/\n\n+/, "\n\n").gsub(/\n+-/, "\n-").strip
 
@@ -44,9 +44,11 @@ class Fumimi
       when "pre" # code block - they look just too ugly in embeds
         "`<code block>`"
       when "ul" # lists
-        node.css("li").map { |li| "- #{li.text}" }.join("\n")
+        node.css("li").map { |li| "- #{li.text.strip}" }.join("\n")
       when "media-gallery" # embeds
-        node.css("media-embed").map { |e| "- #{e.text} (!#{e.attr("data-type")} ##{e.attr("data-id")})" }.join("\n")
+        node.css("media-embed").map do |e|
+          "- #{e.text.strip} (!#{e.attr("data-type")} ##{e.attr("data-id")})"
+        end.join("\n")
       else
         node.text
       end
