@@ -16,9 +16,16 @@ class Fumimi
       end
 
       nodes = nodes.compact.map { |node| node.split("\n") }.flatten
-      nodes = nodes.first(max_lines) if max_lines.present?
+      if max_lines.present?
+        nodes = nodes.first(max_lines)
+        was_cut_off = nodes.size > max_lines
+      end
+      nodes = nodes.join("\n\n").gsub(/\n\n+/, "\n\n").gsub(/\n+-/, "\n-").strip
 
-      sanitize_for_discord(nodes.join("\n\n").gsub(/\n\n+/, "\n\n").gsub(/\n+-/, "\n-").strip)
+      sanitized = sanitize_for_discord(nodes)
+      sanitized += "\n**[...text was too long and has been cut off]**" if was_cut_off
+
+      sanitized
     end
 
     def parse_node(node) # rubocop:disable Metrics/CyclomaticComplexity
@@ -27,17 +34,19 @@ class Fumimi
         "*#{node.text.gsub("*", "*")}*"
       when "b"
         "**#{node.text.gsub("**", "**")}**"
-      when "details"
+      when "details" # [Expand] blocks
         "[Expand \"#{node.css("summary").first.text}\"]"
       when "div"
         "||#{node.text}||" if node.attr("class") == "spoiler"
       when "blockquote"
         # no-op
         nil
-      when "pre" # code block
+      when "pre" # code block - they look just too ugly in embeds
         "`<code block>`"
-      when "ul"
+      when "ul" # lists
         node.css("li").map { |li| "- #{li.text}" }.join("\n")
+      when "media-gallery" # embeds
+        node.css("media-embed").map { |e| "- #{e.text} (!#{e.attr("data-type")} ##{e.attr("data-id")})" }.join("\n")
       else
         node.text
       end
