@@ -26,32 +26,30 @@ class Fumimi::Model::BulkUpdateRequest < Fumimi::Model
     sanitize_for_discord(body)
   end
 
-  def self.send_embed_for_stats(channel, booru, max_topics: 5)
+  def self.send_embed_for_stats(embed, booru, max_topics: 5)
     bulk_update_requests = booru.bulk_update_requests.index(limit: 1000, "search[status]": "pending")
     latest_burs = bulk_update_requests.filter { |bur| bur.created_at > 24.hours.ago }
     about_to_expire = bulk_update_requests.filter { |bur| bur.created_at < 40.days.ago }
 
-    channel.send_embed do |embed|
-      embed.title = "Pending BUR Stats"
+    embed.title = "Pending BUR Stats"
 
-      embed.description = <<~EOF.chomp
-        **Total pending BURs**: #{bulk_update_requests.count}
-        * **Submitted in the past 24 hours**: #{latest_burs.count}
-        * **About to expire**: [#{about_to_expire.count}](<#{about_to_expire_link(booru)}>)
+    embed.description = <<~EOF.chomp
+      **Total pending BURs**: #{bulk_update_requests.count}
+      * **Submitted in the past 24 hours**: #{latest_burs.count}
+      * **About to expire**: [#{about_to_expire.count}](<#{about_to_expire_link(booru)}>)
 
-        Top topics by pending requests:
-      EOF
+      Top topics by pending requests:
+    EOF
 
-      embed.fields << Discordrb::Webhooks::EmbedField.new(inline: false, name: "", value: "")
+    embed.fields << Discordrb::Webhooks::EmbedField.new(inline: false, name: "", value: "")
 
-      burs_by_topic = bulk_update_requests.group_by { |bur| bur.forum_topic.id }.sort_by { |_, bur| -bur.count }
-      burs_by_topic.first(max_topics).map do |_, burs|
-        topic = burs.first.forum_topic
-        topic_pending_link = pending_link_for_topic(booru, topic)
-        embed.fields << Discordrb::Webhooks::EmbedField.new(inline: false,
-                                                            name: topic.title,
-                                                            value: "[#{burs.count} pending](#{topic_pending_link})")
-      end
+    burs_by_topic = bulk_update_requests.group_by { |bur| bur.forum_topic.id }.sort_by { |_, bur| -bur.count }
+    burs_by_topic.first(max_topics).map do |_, burs|
+      topic = burs.first.forum_topic
+      topic_pending_link = pending_link_for_topic(booru, topic)
+      embed.fields << Discordrb::Webhooks::EmbedField.new(inline: false,
+                                                          name: topic.title,
+                                                          value: "[#{burs.count} pending](#{topic_pending_link})")
     end
   end
 

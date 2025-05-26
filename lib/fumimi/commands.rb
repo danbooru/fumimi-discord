@@ -102,7 +102,9 @@ module Fumimi::Commands
   def do_burs(event, *args)
     event.channel.start_typing
 
-    Fumimi::Model::BulkUpdateRequest.send_embed_for_stats(event.channel, booru)
+    event.channel.send_embed do |embed|
+      Fumimi::Model::BulkUpdateRequest.send_embed_for_stats(embed, booru)
+    end
     nil
   end
 
