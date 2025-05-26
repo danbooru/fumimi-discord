@@ -20,7 +20,7 @@ class Fumimi::Model::BulkUpdateRequest < Fumimi::Model
   end
 
   def pretty_bur
-    lines = script.split("\n")
+    lines = script.split("\n").compact
     body = lines.first(10).join("\n")
     body += "\n...and #{lines.size - 10} more lines." if lines.size > 10
     sanitize_for_discord(body)
