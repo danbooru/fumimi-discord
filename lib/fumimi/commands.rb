@@ -102,7 +102,7 @@ module Fumimi::Commands
   def do_burs(event, *args)
     event.channel.start_typing
 
-    limit = args.grep(/limit:(\d+)/i) { ::Regexp.last_match(1).to_i }.first || 5
+    limit = args.grep(/limit:(\d+)/i) { ::Regexp.last_match(1).to_i }.first || 10
     limit = limit.clamp(1, 10)
 
     bulk_update_requests = booru.bulk_update_requests.index(limit: 1000, "search[status]": "pending")
