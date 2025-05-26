@@ -3,7 +3,11 @@ require "fumimi/model"
 class Fumimi::Model::ForumPost < Fumimi::Model
   include Fumimi::HasDTextFields
 
+  HIDE_LOCKED_FORUMS = ENV.fetch("FUMIMI_HIDE_LOCKED_FORUMS", "true") =~ /\A(true|t|yes|y|on|1)\z/i
+
   def embed(embed, channel) # rubocop:disable Lint/UnusedMethodArgument
+    raise Fumimi::Commands::PermissionError if hidden?
+
     embed.title = topic.title
     embed.url = url
 
@@ -16,5 +20,9 @@ class Fumimi::Model::ForumPost < Fumimi::Model
     embed.footer = embed_footer
 
     embed
+  end
+
+  def hidden?
+    topic.min_level > 0 && HIDE_LOCKED_FORUMS
   end
 end

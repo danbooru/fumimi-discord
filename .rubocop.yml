@@ -35,6 +35,9 @@ Style/FrozenStringLiteralComment:
 Metrics/MethodLength:
   Max: 100
 
+Style/NumericPredicate:
+  Enabled: false
+
 Style/ParallelAssignment:
   Enabled: false
 

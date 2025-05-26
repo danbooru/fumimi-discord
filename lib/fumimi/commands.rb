@@ -75,6 +75,8 @@ module Fumimi::Commands
 
     forum_posts = booru.forum_posts.index("search[body_matches]": body, limit: limit)
     embeds = forum_posts.map do |forum_post|
+      next if forum_post.hidden?
+
       embed = Discordrb::Webhooks::Embed.new
       forum_post.embed(embed, event.channel)
     end

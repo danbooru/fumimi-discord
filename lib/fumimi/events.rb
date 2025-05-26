@@ -31,14 +31,15 @@ module Fumimi::Events
     forum_post_id = text[/[0-9]+/].to_i
 
     forum_post = booru.forum_posts.show(forum_post_id)
-    forum_post.send_embed(event.channel) if forum_post.succeeded?
+    forum_post.send_embed(event.channel) if forum_post.succeeded? && !forum_post.hidden?
   end
 
   respond(:topic_id, /topic #[0-9]+/i) do |event, text|
     topic_id = text[/[0-9]+/]
 
-    forum_post = booru.forum_posts.search(topic_id: topic_id).to_a.last
-    forum_post.send_embed(event.channel) if forum_post.succeeded?
+    forum_posts = booru.forum_posts.search(topic_id: topic_id)
+    forum_post = forum_posts.to_a.last
+    forum_post.send_embed(event.channel) if forum_post.present? && !forum_post.hidden?
   end
 
   respond(:comment_id, /comment #[0-9]+/i) do |event, text|
