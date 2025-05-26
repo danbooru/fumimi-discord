@@ -11,6 +11,9 @@ Metrics/AbcSize:
 Naming/BlockForwarding:
   Enabled: false
 
+Naming/HeredocDelimiterNaming:
+  Enabled: false
+
 Style/Alias:
   EnforcedStyle: prefer_alias_method
 

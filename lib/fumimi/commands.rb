@@ -102,20 +102,7 @@ module Fumimi::Commands
   def do_burs(event, *args)
     event.channel.start_typing
 
-    limit = args.grep(/limit:(\d+)/i) { ::Regexp.last_match(1).to_i }.first || 10
-    limit = limit.clamp(1, 10)
-
-    bulk_update_requests = booru.bulk_update_requests.index(limit: 1000, "search[status]": "pending")
-
-    message = "**Total pending BURs**: #{bulk_update_requests.count}\n\n"
-    message += "Top #{limit} topics by pending requests:\n"
-    grouped = bulk_update_requests.group_by { |bur| bur.forum_topic.id }.sort_by { |_, bur| -bur.count }
-    message += grouped.first(limit).map do |_, burs|
-      topic = burs.first.forum_topic
-      topic_pending_link = "#{booru.url}/bulk_update_requests?search[forum_topic_id]=#{topic.id}&search[status]=pending"
-      "* [topic ##{topic.id}: #{topic.title}](<#{topic_pending_link}>) - #{burs.count} pending BURs"
-    end.join("\n")
-    event.channel.send_message(message)
+    Fumimi::Model::BulkUpdateRequest.send_embed_for_stats(event.channel, booru)
     nil
   end
 
