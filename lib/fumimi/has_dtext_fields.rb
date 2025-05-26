@@ -24,6 +24,8 @@ class Fumimi
           nil
         when "details"
           "[Expand \"#{node.css("summary").first.text}\"]"
+        when "ul"
+          node.css("li").map { |li| "- #{li.text}" }.join("\n")
         else
           node.text
         end
@@ -32,7 +34,7 @@ class Fumimi
       nodes = nodes.compact.map { |node| node.split("\n") }.flatten
       nodes = nodes.first(max_lines) if max_lines.present?
 
-      sanitize_for_discord(nodes.join("\n\n").gsub(/\n\n+/, "\n\n").strip)
+      sanitize_for_discord(nodes.join("\n\n").gsub(/\n\n+/, "\n\n").gsub(/\n+-/, "\n-").strip)
     end
 
     def sanitize_for_discord(text)
