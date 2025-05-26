@@ -31,7 +31,6 @@ class Fumimi
 
       nodes = nodes.compact.map { |node| node.split("\n") }.flatten
       nodes = nodes.first(max_lines) if max_lines.present?
-      puts nodes
 
       sanitize_for_discord(nodes.join("\n\n").gsub(/\n\n+/, "\n\n").strip)
     end

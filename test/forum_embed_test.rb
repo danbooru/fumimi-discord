@@ -16,6 +16,8 @@ class ForumEmbedTest < Minitest::Test
     @forum_post = @booru.forum_posts.index(limit: 1).first
     @forum_creator = @booru.users.index(name: @forum_post.creator.name)
 
+    @forum_post_banned = @booru.forum_posts.show(358_594)
+
     @channel = Minitest::Mock.new
   end
 
@@ -30,5 +32,12 @@ class ForumEmbedTest < Minitest::Test
     assert_equal forum_post_embed&.author&.name, "@#{@forum_post.creator.name}"
     assert_equal forum_post_embed&.author&.url, "https://danbooru.donmai.us/users/#{@forum_creator.id}"
     assert_match(FORUM_POST_FOOTER_PATTERN, forum_post_embed.footer&.text)
+  end
+
+  def test_banned_forum_post
+    embed = Discordrb::Webhooks::Embed.new
+    forum_post_embed = @forum_post_banned.embed(embed, @channel)
+    # strikethrough is not supported for author names
+    assert_equal forum_post_embed&.author&.name, "@#{@forum_post_banned.creator.name}"
   end
 end

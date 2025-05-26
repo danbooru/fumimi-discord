@@ -3,7 +3,7 @@ require "active_support/core_ext"
 
 class Fumimi::Model::User < Fumimi::Model
   def embed(embed, channel) # rubocop:disable Lint/UnusedMethodArgument
-    embed.title = at_name
+    embed.title = styled_at_name
     embed.url = url
     embed.color = discord_color
 
@@ -22,9 +22,11 @@ class Fumimi::Model::User < Fumimi::Model
   end
 
   def at_name
-    at_name = "@#{name}"
-    at_name = "~~#{at_name}~~" if is_banned
-    at_name
+    "@#{name}"
+  end
+
+  def styled_at_name
+    is_banned ? "~~#{at_name}~~" : at_name
   end
 
   def feedback_string
