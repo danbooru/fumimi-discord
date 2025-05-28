@@ -2,6 +2,8 @@ module Fumimi::Commands
   class CommandArgumentError < StandardError; end
   class PermissionError < StandardError; end
 
+  OWNERS = [310167383912349697, 1373735183425208331].freeze # rubocop:disable Style/NumericLiterals
+
   def self.command(name, &block)
     define_method(:"do_#{name}") do |event, *args|
       message = event.send_message "*Please wait warmly until Fumimi is ready. This may take up to 60 seconds.*"
@@ -42,7 +44,7 @@ module Fumimi::Commands
   end
 
   def do_say(event, *args)
-    raise PermissionError if event.user.id != 310167383912349697 # rubocop:disable Style/NumericLiterals
+    raise PermissionError unless OWNERS.include? event.user.id
 
     channel_name = args.shift
     message = args.join(" ")
@@ -58,7 +60,7 @@ module Fumimi::Commands
   end
 
   command :ruby do |event, *args|
-    raise PermissionError if event.user.id != 310167383912349697 # rubocop:disable Style/NumericLiterals
+    raise PermissionError unless owners.include? event.user.id
 
     code = args.join(" ")
     result = instance_eval(code)
