@@ -135,6 +135,8 @@ module Fumimi::Events
   end
 
   def do_convert_post_links(event)
+    event.message.suppress_embeds
+
     post_ids = []
     message = event.message.content.gsub(%r{\b(?!https?://\w+\.donmai\.us/posts/\d+/\w+)https?://(?!testbooru)\w+\.donmai\.us/posts/(\d+)\b[^[:space:]]*}i) do |link| # rubocop:disable Layout/LineLength
       post_ids << ::Regexp.last_match(1).to_i
@@ -144,7 +146,6 @@ module Fumimi::Events
 
     return unless post_ids.present?
 
-    event.message.suppress_embeds
     log.info("Converting post links in message '#{event.message.content}' from user ##{event&.user&.id} '#{event&.user&.username}' to post embeds") # rubocop:disable Layout/LineLength
 
     posts = booru.posts.index(tags: "id:#{post_ids.join(",")} order:custom")
