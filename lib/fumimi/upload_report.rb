@@ -7,7 +7,7 @@ class Fumimi::UploadReport
   end
 
   def send_embed_for_uploads(embed)
-    embed.title = "Upload Report for Search: #{@tags.join(" ")}".gsub("_", "\\_")
+    embed.title = "Upload Report for: #{@tags.join(" ")}".gsub("_", "\\_")
     embed.url = "#{@booru.url}/reports/posts?#{upload_per_years_params.to_query}"
 
     report = uploads_by_year
@@ -17,18 +17,19 @@ class Fumimi::UploadReport
     end
 
     first_year = report.rindex { |each_year| each_year["posts"] != 0 }
+    best_years = report.sort_by { |each_year| each_year["posts"] }.reverse.pluck("year").first(3)
 
     embed.description = <<~EOF.chomp
       ```
-      +-------+----------------+
-      | Year  | Uploads        |
-      +-------+----------------+
+      +-------+------------------+
+      | Year  | Uploads          |
+      +-------+------------------+
 
     EOF
 
     report[..first_year].each_with_index do |each_year, index|
       year = each_year["year"]
-      posts = each_year["posts"].to_fs(:delimited).ljust(12)
+      posts = each_year["posts"].to_fs(:delimited).ljust(10)
 
       prev_posts = report.dig(index + 1, "posts") || 0
       if index == 0
@@ -41,11 +42,15 @@ class Fumimi::UploadReport
         rate = "-"
       end
 
-      embed.description << "| #{year}  | #{posts} #{rate} |\n"
+      special_number = best_years.index(year) || 3
+      special_number += 1
+      special = special_number < 4 ? special_number.ordinalize : "   "
+
+      embed.description << "| #{year}  | #{posts} #{special} #{rate} |\n"
     end
 
     embed.description << <<~EOF.chomp
-      +-------+----------------+
+      +-------+------------------+
       ```
     EOF
 
@@ -55,7 +60,7 @@ class Fumimi::UploadReport
   def send_embed_for_uploaders(embed)
     total = @booru.counts.index(tags: @tags).counts.posts
 
-    embed.title = "Uploader Report for Search: #{@tags.join(" ")}".gsub("_", "\\_")
+    embed.title = "Uploader Report for: #{@tags.join(" ")}".gsub("_", "\\_")
     embed.url = "#{@booru.url}/reports/posts?#{uploaders_per_search_params.to_query}"
 
     if total == 0
