@@ -7,7 +7,7 @@ class Fumimi::UploadReport
   end
 
   def send_embed_for_uploads(embed)
-    embed.title = "Upload Report for Search: #{@tags.join(" ")}"
+    embed.title = "Upload Report for Search: #{@tags.join(" ")}".gsub("_", "\\_")
     embed.url = "#{@booru.url}/reports/posts?#{upload_per_years_params.to_query}"
 
     report = uploads_by_year
@@ -49,7 +49,7 @@ class Fumimi::UploadReport
   end
 
   def send_embed_for_uploaders(embed)
-    embed.title = "Uploader Report for Search: #{@tags.join(" ")}"
+    embed.title = "Uploader Report for Search: #{@tags.join(" ")}".gsub("_", "\\_")
     embed.url = "#{@booru.url}/reports/posts?#{uploaders_per_search_params.to_query}"
 
     total = @booru.counts.index(tags: @tags).counts.posts
