@@ -7,8 +7,8 @@ class Fumimi::UploadReport
   end
 
   def upload_report
-    message = "### [Upload Report for Search: #{@tags.join(" ")}]"
-    message += "(<#{@booru.url}/reports/posts?#{upload_per_years_params.to_query}>)\n"
+    message = "### [Upload Report for Search](<#{@booru.url}/reports/posts?#{upload_per_years_params.to_query}>)"
+    message += " `#{@tags.join(" ")}`\n"
 
     report = uploads_by_year
     if report.all? { |y| y["posts"] == 0 }
@@ -55,8 +55,8 @@ class Fumimi::UploadReport
   def uploader_report
     total = @booru.counts.index(tags: @tags).counts.posts
 
-    message = "### [Uploader Report for Search: #{@tags.join(" ")}]"
-    message += "(<#{@booru.url}/reports/posts?#{uploaders_per_search_params.to_query}>)\n"
+    message = "### [Uploader Report for Search](<#{@booru.url}/reports/posts?#{uploaders_per_search_params.to_query}>)"
+    message += " `#{@tags.join(" ")}`\n"
 
     if total == 0
       message += "No posts under that search!"
