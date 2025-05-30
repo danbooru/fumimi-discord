@@ -6,19 +6,19 @@ class Fumimi::UploadReport
     @tags = tags
   end
 
-  def send_embed_for_uploads(embed)
-    embed.title = "Upload Report for Search: #{@tags.join(" ")}".gsub("_", "\\_")
-    embed.url = "#{@booru.url}/reports/posts?#{upload_per_years_params.to_query}"
+  def upload_report
+    message = "### [Upload Report for Search: #{@tags.join(" ")}]".gsub("_", "\\_")
+    message += "(<#{@booru.url}/reports/posts?#{upload_per_years_params.to_query}>)\n"
 
     report = uploads_by_year
     if report.all? { |y| y["posts"] == 0 }
-      embed.description = "No posts under that search!"
+      message += "No posts under that search!"
       return
     end
 
     first_year = report.rindex { |each_year| each_year["posts"] != 0 }
 
-    embed.description = <<~EOF.chomp
+    message += <<~EOF.chomp
       ```
       +-------+----------------+
       | Year  | Uploads        |
@@ -41,25 +41,25 @@ class Fumimi::UploadReport
         rate = "-"
       end
 
-      embed.description << "| #{year}  | #{posts} #{rate} |\n"
+      message += "| #{year}  | #{posts} #{rate} |\n"
     end
 
-    embed.description << <<~EOF.chomp
+    message += <<~EOF.chomp
       +-------+----------------+
       ```
     EOF
 
-    embed
+    message
   end
 
-  def send_embed_for_uploaders(embed)
+  def uploader_report
     total = @booru.counts.index(tags: @tags).counts.posts
 
-    embed.title = "Uploader Report for Search: #{@tags.join(" ")}".gsub("_", "\\_")
-    embed.url = "#{@booru.url}/reports/posts?#{uploaders_per_search_params.to_query}"
+    message = "### [Uploader Report for Search: #{@tags.join(" ")}]".gsub("_", "\\_")
+    message += "(<#{@booru.url}/reports/posts?#{uploaders_per_search_params.to_query}>)\n"
 
     if total == 0
-      embed.description = "No posts under that search!"
+      message += "No posts under that search!"
       return
     end
 
@@ -68,7 +68,7 @@ class Fumimi::UploadReport
     longest_name = report.pluck("uploader").max_by(&:length)
     n_s = "-" * longest_name.length
 
-    embed.description = <<~EOF.chomp
+    message += <<~EOF.chomp
       ```
       +-#{n_s}-+---------+-------+
       | #{"Name".ljust(longest_name.length)} | Uploads | %     |
@@ -84,15 +84,15 @@ class Fumimi::UploadReport
       uploads = uploads.to_fs(:delimited).ljust(7)
       percent = ("%.2f" % percent).ljust(5)
 
-      embed.description << "| #{name} | #{uploads} | #{percent} |\n"
+      message += "| #{name} | #{uploads} | #{percent} |\n"
     end
 
-    embed.description << <<~EOF.chomp
+    message += <<~EOF.chomp
       +-#{n_s}-+---------+-------+
       ```
     EOF
 
-    embed
+    message
   end
 
   def uploads_by_year
