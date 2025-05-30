@@ -7,7 +7,7 @@ class Fumimi::UploadReport
   end
 
   def upload_report
-    message = "### [Upload Report for Search: #{@tags.join(" ")}]".gsub("_", "\\_")
+    message = "### [Upload Report for Search: #{@tags.join(" ")}]"
     message += "(<#{@booru.url}/reports/posts?#{upload_per_years_params.to_query}>)\n"
 
     report = uploads_by_year
@@ -55,7 +55,7 @@ class Fumimi::UploadReport
   def uploader_report
     total = @booru.counts.index(tags: @tags).counts.posts
 
-    message = "### [Uploader Report for Search: #{@tags.join(" ")}]".gsub("_", "\\_")
+    message = "### [Uploader Report for Search: #{@tags.join(" ")}]"
     message += "(<#{@booru.url}/reports/posts?#{uploaders_per_search_params.to_query}>)\n"
 
     if total == 0
