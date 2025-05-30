@@ -60,7 +60,7 @@ module Fumimi::Commands
   end
 
   command :ruby do |event, *args|
-    raise PermissionError unless owners.include? event.user.id
+    raise PermissionError unless OWNERS.include? event.user.id
 
     code = args.join(" ")
     result = instance_eval(code)
