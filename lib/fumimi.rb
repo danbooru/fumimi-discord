@@ -70,6 +70,8 @@ class Fumimi
     bot.command(:comments, description: "List comments: `/comments <tags>`", &method(:do_comments))
     bot.command(:forum, description: "List forum posts: `/forum <text>`", &method(:do_forum))
     bot.command(:burs, description: "List BUR stats", &method(:do_burs))
+    bot.command(:uploads, description: "List uploads by year: `/uploads <tag>`", &method(:do_upload_stats))
+    bot.command(:uploaders, description: "List uploads by uploader: `/uploader <tag>`", &method(:do_uploader_stats))
     bot.command(:say, help_available: false, &method(:do_say))
   end
 

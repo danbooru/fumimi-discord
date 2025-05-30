@@ -101,11 +101,31 @@ module Fumimi::Commands
     nil
   end
 
-  def do_burs(event, *args)
+  def do_burs(event, *_args)
     event.channel.start_typing
 
     event.channel.send_embed do |embed|
       Fumimi::Model::BulkUpdateRequest.send_embed_for_stats(embed, booru)
+    end
+    nil
+  end
+
+  def do_upload_stats(event, *tags)
+    event.channel.start_typing
+
+    event.channel.send_embed do |embed|
+      report = Fumimi::UploadReport.new(booru, tags)
+      report.send_embed_for_uploads(embed)
+    end
+    nil
+  end
+
+  def do_uploader_stats(event, *tags)
+    event.channel.start_typing
+
+    event.channel.send_embed do |embed|
+      report = Fumimi::UploadReport.new(booru, tags)
+      report.send_embed_for_uploaders(embed)
     end
     nil
   end

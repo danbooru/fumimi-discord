@@ -75,6 +75,8 @@ class Danbooru
     "UserRevert" => {},
     "WikiPages" => { default_params: { only: "id,title,body,tag" } },
     "WikiPageVersions" => {},
+
+    "PostReports" => { url: "reports/posts" },
   }.freeze
 
   INCLUDE_MAP = {
