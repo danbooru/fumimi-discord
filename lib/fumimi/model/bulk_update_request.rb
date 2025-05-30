@@ -8,7 +8,7 @@ class Fumimi::Model::BulkUpdateRequest < Fumimi::Model
 
     embed.author = Discordrb::Webhooks::EmbedAuthor.new(
       name: forum_topic.title,
-      url: forum_post.url
+      url: try(:forum_post)&.url || forum_topic.url # for when a BUR is removed from a forum post
     )
 
     embed.description = pretty_bur
