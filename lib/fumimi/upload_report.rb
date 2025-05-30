@@ -11,6 +11,10 @@ class Fumimi::UploadReport
     embed.url = "#{@booru.url}/reports/posts?#{upload_per_years_params.to_query}"
 
     report = uploads_by_year
+    if report.all? { |y| y["posts"] == 0 }
+      embed.description = "No posts under that search!"
+      return
+    end
 
     first_year = report.rindex { |each_year| each_year["posts"] != 0 }
 
@@ -49,10 +53,16 @@ class Fumimi::UploadReport
   end
 
   def send_embed_for_uploaders(embed)
+    total = @booru.counts.index(tags: @tags).counts.posts
+
     embed.title = "Uploader Report for Search: #{@tags.join(" ")}".gsub("_", "\\_")
     embed.url = "#{@booru.url}/reports/posts?#{uploaders_per_search_params.to_query}"
 
-    total = @booru.counts.index(tags: @tags).counts.posts
+    if total == 0
+      embed.description = "No posts under that search!"
+      return
+    end
+
     report = uploaders_by_search.sort_by { |u| u["posts"] / total.to_f }.reverse
 
     longest_name = report.pluck("uploader").max_by(&:length)
