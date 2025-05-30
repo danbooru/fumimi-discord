@@ -58,7 +58,7 @@ class Fumimi::UploadReport
   end
 
   def send_embed_for_uploaders(embed)
-    total = @booru.counts.index(tags: @tags).counts.posts
+    total = @booru.counts.index(tags: @tags.join(" ")).counts.posts
 
     embed.title = "Uploader Report for: #{@tags.join(" ")}".gsub("_", "\\_")
     embed.url = "#{@booru.url}/reports/posts?#{uploaders_per_search_params.to_query}"
