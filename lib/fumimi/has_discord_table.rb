@@ -1,3 +1,5 @@
+require "unicode/display_width/string_ext"
+
 module Fumimi::HasDiscordTable
   def generate_table(headers:, rows:)
     # This function generates a table from a list of headers and list of rows
@@ -19,7 +21,7 @@ module Fumimi::HasDiscordTable
 
     headers.each_with_index do |header, index|
       column_width = column_widths[index]
-      table << "│ #{header.ljust(column_width)} "
+      table << "│ #{ljust(header, column_width)} "
     end
     table << "│\n"
     table << "#{horizontal_separator}┼\n"
@@ -27,7 +29,7 @@ module Fumimi::HasDiscordTable
     rows.each do |row|
       row.each_with_index do |value, index|
         column_width = column_widths[index]
-        table << "│ #{value.to_s.ljust(column_width)} "
+        table << "│ #{ljust(value, column_width)} "
       end
       table << "│\n"
     end
@@ -35,6 +37,33 @@ module Fumimi::HasDiscordTable
 
     table << "```"
     prettify_table(table)
+  end
+
+  def ljust(string, width)
+    adjust = string.display_width - string.length
+    # this is an ugly trick. tl;dr the discord monospace font displays ~3 kanji per 5 ascii characters
+    # some alphabets like katakana still shift the text a bit, but this hack makes it a lot better
+    adjust -= (adjust / 4).ceil + 1 if adjust > 0
+    # don't ask me how this ratio exactly works, it came to me in a dream
+    string.to_s.ljust(width - adjust)
+
+    # before:
+    # ┌─────────┬─────────┬───────┐
+    # │ Name    │ Uploads │ %     │
+    # ├─────────┼─────────┼───────┤
+    # │ 葉月      │ 1,260   │ 70.71 │
+    # │ 馮福水牛校軾昆 │ 405     │ 22.73 │
+    # │ 紫希貴     │ 117     │ 6.57  │
+    # └─────────┴─────────┴───────┘
+    #
+    # after:
+    # ┌────────────────┬─────────┬───────┐
+    # │ Name           │ Uploads │ %     │
+    # ├────────────────┼─────────┼───────┤
+    # │ 葉月            │ 1,260   │ 70.71 │
+    # │ 馮福水牛校軾昆   │ 405     │ 22.73 │
+    # │ 紫希貴          │ 117     │ 6.57  │
+    # └────────────────┴─────────┴───────┘
   end
 
   def prettify_table(table)
@@ -56,8 +85,8 @@ module Fumimi::HasDiscordTable
     # returns a list of widths for supplied headers + rows, for table autospacing
     headers.each_with_index.map do |header, index|
       column = rows.map { |l| l[index] }.map(&:to_s)
-      max_column_width = column.max_by(&:length).length
-      [header.length, max_column_width].max
+      max_column_width = column.max_by(&:display_width).display_width
+      [header.display_width, max_column_width].max
     end
   end
 end

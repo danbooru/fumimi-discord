@@ -27,3 +27,5 @@ end
 group :test do
   gem "minitest", "~> 5.25"
 end
+
+gem "unicode-display_width", "~> 3.1"
