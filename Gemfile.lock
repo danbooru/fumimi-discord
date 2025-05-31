@@ -178,7 +178,7 @@ DEPENDENCIES
   rdoc
   retriable
   rubocop (~> 1.75)
-  unicode-display_width (~> 3.1)
+  unicode-display_width
 
 BUNDLED WITH
    2.6.9
