@@ -3,36 +3,21 @@ class Fumimi::PostReport::ApproverReport < Fumimi::PostReport
     "Approver Report for: #{@tags.join(" ")}".gsub("_", "\\_")
   end
 
-  def description
-    return "No posts under that search!" if total_posts == 0
+  def headers
+    ["Name", "Approvals", "%"]
+  end
 
-    sep = "-" * padding
-
-    description = <<~EOF.chomp
-      ```
-      +-#{sep}-+-----------+-------+
-      | #{"Name".ljust(padding)} | Approvals | %     |
-      +-#{sep}-+-----------+-------+
-
-    EOF
-
-    approvers_for_search.each do |each_uploader|
-      name = each_uploader["approver"].ljust(padding)
-      approvals = each_uploader["posts"]
+  def rows
+    approvers_for_search.map do |each_approver|
+      name = each_approver["approver"]
+      approvals = each_approver["posts"]
       percent = (approvals / total_posts.to_f) * 100
 
-      approvals = approvals.to_fs(:delimited).ljust(9)
-      percent = ("%.2f" % percent).ljust(5)
+      approvals = approvals.to_fs(:delimited)
+      percent = ("%.2f" % percent)
 
-      description << "| #{name} | #{approvals} | #{percent} |\n"
+      [name, approvals, percent]
     end
-
-    description << <<~EOF.chomp
-      +-#{sep}-+-----------+-------+
-      ```
-    EOF
-
-    description
   end
 
   def approvers_for_search

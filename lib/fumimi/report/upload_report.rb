@@ -3,21 +3,16 @@ class Fumimi::PostReport::UploadReport < Fumimi::PostReport
     "Upload Report for: #{@tags.join(" ")}".gsub("_", "\\_")
   end
 
-  def description
-    return "No posts under that search!" if uploads_by_year.all? { |y| y["posts"] == 0 }
+  def total_posts
+    uploads_by_year.pluck("posts").sum
+  end
 
-    description = <<~EOF.chomp
-      ```
-      +-------+------------------+
-      | Year  | Uploads          |
-      +-------+------------------+
+  def headers
+    %w[Year Uploads Rate]
+  end
 
-    EOF
-
-    relevant_years.each_with_index do |each_year, index|
-      year = each_year["year"]
-      posts = each_year["posts"].to_fs(:delimited).ljust(10)
-
+  def rows
+    relevant_years.each_with_index.map do |each_year, index|
       prev_posts = relevant_years.dig(index + 1, "posts") || 0
       if index == 0
         rate = "?"
@@ -29,19 +24,12 @@ class Fumimi::PostReport::UploadReport < Fumimi::PostReport
         rate = "-"
       end
 
-      special_number = best_years.index(year) || 3
+      special_number = best_years.index(each_year["year"]) || 3
       special_number += 1
       special = special_number < 4 ? special_number.ordinalize : "   "
 
-      description << "| #{year}  | #{posts} #{special} #{rate} |\n"
+      [each_year["year"], each_year["posts"].to_fs(:delimited), "#{special} #{rate}"]
     end
-
-    description << <<~EOF.chomp
-      +-------+------------------+
-      ```
-    EOF
-
-    description
   end
 
   def uploads_by_year

@@ -3,36 +3,21 @@ class Fumimi::PostReport::UploaderReport < Fumimi::PostReport
     "Uploader Report for: #{@tags.join(" ")}".gsub("_", "\\_")
   end
 
-  def description
-    return "No posts under that search!" if total_posts == 0
+  def headers
+    ["Name", "Uploads", "%"]
+  end
 
-    sep = "-" * padding
-
-    description = <<~EOF.chomp
-      ```
-      +-#{sep}-+---------+-------+
-      | #{"Name".ljust(padding)} | Uploads | %     |
-      +-#{sep}-+---------+-------+
-
-    EOF
-
-    uploaders_for_search.each do |each_uploader|
-      name = each_uploader["uploader"].ljust(padding)
+  def rows
+    uploaders_for_search.map do |each_uploader|
+      name = each_uploader["uploader"]
       uploads = each_uploader["posts"]
       percent = (uploads / total_posts.to_f) * 100
 
-      uploads = uploads.to_fs(:delimited).ljust(7)
-      percent = ("%.2f" % percent).ljust(5)
+      uploads = uploads.to_fs(:delimited)
+      percent = ("%.2f" % percent)
 
-      description << "| #{name} | #{uploads} | #{percent} |\n"
+      [name, uploads, percent]
     end
-
-    description << <<~EOF.chomp
-      +-#{sep}-+---------+-------+
-      ```
-    EOF
-
-    description
   end
 
   def uploaders_for_search
