@@ -6,6 +6,7 @@ require "pp"
 class Danbooru
   class Response
     class TemporaryError < StandardError; end
+    class TimeoutError < StandardError; end
 
     attr_reader :model, :resource, :response
 
@@ -67,11 +68,11 @@ class Danbooru
     end
 
     def timeout?
-      response.code == 500 && model.try(:message) == "ERROR:  canceling statement due to statement timeout\n"
+      response.code == 500 && model.try(:message) == "The database timed out running your query."
     end
 
     def retry?
-      [429, 502, 503, 504].include?(response.code) || timeout?
+      [429, 502, 503, 504].include?(response.code)
     end
   end
 end

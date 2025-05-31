@@ -6,7 +6,7 @@ module Fumimi::Commands
 
   def self.command(name, &block)
     define_method(:"do_#{name}") do |event, *args|
-      message = event.send_message "*Please wait warmly until Fumimi is ready. This may take up to 60 seconds.*"
+      message = event.send_message "*Please wait warmly until Fumimi is ready. This may take up to 10 seconds.*"
       event.channel.start_typing
 
       instance_exec(event, *args, &block)
@@ -14,14 +14,23 @@ module Fumimi::Commands
       event.drain
     rescue CommandArgumentError => e
       event << "```#{e}```"
+    rescue Danbooru::Response::TimeoutError
+      send_error(event.channel, "Timeout Encontered!", "The query went into timeout...")
     rescue StandardError, RestClient::Exception => e
       event.drain
       @log.error e
-      event << "Exception: #{e}.\n"
-      event << "https://i.imgur.com/0CsFWP3.png"
+      send_error(event.channel, "Exception Encountered!", e.to_s)
     ensure
       message.delete
-      nil
+    end
+  end
+
+  def send_error(channel, title, description)
+    channel.send_embed do |embed|
+      embed.title = title
+      embed.description = description
+      embed.image = Discordrb::Webhooks::EmbedImage.new(url: "https://i.imgur.com/0CsFWP3.png")
+      embed
     end
   end
 
@@ -101,53 +110,49 @@ module Fumimi::Commands
     nil
   end
 
-  def do_burs(event, *_args)
+  command :burs do |event, *args|
     event.channel.start_typing
 
     event.channel.send_embed do |embed|
       Fumimi::Model::BulkUpdateRequest.send_embed_for_stats(embed, booru)
     end
-    nil
   end
 
-  def do_upload_stats(event, *tags)
+  command :upload_stats do |event, *tags|
     event.channel.start_typing
 
     event.channel.send_embed do |embed|
       report = Fumimi::PostReport::UploadReport.new(booru, tags)
       report.send_embed(embed)
     end
-    nil
   end
 
-  def do_uploader_stats(event, *tags)
+  command :uploader_stats do |event, *tags|
     event.channel.start_typing
 
     event.channel.send_embed do |embed|
       report = Fumimi::PostReport::UploaderReport.new(booru, tags)
       report.send_embed(embed)
     end
-    nil
   end
 
-  def do_approver_stats(event, *tags)
+  command :approver_stats do |event, *tags|
     event.channel.start_typing
 
     event.channel.send_embed do |embed|
       report = Fumimi::PostReport::ApproverReport.new(booru, tags)
       report.send_embed(embed)
     end
-    nil
   end
 
-  def do_rating_stats(event, *tags)
+  command :rating_stats do |event, *tags|
     event.channel.start_typing
 
     event.channel.send_embed do |embed|
       report = Fumimi::PostReport::RatingReport.new(booru, tags)
       report.send_embed(embed)
     end
-    nil
   end
+
   nil
 end

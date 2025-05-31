@@ -32,6 +32,8 @@ class Danbooru
         resp = booru.http.request(method, url + path, **params)
         resp = Danbooru::Response.new(self, resp)
 
+        raise Danbooru::Response::TimeoutError if resp.timeout?
+
         raise Danbooru::Response::TemporaryError if resp.retry?
       end
     rescue Danbooru::Response::TemporaryError => e
