@@ -71,8 +71,9 @@ class Fumimi
     bot.command(:forum, description: "List forum posts: `/forum <text>`", &method(:do_forum))
     bot.command(:burs, description: "List BUR stats", &method(:do_burs))
     bot.command(:uploads, description: "List uploads by year: `/uploads <search>`", &method(:do_upload_stats))
-    bot.command(:uploaders, description: "List uploads by uploader: `/uploader <search>`", &method(:do_uploader_stats))
-    bot.command(:approvers, description: "List uploads by approver: `/approver <search>`", &method(:do_approver_stats))
+    bot.command(:uploaders, description: "List uploads by uploader: `/uploaders <search>`", &method(:do_uploader_stats))
+    bot.command(:approvers, description: "List uploads by approver: `/approvers <search>`", &method(:do_approver_stats))
+    bot.command(:ratings, description: "List uploads by rating: `/ratings <search>`", &method(:do_rating_stats))
     bot.command(:say, help_available: false, &method(:do_say))
   end
 

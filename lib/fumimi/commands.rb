@@ -139,5 +139,15 @@ module Fumimi::Commands
     end
     nil
   end
+
+  def do_rating_stats(event, *tags)
+    event.channel.start_typing
+
+    event.channel.send_embed do |embed|
+      report = Fumimi::PostReport::RatingReport.new(booru, tags)
+      report.send_embed(embed)
+    end
+    nil
+  end
   nil
 end
