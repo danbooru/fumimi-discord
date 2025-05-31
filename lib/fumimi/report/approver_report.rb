@@ -3,20 +3,20 @@ class Fumimi::PostReport::ApproverReport < Fumimi::PostReport
     "Approver Report for: #{@tags.join(" ")}".gsub("_", "\\_")
   end
 
+  def total_posts
+    tags = @tags + ["approver:any"]
+    @total_posts ||= @booru.counts.index(tags: tags.join(" ")).counts.posts
+  end
+
   def headers
     ["Name", "Approvals", "%"]
   end
 
   def rows
     approvers_for_search.map do |each_approver|
-      name = each_approver["approver"]
-      approvals = each_approver["posts"]
-      percent = (approvals / total_posts.to_f) * 100
+      percent = (each_approver["posts"] / total_posts.to_f) * 100
 
-      approvals = approvals.to_fs(:delimited)
-      percent = ("%.2f" % percent)
-
-      [name, approvals, percent]
+      [each_approver["approver"], each_approver["posts"].to_fs(:delimited), "%.2f" % percent]
     end
   end
 
