@@ -114,8 +114,8 @@ module Fumimi::Commands
     event.channel.start_typing
 
     event.channel.send_embed do |embed|
-      report = Fumimi::UploadReport.new(booru, tags)
-      report.send_embed_for_uploads(embed)
+      report = Fumimi::PostReport::UploadReport.new(booru, tags)
+      report.send_embed(embed)
     end
     nil
   end
@@ -124,11 +124,20 @@ module Fumimi::Commands
     event.channel.start_typing
 
     event.channel.send_embed do |embed|
-      report = Fumimi::UploadReport.new(booru, tags)
-      report.send_embed_for_uploaders(embed)
+      report = Fumimi::PostReport::UploaderReport.new(booru, tags)
+      report.send_embed(embed)
     end
     nil
   end
 
+  def do_approver_stats(event, *tags)
+    event.channel.start_typing
+
+    event.channel.send_embed do |embed|
+      report = Fumimi::PostReport::ApproverReport.new(booru, tags)
+      report.send_embed(embed)
+    end
+    nil
+  end
   nil
 end
