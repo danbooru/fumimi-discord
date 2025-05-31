@@ -10,9 +10,9 @@ class Fumimi::PostReport::ApproverReport < Fumimi::PostReport
 
     description = <<~EOF.chomp
       ```
-      +-#{sep}-+---------+-------+
+      +-#{sep}-+-----------+-------+
       | #{"Name".ljust(padding)} | Approvals | %     |
-      +-#{sep}-+---------+-------+
+      +-#{sep}-+-----------+-------+
 
     EOF
 
@@ -21,14 +21,14 @@ class Fumimi::PostReport::ApproverReport < Fumimi::PostReport
       approvals = each_uploader["posts"]
       percent = (approvals / total_posts.to_f) * 100
 
-      approvals = approvals.to_fs(:delimited).ljust(7)
+      approvals = approvals.to_fs(:delimited).ljust(9)
       percent = ("%.2f" % percent).ljust(5)
 
       description << "| #{name} | #{approvals} | #{percent} |\n"
     end
 
     description << <<~EOF.chomp
-      +-#{sep}-+---------+-------+
+      +-#{sep}-+-----------+-------+
       ```
     EOF
 
