@@ -8,12 +8,13 @@ class Fumimi::PostReport::RatingReport < Fumimi::PostReport
   end
 
   def headers
-    %w[Rating Posts]
+    %w[Rating Posts %]
   end
 
   def rows
     report.sort_by { |r| sort_order.index(r["rating"]) }.map do |each_rating|
-      [each_rating["rating"], each_rating["posts"].to_fs(:delimited)]
+      percent = (each_rating["posts"] / total_posts.to_f) * 100
+      [each_rating["rating"], each_rating["posts"].to_fs(:delimited), "%.2f" % percent]
     end
   end
 
