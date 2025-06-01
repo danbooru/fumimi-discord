@@ -84,7 +84,9 @@ module Fumimi::Commands
     limit = [5, limit].min
     body = args.grep_v(/limit:(\d+)/i).join(" ")
 
-    forum_posts = booru.forum_posts.index("search[body_matches]": body, limit: limit)
+    forum_posts = booru.forum_posts.index("search[body_matches]": body,
+                                          "search[topic][is_private]": false,
+                                          limit: limit)
     embeds = forum_posts.map do |forum_post|
       next if forum_post.hidden?
 
