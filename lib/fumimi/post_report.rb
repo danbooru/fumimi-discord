@@ -1,7 +1,8 @@
 class Fumimi::PostReport
   include Fumimi::HasDiscordTable
 
-  def initialize(booru, tags)
+  def initialize(event, booru, tags)
+    @event = event
     @booru = booru
     @tags = tags
   end
@@ -9,7 +10,7 @@ class Fumimi::PostReport
   def send_embed(embed)
     embed.title = title
     embed.url = url
-    embed.description = description
+    embed.description = "-# Requested by <@#{@event.user.id}>\n#{description}"
     embed
   end
 

@@ -124,7 +124,7 @@ module Fumimi::Commands
     event.channel.start_typing
 
     event.channel.send_embed do |embed|
-      report = Fumimi::PostReport::UploadReport.new(booru, tags)
+      report = Fumimi::PostReport::UploadReport.new(event, booru, tags)
       report.send_embed(embed)
     end
   end
@@ -133,7 +133,7 @@ module Fumimi::Commands
     event.channel.start_typing
 
     event.channel.send_embed do |embed|
-      report = Fumimi::PostReport::UploaderReport.new(booru, tags)
+      report = Fumimi::PostReport::UploaderReport.new(event, booru, tags)
       report.send_embed(embed)
     end
   end
@@ -142,7 +142,7 @@ module Fumimi::Commands
     event.channel.start_typing
 
     event.channel.send_embed do |embed|
-      report = Fumimi::PostReport::ApproverReport.new(booru, tags)
+      report = Fumimi::PostReport::ApproverReport.new(event, booru, tags)
       report.send_embed(embed)
     end
   end
@@ -151,7 +151,7 @@ module Fumimi::Commands
     event.channel.start_typing
 
     event.channel.send_embed do |embed|
-      report = Fumimi::PostReport::RatingReport.new(booru, tags)
+      report = Fumimi::PostReport::RatingReport.new(event, booru, tags)
       report.send_embed(embed)
     end
   end
@@ -160,7 +160,7 @@ module Fumimi::Commands
     event.channel.start_typing
 
     event.channel.send_embed do |embed|
-      report = Fumimi::PostReport::ModqueueReport.new(booru, tags)
+      report = Fumimi::PostReport::ModqueueReport.new(event, booru, tags)
       report.send_embed(embed)
     end
   end
