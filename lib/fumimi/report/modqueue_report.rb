@@ -3,7 +3,7 @@ class Fumimi::PostReport::ModqueueReport < Fumimi::PostReport
     "Modqueue Report"
   end
 
-  def initialize(booru, tags)
+  def initialize(event, booru, tags)
     super
     @tags = ["is:modqueue"]
   end
