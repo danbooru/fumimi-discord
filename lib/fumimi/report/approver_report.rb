@@ -24,10 +24,6 @@ class Fumimi::PostReport::ApproverReport < Fumimi::PostReport
     @approvers_for_search ||= report.sort_by { |u| u["posts"] / total_posts.to_f }.reverse
   end
 
-  def padding
-    @padding ||= approvers_for_search.pluck("approver").max_by(&:length).length
-  end
-
   def search_params
     {
       id: "posts",

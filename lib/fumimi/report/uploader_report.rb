@@ -20,10 +20,6 @@ class Fumimi::PostReport::UploaderReport < Fumimi::PostReport
     @uploaders_for_search ||= report.sort_by { |u| u["posts"] / total_posts.to_f }.reverse
   end
 
-  def padding
-    @padding ||= uploaders_for_search.pluck("uploader").max_by(&:length).length
-  end
-
   def search_params
     {
       id: "posts",
