@@ -9,14 +9,10 @@ class Fumimi::PostReport::UploaderReport < Fumimi::PostReport
 
   def rows
     uploaders_for_search.map do |each_uploader|
-      name = each_uploader["uploader"]
       uploads = each_uploader["posts"]
       percent = (uploads / total_posts.to_f) * 100
 
-      uploads = uploads.to_fs(:delimited)
-      percent = ("%.2f" % percent)
-
-      [name, uploads, percent]
+      [each_uploader["uploader"], uploads.to_fs(:delimited), "%.2f" % percent]
     end
   end
 

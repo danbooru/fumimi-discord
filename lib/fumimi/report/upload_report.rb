@@ -28,7 +28,7 @@ class Fumimi::PostReport::UploadReport < Fumimi::PostReport
       special_number += 1
       special = special_number < 4 ? special_number.ordinalize : "   "
 
-      [each_year["year"], each_year["posts"].to_fs(:delimited), "#{special} #{rate}"]
+      [each_year["year"].to_s, each_year["posts"].to_fs(:delimited), "#{special} #{rate}"]
     end
   end
 
