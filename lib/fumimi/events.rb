@@ -97,24 +97,24 @@ module Fumimi::Events
 
   respond(:artist_id, /artist #[0-9]+/i) do |event, text|
     id = text[/[0-9]+/]
-    event << "https://danbooru.donmai.us/artists/#{id}"
+    event.channel.send_message("https://danbooru.donmai.us/artists/#{id}")
   end
 
   respond(:note_id, /note #[0-9]+/i) do |event, text|
     id = text[/[0-9]+/]
 
     note = booru.notes.show(id)
-    event << "https://danbooru.donmai.us/posts/#{note.post_id}#note-#{note.id}"
+    event.channel.send_message("https://danbooru.donmai.us/posts/#{note.post_id}#note-#{note.id}")
   end
 
   respond(:pixiv_id, /pixiv #[0-9]+/i) do |event, text|
     id = text[/[0-9]+/]
-    event << "https://www.pixiv.net/artworks/#{id}"
+    event.channel.send_message("https://www.pixiv.net/artworks/#{id}")
   end
 
   respond(:pool_id, /pool #[0-9]+/i) do |event, text|
     id = text[/[0-9]+/]
-    event << "https://danbooru.donmai.us/pools/#{id}"
+    event.channel.send_message("https://danbooru.donmai.us/pools/#{id}")
   end
 
   respond(:user_id, /user #[0-9]+/i) do |event, text|
