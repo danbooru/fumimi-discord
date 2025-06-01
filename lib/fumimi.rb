@@ -74,6 +74,7 @@ class Fumimi
     bot.command(:uploaders, description: "List uploads by uploader: `/uploaders <search>`", &method(:do_uploader_stats))
     bot.command(:approvers, description: "List uploads by approver: `/approvers <search>`", &method(:do_approver_stats))
     bot.command(:ratings, description: "List uploads by rating: `/ratings <search>`", &method(:do_rating_stats))
+    bot.command(:modqueue, description: "List modqueue stats: `/modqueue`", &method(:do_modqueue))
     bot.command(:say, help_available: false, &method(:do_say))
   end
 

@@ -154,5 +154,13 @@ module Fumimi::Commands
     end
   end
 
+  command :modqueue do |event, *tags|
+    event.channel.start_typing
+
+    event.channel.send_embed do |embed|
+      report = Fumimi::PostReport::ModqueueReport.new(booru, tags)
+      report.send_embed(embed)
+    end
+  end
   nil
 end

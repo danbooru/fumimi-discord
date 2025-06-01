@@ -9,13 +9,16 @@ class Fumimi::PostReport
   def send_embed(embed)
     embed.title = title
     embed.url = url
-
-    if total_posts == 0
-      embed.description = "No posts under that search!"
-    else
-      embed.description = generate_table(headers: headers, rows: rows)
-    end
+    embed.description = description
     embed
+  end
+
+  def description
+    if total_posts == 0
+      "No posts under that search!"
+    else
+      generate_table(headers: headers, rows: rows)
+    end
   end
 
   def url
