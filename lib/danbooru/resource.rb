@@ -33,6 +33,7 @@ class Danbooru
         resp = Danbooru::Response.new(self, resp)
 
         raise Danbooru::Response::TimeoutError if resp.timeout?
+        raise Danbooru::Response::DownbooruError if resp.downbooru?
 
         raise Danbooru::Response::TemporaryError if resp.retry?
       end

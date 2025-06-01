@@ -16,6 +16,8 @@ module Fumimi::Commands
       event << "```#{e}```"
     rescue Danbooru::Response::TimeoutError
       send_error(event.channel, "Timeout Encontered!", "The query went into timeout...")
+    rescue Danbooru::Response::DownbooruError
+      send_error(event.channel, "Downbooru!", "The site is down for maintenance!", img: "https://i.imgur.com/DHMBEGZ.png")
     rescue StandardError, RestClient::Exception => e
       event.drain
       @log.error e
@@ -25,11 +27,11 @@ module Fumimi::Commands
     end
   end
 
-  def send_error(channel, title, description)
+  def send_error(channel, title, description, img: nil)
     channel.send_embed do |embed|
       embed.title = title
       embed.description = description
-      embed.image = Discordrb::Webhooks::EmbedImage.new(url: "https://i.imgur.com/0CsFWP3.png")
+      embed.image = Discordrb::Webhooks::EmbedImage.new(url: img || "https://i.imgur.com/0CsFWP3.png")
       embed
     end
   end
