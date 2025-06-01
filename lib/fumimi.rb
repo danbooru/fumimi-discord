@@ -17,6 +17,7 @@ require "optparse"
 require "shellwords"
 
 class Fumimi
+  include Fumimi::ExceptionHandler
   include Fumimi::Commands
   include Fumimi::Events
 

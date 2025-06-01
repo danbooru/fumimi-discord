@@ -6,7 +6,7 @@ class Fumimi::Model::ForumPost < Fumimi::Model
   HIDE_LOCKED_FORUMS = ENV.fetch("FUMIMI_HIDE_LOCKED_FORUMS", "true") =~ /\A(true|t|yes|y|on|1)\z/i
 
   def embed(embed, channel) # rubocop:disable Lint/UnusedMethodArgument
-    raise Fumimi::Commands::PermissionError if hidden?
+    raise Fumimi::Exceptions::PermissionError if hidden?
 
     embed.title = topic.title
     embed.url = url

@@ -1,38 +1,11 @@
 module Fumimi::Commands
-  class CommandArgumentError < StandardError; end
-  class PermissionError < StandardError; end
-
   OWNERS = [310167383912349697, 1373735183425208331].freeze # rubocop:disable Style/NumericLiterals
 
   def self.command(name, &block)
     define_method(:"do_#{name}") do |event, *args|
-      message = event.send_message "*Please wait warmly until Fumimi is ready. This may take up to 10 seconds.*"
-      event.channel.start_typing
-
-      instance_exec(event, *args, &block)
-    rescue PermissionError
-      event.drain
-    rescue CommandArgumentError => e
-      event << "```#{e}```"
-    rescue Danbooru::Response::TimeoutError
-      send_error(event.channel, "Timeout Encontered!", "The query went into timeout...")
-    rescue Danbooru::Response::DownbooruError
-      send_error(event.channel, "Downbooru!", "The site is down for maintenance!", img: "https://i.imgur.com/DHMBEGZ.png")
-    rescue StandardError, RestClient::Exception => e
-      event.drain
-      @log.error e
-      send_error(event.channel, "Exception Encountered!", e.to_s)
-    ensure
-      message.delete
-    end
-  end
-
-  def send_error(channel, title, description, img: nil)
-    channel.send_embed do |embed|
-      embed.title = title
-      embed.description = description
-      embed.image = Discordrb::Webhooks::EmbedImage.new(url: img || "https://i.imgur.com/0CsFWP3.png")
-      embed
+      execute_and_rescue_errors(event) do
+        instance_exec(event, *args, &block)
+      end
     end
   end
 
@@ -55,7 +28,7 @@ module Fumimi::Commands
   end
 
   def do_say(event, *args)
-    raise PermissionError unless OWNERS.include? event.user.id
+    raise Fumimi::Exceptions::PermissionError unless OWNERS.include? event.user.id
 
     channel_name = args.shift
     message = args.join(" ")
@@ -71,7 +44,7 @@ module Fumimi::Commands
   end
 
   command :ruby do |event, *args|
-    raise PermissionError unless OWNERS.include? event.user.id
+    raise Fumimi::Exceptions::PermissionError unless OWNERS.include? event.user.id
 
     code = args.join(" ")
     result = instance_eval(code)
