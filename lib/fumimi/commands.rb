@@ -166,5 +166,17 @@ module Fumimi::Commands
       report.send_embed(embed)
     end
   end
+
+  command :downbooru do |event, *tags|
+    event.channel.start_typing
+
+    booru.posts.index(limit: 1)
+
+    event.channel.send_embed do |embed|
+      embed.title = "All good! Site's up!"
+      embed.image = Discordrb::Webhooks::EmbedImage.new(url: "https://i.imgur.com/ik5HdCp.png")
+      embed
+    end
+  end
   nil
 end
