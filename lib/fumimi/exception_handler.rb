@@ -1,8 +1,10 @@
 require "fumimi/exceptions"
 
 module Fumimi::ExceptionHandler
-  def execute_and_rescue_errors(event, &block)
-    message = event.send_message "*Please wait warmly until Fumimi is ready. This may take up to 10 seconds.*"
+  def execute_and_rescue_errors(event, wait_message: true, &block)
+    if wait_message
+      message = event.send_message "*Please wait warmly until Fumimi is ready. This may take up to 10 seconds.*"
+    end
     event.channel.start_typing
     response = block.call
   rescue Fumimi::Exceptions::PermissionError
@@ -20,7 +22,7 @@ module Fumimi::ExceptionHandler
   else
     response
   ensure
-    message.delete
+    message.delete if wait_message
   end
 
   def send_error(channel, title, description, img: nil)

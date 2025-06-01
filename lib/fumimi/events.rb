@@ -10,7 +10,7 @@ module Fumimi::Events
     define_method(:"do_#{name}") do |event, *args|
       matches = event.text.scan(/(?<!`)#{regex}(?!`)/)
 
-      execute_and_rescue_errors(event) do
+      execute_and_rescue_errors(event, wait_message: false) do
         matches.each do |match|
           log.info("Received command '#{match}' from user ##{event&.user&.id} '#{event&.user&.username}' in channel '##{event&.channel&.name}'") # rubocop:disable Layout/LineLength
           instance_exec(event, match, &block)
