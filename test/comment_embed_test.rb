@@ -1,19 +1,12 @@
 require "test_helper"
 
 class CommentEmbedTest < Minitest::Test
+  include TestMocks
+
   COMMENT_FOOTER_PATTERN = /^\d{4}-\d{2}-\d{2} at \d{1,2}:\d{2} (?:AM|PM)$/
 
   def setup
-    factory = {
-      posts: Fumimi::Model::Post,
-      tags: Fumimi::Model::Tag,
-      comments: Fumimi::Model::Comment,
-      forum_posts: Fumimi::Model::ForumPost,
-      users: Fumimi::Model::User,
-      wiki_pages: Fumimi::Model::WikiPage,
-    }.with_indifferent_access
-
-    @booru = Danbooru.new(factory: factory)
+    @booru = setup_booru
     @nsfw_comment = @booru.comments.show(67906) # rubocop:disable Style/NumericLiterals
 
     @sfw_channel = Minitest::Mock.new

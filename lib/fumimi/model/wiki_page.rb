@@ -8,6 +8,7 @@ class Fumimi::Model::WikiPage < Fumimi::Model
     embed.url = url
 
     embed.description = pretty_body
+    embed
   end
 
   def pretty_body(max_lines: 10)

@@ -1,19 +1,12 @@
 require "test_helper"
 
 class PostEmbedTest < Minitest::Test
+  include TestMocks
+
   POST_FOOTER_PATTERN = /\d+⇧ \d+♥ | Rating: [G|SQE] | \d+x\d+ (\d+.\d+ \d+ \w+) | \d{4}-\d{2}-\d{2}/
 
   def setup
-    factory = {
-      posts: Fumimi::Model::Post,
-      tags: Fumimi::Model::Tag,
-      comments: Fumimi::Model::Comment,
-      forum_posts: Fumimi::Model::ForumPost,
-      users: Fumimi::Model::User,
-      wiki_pages: Fumimi::Model::WikiPage,
-    }.with_indifferent_access
-
-    @booru = Danbooru.new(factory: factory)
+    @booru = setup_booru
     @nsfw_post = @booru.posts.show(1)
 
     @sfw_channel = Minitest::Mock.new

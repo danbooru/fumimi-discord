@@ -67,4 +67,17 @@ module TestMocks
     captured[:embeds].flatten!
     captured
   end
+
+  def setup_booru
+    factory = {
+      posts: Fumimi::Model::Post,
+      tags: Fumimi::Model::Tag,
+      comments: Fumimi::Model::Comment,
+      forum_posts: Fumimi::Model::ForumPost,
+      users: Fumimi::Model::User,
+      wiki_pages: Fumimi::Model::WikiPage,
+    }.with_indifferent_access
+
+    Danbooru.new(factory: factory)
+  end
 end
