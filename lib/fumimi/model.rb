@@ -33,10 +33,10 @@ class Fumimi::Model
     end
   end
 
-  def send_embed(channel, **options)
-    channel.send_embed do |e|
-      embed(e, channel, **options)
-    end
+  def create_embed(channel, **options)
+    e = Discordrb::Webhooks::Embed.new
+    embed(e, channel, **options)
+    e
   end
 
   def embed_field_for(name, value, inline: true)

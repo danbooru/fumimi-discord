@@ -18,6 +18,7 @@ class Fumimi::Model::WikiPage < Fumimi::Model
     embed.title = title.tr("_", " ")
     embed.description = empty_wiki_for(title)
     embed.url = "#{booru.url}/posts?tags=#{CGI.escape(title.tr(" ", "_"))}"
+    embed
   end
 
   def self.empty_wiki_for(name)
