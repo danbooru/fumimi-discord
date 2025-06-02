@@ -8,6 +8,11 @@ Layout/FirstHashElementIndentation:
 Metrics/AbcSize:
   Enabled: false
 
+Metrics/ClassLength:
+  Enabled: true
+  Exclude:
+    - test/**/*
+
 Naming/BlockForwarding:
   Enabled: false
 

@@ -52,7 +52,11 @@ class Danbooru
     "Pools" => {},
     "PoolElements" => {},
     "PoolVersions" => {},
-    "Posts" => { default_params: { limit: 200 } },
+    "Posts" => { default_params: { limit: 200,
+                                   only: "id,uploader,created_at,score,fav_count," \
+                                         "tag_string,source,rating,parent_id,has_active_children," \
+                                         "is_flagged,is_pending,is_deleted," \
+                                         "media_asset", } },
     "PostAppeals" => {},
     "PostApprovals" => {},
     "PostDisapprovals" => {},

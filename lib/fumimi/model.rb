@@ -5,22 +5,22 @@ require "ostruct"
 require "pp"
 
 class Fumimi::Model
-  attr_reader :api, :attributes, :resource_name
+  attr_reader :api, :attributes, :resource_name, :url
 
   delegate_missing_to :attributes
 
   def initialize(attributes, resource_name, api = nil)
     @api = api
     @resource_name = resource_name
+
+    url = attributes.delete("url")
     self.attributes = attributes
+
+    @url = url&.presence || "#{api.booru.url}/#{resource_name.pluralize}/#{id}"
   end
 
   def attributes=(attributes)
     @attributes = cast_attributes(attributes)
-  end
-
-  def url
-    "#{api.booru.url}/#{resource_name.pluralize}/#{id}"
   end
 
   def shortlink
@@ -44,7 +44,7 @@ class Fumimi::Model
   end
 
   def embed_footer
-    timestamp = "#{created_at.strftime("%F")} at #{created_at.strftime("%l:%M %p")}"
+    timestamp = "#{created_at.strftime("%F")} at #{created_at.strftime("%l:%M %p")}".gsub(/ +/, " ")
     Discordrb::Webhooks::EmbedFooter.new(text: timestamp)
   end
 

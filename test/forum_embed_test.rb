@@ -1,7 +1,7 @@
 require "test_helper"
 
 class ForumEmbedTest < Minitest::Test
-  FORUM_POST_FOOTER_PATTERN = /^\d{4}-\d{2}-\d{2} at  \d{1,2}:\d{2} (?:AM|PM)$/
+  FORUM_POST_FOOTER_PATTERN = /^\d{4}-\d{2}-\d{2} at \d{1,2}:\d{2} (?:AM|PM)$/
   def setup
     factory = {
       posts: Fumimi::Model::Post,

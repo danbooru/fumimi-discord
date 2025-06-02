@@ -15,7 +15,6 @@ class PostEmbedTest < Minitest::Test
 
     @booru = Danbooru.new(factory: factory)
     @nsfw_post = @booru.posts.show(1)
-    @sfw_post = @booru.posts.index(tags: "rating:general order:random", limit: 1).first
 
     @sfw_channel = Minitest::Mock.new
     def @sfw_channel.nsfw?
@@ -51,12 +50,25 @@ class PostEmbedTest < Minitest::Test
   end
 
   def test_sfw_post_on_nsfw_channel
+    @sfw_post = @booru.posts.index(tags: "rating:general order:random", limit: 1).first
     embed = Discordrb::Webhooks::Embed.new
     post_embed = @sfw_post.embed(embed, @sfw_channel)
 
     assert_match(/^post #(\d+)$/, post_embed.title)
     assert_equal post_embed&.url, "https://danbooru.donmai.us/posts/#{@sfw_post.id}"
-    assert_equal post_embed.image&.url, @sfw_post.file_url.to_s
+    assert_equal post_embed.image&.url, @sfw_post.file_variant.url.to_s
+
+    assert_match(POST_FOOTER_PATTERN, post_embed.footer&.text)
+  end
+
+  def test_animated_post
+    embed = Discordrb::Webhooks::Embed.new
+    @animated_post = @booru.posts.index(tags: "ugoira rating:g", limit: 1).first
+    post_embed = @animated_post.embed(embed, @sfw_channel)
+
+    assert_match(/^post #(\d+)$/, post_embed.title)
+    assert_equal post_embed&.url, "https://danbooru.donmai.us/posts/#{@animated_post.id}"
+    assert_equal post_embed.image&.url, @animated_post.preview_variant.url.to_s
 
     assert_match(POST_FOOTER_PATTERN, post_embed.footer&.text)
   end

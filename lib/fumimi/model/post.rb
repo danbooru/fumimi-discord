@@ -4,6 +4,8 @@ class Fumimi::Model::Post < Fumimi::Model
   NSFW_BLUR = ENV["FUMIMI_NSFW_BLUR"] || 50
   CENSORED_TAGS = ENV["FUMIMI_CENSORED_TAGS"].to_s.split
 
+  delegate :image_width, :image_height, :file_ext, :file_size, to: :media_asset
+
   def source_url
     Addressable::URI.heuristic_parse(source) rescue nil
   end
@@ -24,34 +26,34 @@ class Fumimi::Model::Post < Fumimi::Model
 
   def embed_image_url
     if file_ext.match?(/jpe?g|png|gif/i)
-      try(:file_url)
+      file_variant.url
     else
-      preview_file_url
+      preview_variant.url
     end
+  end
+
+  def file_variant
+    media_asset.variants.detect { |v| v["type"] == "original" }
+  end
+
+  def preview_variant
+    media_asset.variants.detect { |v| v["type"] == "360x360" }
   end
 
   def embed_thumbnail(nsfw_channel)
-    if is_censored? || is_unsafe?(nsfw_channel)
-      Discordrb::Webhooks::EmbedThumbnail.new(url: "https://rsz.io/#{preview_file_url.host + preview_file_url.path}?blur=#{NSFW_BLUR}") # TODO: replace with blurhash or something
-    else
-      Discordrb::Webhooks::EmbedThumbnail.new(url: preview_file_url.to_s)
-    end
+    Discordrb::Webhooks::EmbedThumbnail.new(url: preview_variant.url.to_s) unless censored? || unsafe?(nsfw_channel)
   end
 
   def embed_image(nsfw_channel)
-    if is_censored? || is_unsafe?(nsfw_channel)
-      nil
-    else
-      Discordrb::Webhooks::EmbedImage.new(url: embed_image_url.to_s)
-    end
+    Discordrb::Webhooks::EmbedImage.new(url: embed_image_url.to_s) unless censored? || unsafe?(nsfw_channel)
   end
 
-  def is_unsafe?(nsfw_channel)
+  def unsafe?(nsfw_channel)
     rating != "g" && !nsfw_channel
   end
 
-  def is_censored?
-    tag_string.split.grep(/^(#{CENSORED_TAGS.join("|")})$/).any?
+  def censored?
+    tags.grep(/^(#{CENSORED_TAGS.join("|")})$/).any?
   end
 
   def border_color
@@ -74,7 +76,7 @@ class Fumimi::Model::Post < Fumimi::Model
     timestamp = "#{created_at.strftime("%F")}"
 
     Discordrb::Webhooks::EmbedFooter.new(
-      text: "#{post_info} | #{file_info} | #{timestamp}"
+      text: "#{post_info} | #{file_info}) | #{timestamp}"
     )
   end
 end
