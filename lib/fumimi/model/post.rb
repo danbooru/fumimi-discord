@@ -76,7 +76,7 @@ class Fumimi::Model::Post < Fumimi::Model
     timestamp = "#{created_at.strftime("%F")}"
 
     Discordrb::Webhooks::EmbedFooter.new(
-      text: "#{post_info} | #{file_info}) | #{timestamp}"
+      text: "#{post_info} | #{file_info} | #{timestamp}"
     )
   end
 end
