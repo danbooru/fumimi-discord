@@ -86,6 +86,7 @@ class Danbooru
   INCLUDE_MAP = {
     creator: "users",
     topic: "forum_posts",
+    uploader: "users",
   }.with_indifferent_access.freeze
 
   def initialize(url: ENV["BOORU_URL"], # rubocop:disable Style/FetchEnvVar
