@@ -20,10 +20,6 @@ class Fumimi::Model::Post < Fumimi::Model
     embed.image = embed_image(channel.nsfw?)
     embed.color = border_color
     embed.footer = embed_footer
-    embed.author = Discordrb::Webhooks::EmbedAuthor.new(
-      name: uploader.at_name,
-      url: uploader.url
-    )
 
     embed
   end

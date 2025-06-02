@@ -27,8 +27,6 @@ class PostEmbedTest < Minitest::Test
     assert_equal post_embed.title, "post #1"
     assert_equal post_embed.url, "https://danbooru.donmai.us/posts/1"
     assert_nil post_embed.image
-    assert_equal post_embed.author.name, "@albert"
-    assert_equal post_embed.author.url,  "https://danbooru.donmai.us/users/1"
     assert_equal post_embed.color, Fumimi::Colors::YELLOW
     assert_match(POST_FOOTER_PATTERN, post_embed.footer&.text)
   end
