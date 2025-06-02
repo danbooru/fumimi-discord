@@ -13,10 +13,14 @@ class Fumimi::Model
     @api = api
     @resource_name = resource_name
 
-    url = attributes.delete("url")
+    attr_url = attributes.delete("url")
     self.attributes = attributes
 
-    @url = url&.presence || "#{api.booru.url}/#{resource_name.pluralize}/#{id}"
+    if attr_url.presence
+      @url = attr_url
+    elsif try(:id)
+      @url = "#{api.booru.url}/#{resource_name.pluralize}/#{id}"
+    end
   end
 
   def attributes=(attributes)
