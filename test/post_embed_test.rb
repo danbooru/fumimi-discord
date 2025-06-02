@@ -3,7 +3,7 @@ require "test_helper"
 class PostEmbedTest < Minitest::Test
   include TestMocks
 
-  POST_FOOTER_PATTERN = /\d+⇧ \d+♥ | Rating: [G|SQE] | \d+x\d+ (\d+.\d+ \d+ \w+) | \d{4}-\d{2}-\d{2}/
+  POST_FOOTER_PATTERN = /\d+⇧ \d+♥ | Rating: [GSQE] | \d+x\d+ (\d+.\d+ \d+ \w+) | \d{4}-\d{2}-\d{2}/
 
   def setup
     @booru = setup_booru
