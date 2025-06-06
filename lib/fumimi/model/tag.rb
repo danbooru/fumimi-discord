@@ -6,11 +6,13 @@ class Fumimi::Model::Tag < Fumimi::Model
 
     embed.description = ""
     embed.description << "-# Category: #{category_name.capitalize} | Post Count: #{post_count.to_fs(:delimited)}\n"
+    embed.description << "-# This tag has been deprecated.\n" if is_deprecated
     embed.description << "-# Aliased from `#{searched_tag.downcase.strip}`.\n" if alias_search?(searched_tag)
     embed.description << "\n#{wiki_preview}"
 
     embed.title = name.tr("_", " ")
     embed.url = embed_url
+
     embed.image = example_post.embed_image(channel) if example_post.present?
     embed.author = embed_author
 

@@ -51,5 +51,11 @@ class TagEmbedTest < Minitest::Test
   end
 
   def test_embed_deprecated_tag
+    embed = Discordrb::Webhooks::Embed.new
+    tag = @booru.tags.search(is_deprecated: true).first
+    tag_embed = tag.embed(embed, @channel, searched_tag: tag.name)
+
+    assert_match(/-# This tag has been deprecated./, tag_embed.description)
+    assert_equal tag_embed.title, tag.name.tr("_", " ")
   end
 end

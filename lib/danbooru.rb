@@ -71,7 +71,7 @@ class Danbooru
     "TagAliases" => {},
     "TagImplications" => {},
     "Tags" => { default_params: { "search[hide_empty]": "no",
-                                  only: "id,name,category,post_count,antecedent_alias,wiki_page", } },
+                                  only: "id,name,is_deprecated,category,post_count,antecedent_alias,wiki_page,artist", } },
     "Uploads" => {},
     "Users" => {},
     "UserFeedback" => { url: "user_feedbacks" },
