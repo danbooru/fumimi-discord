@@ -1,9 +1,8 @@
 class Fumimi::PostReport
-  include Fumimi::HasDiscordTable
-
-  def initialize(event, booru, tags)
+  def initialize(event, booru, tags, level: nil)
     @event = event
     @booru = booru
+    @level = level
     @tags = tags
   end
 
@@ -18,8 +17,12 @@ class Fumimi::PostReport
     if total_posts == 0
       "No posts under that search!"
     else
-      generate_table(headers: headers, rows: rows)
+      table.to_s
     end
+  end
+
+  def table
+    Fumimi::DiscordTable.new(headers: headers, rows: rows)
   end
 
   def url

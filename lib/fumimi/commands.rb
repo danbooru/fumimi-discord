@@ -131,6 +131,24 @@ module Fumimi::Commands
     end
   end
 
+  command :deleted_stats do |event, *tags|
+    event.channel.start_typing
+
+    event.channel.send_embed do |embed|
+      report = Fumimi::PostReport::DeletedReport.new(event, booru, tags)
+      report.send_embed(embed)
+    end
+  end
+
+  command :search_stats do |event, *tags|
+    event.channel.start_typing
+
+    event.channel.send_embed do |embed|
+      report = Fumimi::SearchReport.new(event, booru, tags)
+      report.send_embed(embed)
+    end
+  end
+
   command :modqueue do |event, *tags|
     event.channel.start_typing
 

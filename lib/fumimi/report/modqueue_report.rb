@@ -56,6 +56,7 @@ class Fumimi::PostReport::ModqueueReport < Fumimi::PostReport
       "search[group]": "uploader",
       "search[group_limit]": 25,
       "search[tags]": @tags.join(" "),
+      "search[uploader][level]": @level.presence,
     }
   end
 end

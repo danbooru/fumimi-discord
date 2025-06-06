@@ -14,7 +14,7 @@ class Fumimi::PostReport::RatingReport < Fumimi::PostReport
   def rows
     report.sort_by { |r| sort_order.index(r["rating"]) }.map do |each_rating|
       percent = (each_rating["posts"] / total_posts.to_f) * 100
-      [each_rating["rating"], each_rating["posts"].to_fs(:delimited), "%.2f" % percent]
+      [each_rating["rating"].upcase, each_rating["posts"].to_fs(:delimited), "%.2f" % percent]
     end
   end
 
@@ -29,6 +29,7 @@ class Fumimi::PostReport::RatingReport < Fumimi::PostReport
       "search[to]": end_date,
       "search[group]": "rating",
       "search[tags]": @tags.join(" "),
+      "search[uploader][level]": @level.presence,
     }
   end
 end

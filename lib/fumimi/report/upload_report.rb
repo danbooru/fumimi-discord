@@ -58,6 +58,7 @@ class Fumimi::PostReport::UploadReport < Fumimi::PostReport
       "search[to]": end_date,
       "search[period]": "year",
       "search[tags]": @tags.join(" "),
+      "search[uploader][level]": @level.presence,
     }
   end
 end
