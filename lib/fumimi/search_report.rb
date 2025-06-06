@@ -23,7 +23,7 @@ class Fumimi::SearchReport
       #{total_table.prettified}
       #{rating_report.table.prettified}
       #{status_report.table.prettified}
-      #{by_level_table.prettified}
+      #{by_level_table.prettified unless @tags.join(" ").strip =~ /user:[^\b]+/}
       ```
     EOS
   end
@@ -55,7 +55,7 @@ class Fumimi::SearchReport
     queue_rows = [
       ["unprivileged", nonbuilder_report.total_posts.to_fs(:delimited), "%.2f" % nonbuilder_percent],
       ["builder", builder_report.total_posts.to_fs(:delimited), "%.2f" % builder_percent],
-      ["contrib", abovebuilder_total.to_fs(:delimited), "%.2f" % abovebuilder_percent],
+      ["contributor", abovebuilder_total.to_fs(:delimited), "%.2f" % abovebuilder_percent],
     ]
     @by_level_table ||= Fumimi::DiscordTable.new(headers: queue_headers, rows: queue_rows)
   end
