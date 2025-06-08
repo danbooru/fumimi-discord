@@ -49,6 +49,8 @@ class Fumimi
         node.css("media-embed").map do |e|
           "- #{e.text.strip} (!#{e.attr("data-type")} ##{e.attr("data-id")})"
         end.join("\n")
+      when "table"
+        "`<table block>`"
       else
         node.text
       end
