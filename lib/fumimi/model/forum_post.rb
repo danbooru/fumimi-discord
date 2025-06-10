@@ -29,6 +29,6 @@ class Fumimi::Model::ForumPost < Fumimi::Model
   end
 
   def hidden?
-    topic.min_level > 0 && HIDE_LOCKED_FORUMS
+    topic.min_level != "None" && HIDE_LOCKED_FORUMS
   end
 end
