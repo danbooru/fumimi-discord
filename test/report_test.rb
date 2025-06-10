@@ -50,4 +50,10 @@ class PostEmbedTest < Minitest::Test
 
     assert report.description
   end
+
+  def test_future_report
+    report = Fumimi::FutureReport.new(@event, @booru)
+
+    assert report.description
+  end
 end

@@ -77,6 +77,7 @@ class Fumimi
     bot.command(:stats, description: "Show various stats about a search: `/stats <search>`", &method(:do_search_stats))
     bot.command(:modqueue, description: "List modqueue stats: `/modqueue`", &method(:do_modqueue))
     bot.command(:downbooru, description: "Check if the site's up: `/downbooru`", &method(:do_downbooru))
+    bot.command(:future, description: "Predict future post milestones", &method(:do_future))
     bot.command(:say, help_available: false, &method(:do_say))
   end
 

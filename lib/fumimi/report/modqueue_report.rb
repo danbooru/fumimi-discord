@@ -1,11 +1,11 @@
 class Fumimi::PostReport::ModqueueReport < Fumimi::PostReport
-  def title
-    "Modqueue Report"
-  end
-
   def initialize(event, booru, tags)
     super
     @tags = ["is:modqueue"]
+  end
+
+  def title
+    "Modqueue Report"
   end
 
   def description

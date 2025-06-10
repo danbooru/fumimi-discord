@@ -19,6 +19,7 @@ gem "unicode-display_width"
 
 group :development do
   gem "bundler", "~> 2.6"
+  gem "prophet-rb", "~> 0.6.0"
   gem "pry", "~> 0.15.2"
   gem "pry-byebug", "~> 3.11"
   gem "rake", "~> 13.2"
