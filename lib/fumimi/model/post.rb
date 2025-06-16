@@ -1,6 +1,24 @@
 require "fumimi/model"
 
 class Fumimi::Model::Post < Fumimi::Model
+  module Levels
+    ANONYMOUS = 0
+    RESTRICTED = 10
+    MEMBER = 20
+    GOLD = 30
+    PLATINUM = 31
+    BUILDER = 32
+    CONTRIBUTOR = 35
+    APPROVER = 37
+    MODERATOR = 40
+    ADMIN = 50
+    OWNER = 60
+  end
+
+  LEVEL_MAP = Levels.constants.to_h do |c|
+    [c, Levels.const_get(c)]
+  end
+
   NSFW_BLUR = ENV["FUMIMI_NSFW_BLUR"] || 50
   CENSORED_TAGS = ENV["FUMIMI_CENSORED_TAGS"].to_s.split
 

@@ -1,8 +1,7 @@
 class Fumimi::PostReport
-  def initialize(event, booru, tags, level: nil)
+  def initialize(event, booru, tags)
     @event = event
     @booru = booru
-    @level = level
     @tags = tags
   end
 

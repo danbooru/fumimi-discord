@@ -72,8 +72,6 @@ class Fumimi
     bot.command(:uploads, description: "List posts by year: `/uploads <search>`", &method(:do_upload_stats))
     bot.command(:uploaders, description: "List posts by uploader: `/uploaders <search>`", &method(:do_uploader_stats))
     bot.command(:approvers, description: "List posts by approver: `/approvers <search>`", &method(:do_approver_stats))
-    bot.command(:ratings, description: "List posts by rating: `/ratings <search>`", &method(:do_rating_stats))
-    bot.command(:deleted, description: "List posts by status: `/deleted <search>`", &method(:do_deleted_stats))
     bot.command(:stats, description: "Show various stats about a search: `/stats <search>`", &method(:do_search_stats))
     bot.command(:modqueue, description: "List modqueue stats: `/modqueue`", &method(:do_modqueue))
     bot.command(:downbooru, description: "Check if the site's up: `/downbooru`", &method(:do_downbooru))

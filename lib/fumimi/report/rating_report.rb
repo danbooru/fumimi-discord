@@ -29,7 +29,6 @@ class Fumimi::PostReport::RatingReport < Fumimi::PostReport
       "search[to]": end_date,
       "search[group]": "rating",
       "search[tags]": @tags.join(" "),
-      "search[uploader][level]": @level.presence,
     }
   end
 end

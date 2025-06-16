@@ -122,24 +122,6 @@ module Fumimi::Commands
     end
   end
 
-  command :rating_stats do |event, *tags|
-    event.channel.start_typing
-
-    event.channel.send_embed do |embed|
-      report = Fumimi::PostReport::RatingReport.new(event, booru, tags)
-      report.send_embed(embed)
-    end
-  end
-
-  command :deleted_stats do |event, *tags|
-    event.channel.start_typing
-
-    event.channel.send_embed do |embed|
-      report = Fumimi::PostReport::DeletedReport.new(event, booru, tags)
-      report.send_embed(embed)
-    end
-  end
-
   command :search_stats do |event, *tags|
     event.channel.start_typing
 

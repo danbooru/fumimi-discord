@@ -33,6 +33,12 @@ class PostEmbedTest < Minitest::Test
     assert report.table
   end
 
+  def test_level_report
+    report = Fumimi::PostReport::UploaderLevelReport.new(@event, @booru, @tags)
+
+    assert report.table
+  end
+
   def test_upload_report
     report = Fumimi::PostReport::UploadReport.new(@event, @booru, @tags)
 

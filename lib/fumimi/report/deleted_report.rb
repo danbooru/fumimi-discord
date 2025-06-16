@@ -26,7 +26,6 @@ class Fumimi::PostReport::DeletedReport < Fumimi::PostReport
       "search[to]": end_date,
       "search[group]": "is_deleted",
       "search[tags]": @tags.join(" "),
-      "search[uploader][level]": @level.presence,
     }
   end
 end

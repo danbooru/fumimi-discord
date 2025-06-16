@@ -23,7 +23,7 @@ class Fumimi::SearchReport
       #{total_table.prettified}
       #{rating_report.table.prettified}
       #{status_report.table.prettified}
-      #{by_level_table.prettified unless @tags.join(" ").strip =~ /user:[^\b]+/}
+      #{by_level_report.table.prettified unless @tags.join(" ").strip =~ /user:[^\b]+/}
       ```
     EOS
   end
@@ -44,27 +44,7 @@ class Fumimi::SearchReport
     @status_report ||= Fumimi::PostReport::DeletedReport.new(@event, @booru, @tags)
   end
 
-  def by_level_table
-    queue_headers = ["By Level", "Posts", "%"]
-    nonbuilder_percent = (nonbuilder_report.total_posts / total_posts.to_f) * 100
-    builder_percent = (builder_report.total_posts / total_posts.to_f) * 100
-
-    abovebuilder_total = total_posts - nonbuilder_report.total_posts - builder_report.total_posts
-    abovebuilder_percent = 100 - nonbuilder_percent - builder_percent
-
-    queue_rows = [
-      ["unprivileged", nonbuilder_report.total_posts.to_fs(:delimited), "%.2f" % nonbuilder_percent],
-      ["builder", builder_report.total_posts.to_fs(:delimited), "%.2f" % builder_percent],
-      ["contributor", abovebuilder_total.to_fs(:delimited), "%.2f" % abovebuilder_percent],
-    ]
-    @by_level_table ||= Fumimi::DiscordTable.new(headers: queue_headers, rows: queue_rows)
-  end
-
-  def nonbuilder_report
-    @nonbuilder_report ||= Fumimi::PostReport::UploadReport.new(@event, @booru, @tags, level: "<32")
-  end
-
-  def builder_report
-    @builder_report ||= Fumimi::PostReport::UploadReport.new(@event, @booru, @tags, level: "32")
+  def by_level_report
+    @by_level_report ||= Fumimi::PostReport::UploaderLevelReport.new(@event, @booru, @tags)
   end
 end
