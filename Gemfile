@@ -15,17 +15,17 @@ gem "nokogiri"
 gem "ostruct"
 gem "rdoc"
 gem "retriable"
-gem "unicode-display_width"
+gem "zache"
 
 group :development do
-  gem "bundler", "~> 2.6"
-  gem "prophet-rb", "~> 0.6.0"
-  gem "pry", "~> 0.15.2"
-  gem "pry-byebug", "~> 3.11"
-  gem "rake", "~> 13.2"
-  gem "rubocop", "~> 1.75"
+  gem "bundler"
+  gem "prophet-rb"
+  gem "pry"
+  gem "pry-byebug"
+  gem "rake"
+  gem "rubocop"
 end
 
 group :test do
-  gem "minitest", "~> 5.25"
+  gem "minitest"
 end

@@ -5,13 +5,18 @@ class Fumimi::RaffleReport
     @topic_id = topic_id
   end
 
-  def send_embed(embed)
-    embed.description = "-# Requested by <@#{@event.user.id}>\n#{description}"
-    return embed if forum_topic.blank?
+  def send_embed(embed, cache)
+    data = cache.get(:"raffle_report_#{@topic_id}", lifetime: 10 * 60) do
+      {
+        description: "-# Requested by <@#{@event.user.id}>. Cached for 10 minutes\n#{description}",
+        title: title,
+        url: @forum_topic.url,
+      }
+    end
 
-    embed.title = title
-    embed.url = @forum_topic.url
-    embed
+    embed.description = data[:description]
+    embed.title = data[:title]
+    embed.url = data[:url]
   end
 
   def title

@@ -165,6 +165,7 @@ GEM
       event_emitter
       mutex_m
       websocket
+    zache (0.15.0)
 
 PLATFORMS
   x86_64-linux
@@ -172,7 +173,7 @@ PLATFORMS
 DEPENDENCIES
   activesupport
   addressable
-  bundler (~> 2.6)
+  bundler
   connection_pool
   dentaku
   discordrb!
@@ -180,17 +181,17 @@ DEPENDENCIES
   dtext_rb!
   fumimi-discord!
   http
-  minitest (~> 5.25)
+  minitest
   nokogiri
   ostruct
-  prophet-rb (~> 0.6.0)
-  pry (~> 0.15.2)
-  pry-byebug (~> 3.11)
-  rake (~> 13.2)
+  prophet-rb
+  pry
+  pry-byebug
+  rake
   rdoc
   retriable
-  rubocop (~> 1.75)
-  unicode-display_width
+  rubocop
+  zache
 
 BUNDLED WITH
    2.6.9

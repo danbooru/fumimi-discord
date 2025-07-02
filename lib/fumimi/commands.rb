@@ -1,5 +1,9 @@
+require "zache"
+
 module Fumimi::Commands
   OWNERS = [310167383912349697, 1373735183425208331].freeze # rubocop:disable Style/NumericLiterals
+
+  zache = Zache.new
 
   def self.command(name, &block)
     define_method(:"do_#{name}") do |event, *args|
@@ -141,7 +145,7 @@ module Fumimi::Commands
 
       event.channel.send_embed do |embed|
         report = Fumimi::RaffleReport.new(event, booru, topic_id)
-        report.send_embed(embed)
+        report.send_embed(embed, zache)
       end
     end
   end
