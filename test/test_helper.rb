@@ -4,7 +4,7 @@ require "fumimi"
 require "minitest/autorun"
 
 USER_MOCK = Struct.new(:id, :username)
-CHANNEL_MOCK = Struct.new(:name) do
+CHANNEL_MOCK = Struct.new(:name, :is_nsfw) do
   attr_writer :send_embed_proc, :send_msg_proc
 
   def send_embed(msg, embeds)
@@ -16,7 +16,7 @@ CHANNEL_MOCK = Struct.new(:name) do
   end
 
   def nsfw?
-    true
+    is_nsfw
   end
 
   def start_typing
@@ -35,7 +35,7 @@ end
 module TestMocks
   def event_mock(text, &block)
     user_mock = USER_MOCK.new(123, "tester")
-    channel_mock = CHANNEL_MOCK.new("#test")
+    channel_mock = CHANNEL_MOCK.new("#test", true)
     channel_mock.send_embed_proc = lambda { |msg, embeds|
       block&.call(msg, embeds)
       true

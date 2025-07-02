@@ -37,7 +37,7 @@ class Danbooru
 
         raise Danbooru::Response::TemporaryError if resp.retry?
       end
-    rescue Danbooru::Response::TemporaryError => e
+    rescue Danbooru::Response::TemporaryError
       resp
     else
       resp

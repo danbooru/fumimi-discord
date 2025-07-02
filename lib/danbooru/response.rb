@@ -29,7 +29,7 @@ class Danbooru
 
     def json
       @json ||= JSON.parse(@response.body)
-    rescue JSON::JSONError => e
+    rescue JSON::JSONError
       # On 404 errors, the body is "not found". On 503/504 errors (returned by Cloudflare), the body is HTML.
       @json ||= {
         success: false,

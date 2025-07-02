@@ -9,15 +9,8 @@ class PostEmbedTest < Minitest::Test
     @booru = setup_booru
     @nsfw_post = @booru.posts.show(1)
 
-    @sfw_channel = Minitest::Mock.new
-    def @sfw_channel.nsfw?
-      false
-    end
-
-    @nsfw_channel = Minitest::Mock.new
-    def @nsfw_channel.nsfw?
-      true
-    end
+    @sfw_channel = CHANNEL_MOCK.new(name: "#test", is_nsfw: false)
+    @nsfw_channel = CHANNEL_MOCK.new(name: "#test", is_nsfw: true)
   end
 
   def test_nsfw_post_on_sfw_channel
