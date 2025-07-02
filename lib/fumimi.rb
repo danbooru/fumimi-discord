@@ -73,6 +73,7 @@ class Fumimi
     bot.command(:uploaders, description: "List posts by uploader: `/uploaders <search>`", &method(:do_uploader_stats))
     bot.command(:approvers, description: "List posts by approver: `/approvers <search>`", &method(:do_approver_stats))
     bot.command(:stats, description: "Show various stats about a search: `/stats <search>`", &method(:do_search_stats))
+    bot.command(:raffle, description: "Show the stats for a raffle: `/raffle <topic_id>`", &method(:do_raffle_report))
     bot.command(:modqueue, description: "List modqueue stats: `/modqueue`", &method(:do_modqueue))
     bot.command(:downbooru, description: "Check if the site's up: `/downbooru`", &method(:do_downbooru))
     bot.command(:future, description: "Predict future post milestones", &method(:do_future))

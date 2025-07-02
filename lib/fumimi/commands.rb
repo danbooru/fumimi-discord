@@ -131,6 +131,21 @@ module Fumimi::Commands
     end
   end
 
+  command :raffle_report do |event, *args|
+    topic_id = args.grep(/^(\d+)$/) { ::Regexp.last_match(1).to_i }.first
+
+    if topic_id.blank?
+      event.send_message "You must supply a forum topic ID!"
+    else
+      event.channel.start_typing
+
+      event.channel.send_embed do |embed|
+        report = Fumimi::RaffleReport.new(event, booru, topic_id)
+        report.send_embed(embed)
+      end
+    end
+  end
+
   command :modqueue do |event, *tags|
     event.channel.start_typing
 
