@@ -144,8 +144,27 @@ module Fumimi::Commands
       event.channel.start_typing
 
       event.channel.send_embed do |embed|
-        report = Fumimi::RaffleReport.new(event, booru, topic_id)
-        report.send_embed(embed, zache)
+        report = Fumimi::RaffleReport.new(event, booru, zache, topic_id)
+        report.send_embed(embed)
+      end
+    end
+  end
+
+  command :raffle_pick do |event, *args|
+    raise Fumimi::Exceptions::PermissionError unless OWNERS.include? event.user.id
+
+    topic_id = args.grep(/^(\d+)$/).first.to_i
+    winner_count = args.grep(/^(\d+)$/).second.to_i
+
+    if topic_id.blank?
+      event.send_message "You must supply a forum topic ID!"
+    else
+      event.channel.start_typing
+      winner_count = 20 if winner_count.zero?
+
+      event.channel.send_embed do |embed|
+        report = Fumimi::RaffleReport.new(event, booru, zache, topic_id)
+        report.send_winner_embed(embed, winner_count)
       end
     end
   end

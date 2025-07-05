@@ -1,26 +1,23 @@
 class Fumimi::RaffleReport
-  def initialize(event, booru, topic_id)
+  def initialize(event, booru, cache, topic_id)
     @event = event
     @booru = booru
+    @cache = cache
     @topic_id = topic_id
   end
 
-  def send_embed(embed, cache)
-    data = cache.get(:"raffle_report_#{@topic_id}", lifetime: 10 * 60) do
-      {
-        description: "-# Requested by <@#{@event.user.id}>. Cached for 10 minutes\n#{description}",
-        title: title,
-        url: @forum_topic.url,
-      }
-    end
-
-    embed.description = data[:description]
-    embed.title = data[:title]
-    embed.url = data[:url]
+  def send_embed(embed)
+    embed.description = "-# Requested by <@#{@event.user.id}>.\n#{description}"
+    embed.title = "Raffle Report for Topic ##{@topic_id}"
+    embed.url = forum_topic.url
+    embed
   end
 
-  def title
-    "Raffle Report for Topic ##{@topic_id}"
+  def send_winner_embed(embed, winner_count)
+    embed.description = "```\n#{winner_table(winner_count)}\n```"
+    embed.title = "Winners for the Raffle in Topic ##{@topic_id}"
+    embed.url = forum_topic.url
+    embed
   end
 
   def description
@@ -54,7 +51,7 @@ class Fumimi::RaffleReport
   end
 
   def forum_posts
-    @forum_posts ||= begin
+    @cache.get(:"raffle_#{@topic_id}_forum_posts", lifetime: cache_lifetime) do
       fp = []
       1.step do |page|
         page_posts = @booru.forum_posts.index("search[topic_id]": @topic_id, page: page)
@@ -75,9 +72,18 @@ class Fumimi::RaffleReport
     @valid_candidates = candidates.select { |c| c.level == 20 && c.created_at < forum_topic.created_at }
   end
 
+  def valid_candidate_map
+    valid_candidates.to_h { |c| [c.id, c] }
+  end
+
+  def cache_lifetime
+    # if the forum topic is locked, the raffle is over, so cache indefinitely
+    forum_topic.is_locked ? 2**32 : 30 * 60
+  end
+
   def posts_by_user
     # create a map of posts by user for quick access and sorting
-    @posts_by_user ||= begin
+    @cache.get(:"raffle_#{@topic_id}_posts_by_user", lifetime: cache_lifetime) do
       count_map = Hash.new { |h, key| h[key] = Hash.new(0) } # a hash of type Hash[int: Hash[string: int]]
       candidate_ids = valid_candidates.pluck(:id)
 
@@ -101,7 +107,7 @@ class Fumimi::RaffleReport
         break if page_posts.length < 200
       end
 
-      count_map
+      count_map.sort_by { |_id, posts| -posts[:total] }.to_h
     end
   end
 
@@ -124,12 +130,7 @@ class Fumimi::RaffleReport
   end
 
   def top_uploaders
-    @top_uploaders ||= begin
-      # get the top 20 uploaders by total posts (no matter the status)
-      top_uploader_map = posts_by_user.sort_by { |_id, posts| -posts[:total] }.first(20).to_h
-      top_uploaders = valid_candidates.filter { |c| top_uploader_map.include? c.id }
-      top_uploaders.sort_by { |c| top_uploader_map.to_h.pluck(0).index(c.id) }
-    end
+    posts_by_user.first(20).map { |i, _n| valid_candidate_map[i] }
   end
 
   def top_uploader_table
@@ -142,5 +143,30 @@ class Fumimi::RaffleReport
       end
       Fumimi::DiscordTable.new(headers: headers, rows: rows).prettified
     end
+  end
+
+  def winner_ids(winner_count)
+    chances = valid_candidate_map.keys
+    chances << posts_by_user.map do |user_id, count|
+      [user_id] * count[:active]
+    end
+    chances.flatten!
+    winners = winner_count.times.map do
+      winner = chances.sample
+      chances.delete(winner)
+      winner
+    end
+    winners.sort
+  end
+
+  def winner_table(winner_count)
+    headers = ["Winners", "ID", "Ups", "✔", "?", "Tot"]
+    rows = winner_ids(winner_count).map do |winner_id|
+      winner = valid_candidate_map[winner_id]
+      posts = posts_by_user[winner_id]
+      posts = Hash.new(0) if posts.blank?
+      [winner.name, winner_id, posts[:total], posts[:active], posts[:pending], winner.post_upload_count]
+    end
+    Fumimi::DiscordTable.new(headers: headers, rows: rows).prettified
   end
 end
