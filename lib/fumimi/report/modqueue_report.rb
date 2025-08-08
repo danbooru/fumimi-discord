@@ -24,11 +24,11 @@ class Fumimi::PostReport::ModqueueReport < Fumimi::PostReport
   end
 
   def appealed_posts
-    @appealed_posts ||= @booru.counts.index(tags: "is:flagged").counts.posts
+    @appealed_posts ||= @booru.counts.index(tags: "is:appealed").counts.posts
   end
 
   def flagged_posts
-    @flagged_posts ||= @booru.counts.index(tags: "is:appealed").counts.posts
+    @flagged_posts ||= @booru.counts.index(tags: "is:flagged").counts.posts
   end
 
   def modqueue_link_for(search)
