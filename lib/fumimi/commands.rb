@@ -181,7 +181,11 @@ module Fumimi::Commands
   command :downbooru do |event, *_tags|
     event.channel.start_typing
 
-    booru.posts.index(limit: 1)
+    begin
+      booru.posts.index({ limit:1 }, { timeout: 2 })
+    rescue Timeout::Error
+      raise Danbooru::Response::DownbooruError
+    end
 
     event.channel.send_embed do |embed|
       embed.title = "All good! Site's up!"

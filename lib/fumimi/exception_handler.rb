@@ -13,8 +13,10 @@ module Fumimi::ExceptionHandler
     event << "```#{e}```"
   rescue Danbooru::Response::TimeoutError
     send_error(event.channel, "Timeout Encontered!", "The query went into timeout...")
-  rescue Danbooru::Response::DownbooruError
+  rescue Danbooru::Response::MaintenanceError
     send_error(event.channel, "Downbooru!", "The site is down for maintenance!", img: "https://i.imgur.com/DHMBEGZ.png")
+  rescue Danbooru::Response::DownbooruError
+    send_error(event.channel, "Downbooru!", "The site is down!", img: "https://i.imgur.com/DHMBEGZ.png")
   rescue StandardError, RestClient::Exception => e
     event.drain
     @log.error e

@@ -8,6 +8,7 @@ class Danbooru
     class TemporaryError < StandardError; end
     class TimeoutError < StandardError; end
     class DownbooruError < StandardError; end
+    class MaintenanceError < StandardError; end
 
     attr_reader :model, :resource, :response
 
@@ -72,8 +73,12 @@ class Danbooru
       response.code == 500 && model.try(:message) == "The database timed out running your query."
     end
 
-    def downbooru?
+    def maintenance?
       response.code == 503 && (@response.body.to_s.include? "<h1>Danbooru is down for maintenance.</h1>")
+    end
+
+    def downbooru?
+      response.code >= 500
     end
 
     def retry?
