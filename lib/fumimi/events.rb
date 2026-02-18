@@ -138,9 +138,8 @@ module Fumimi::Events
     event.message.suppress_embeds
 
     post_ids = []
-    message = event.message.content.gsub(%r{\b(?!https?://\w+\.donmai\.us/posts/\d+/\w+)https?://(?!testbooru)\w+\.donmai\.us/posts/(\d+)\b[^[:space:]]*}i) do |link| # rubocop:disable Layout/LineLength
+    event.message.content.gsub(%r{\b(?!https?://\w+\.donmai\.us/posts/\d+/\w+)https?://(?!testbooru)\w+\.donmai\.us/posts/(\d+)\b[^[:space:]]*}i) do # rubocop:disable Layout/LineLength
       post_ids << ::Regexp.last_match(1).to_i
-      "<#{link}>"
     end
     post_ids.uniq!
 
@@ -155,9 +154,8 @@ module Fumimi::Events
 
   def do_convert_user_links(event)
     user_ids = []
-    event.message.content.gsub(%r{\b(?!https?://\w+\.donmai\.us/users/\d+/\w+)https?://(?!testbooru)\w+\.donmai\.us/users/(\d+)\b[^[:space:]]*}i) do |link| # rubocop:disable Layout/LineLength
+    event.message.content.gsub(%r{\b(?!https?://\w+\.donmai\.us/users/\d+/\w+)https?://(?!testbooru)\w+\.donmai\.us/users/(\d+)\b[^[:space:]]*}i) do # rubocop:disable Layout/LineLength
       user_ids << ::Regexp.last_match(1).to_i
-      "<#{link}>"
     end
     user_ids.uniq!
 

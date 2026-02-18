@@ -34,7 +34,7 @@ class Fumimi::RelatedReport
 
   def description
     return "No tags under that search!" if rows.empty?
-    
+
     table.to_s
   end
 
@@ -43,7 +43,7 @@ class Fumimi::RelatedReport
   end
 
   def headers
-    ["Name", "Frequency"]
+    %w[Name Frequency]
   end
 
   def rows
@@ -62,12 +62,12 @@ class Fumimi::RelatedReport
   end
 
   def related_tags
-    report['related_tags'].to_a
+    report["related_tags"].to_a
   end
 
   def search_params
     {
-      "limit": 25,
+      limit: 25,
       "search[category]": @category,
       "search[query]": @tags.join(" "),
     }

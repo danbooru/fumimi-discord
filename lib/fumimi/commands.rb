@@ -13,7 +13,7 @@ module Fumimi::Commands
     end
   end
 
-  def do_hi(event, *args)
+  def do_hi(event, *_args)
     event.send_message "Command received. Deleting all animes."
     sleep 1
 
@@ -91,7 +91,7 @@ module Fumimi::Commands
     nil
   end
 
-  command :burs do |event, *args|
+  command :burs do |event, *_args|
     event.channel.start_typing
 
     event.channel.send_embed do |embed|
@@ -191,7 +191,7 @@ module Fumimi::Commands
     event.channel.start_typing
 
     begin
-      booru.posts.index({ limit:1 }, { timeout: 2 })
+      booru.posts.index({ limit: 1 }, { timeout: 2 })
     rescue Timeout::Error
       raise Danbooru::Response::DownbooruError
     end
