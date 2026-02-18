@@ -99,6 +99,15 @@ module Fumimi::Commands
     end
   end
 
+  command :related_tags do |event, *args|
+    event.channel.start_typing
+
+    event.channel.send_embed do |embed|
+      report = Fumimi::RelatedReport.new(event, booru, args)
+      report.send_embed(embed)
+    end
+  end
+
   command :upload_stats do |event, *tags|
     event.channel.start_typing
 
