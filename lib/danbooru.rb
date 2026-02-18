@@ -65,7 +65,7 @@ class Danbooru
     "PostReplacements" => {},
     "PostVersions" => {},
     "PostVotes" => {},
-    "RelatedTags" => {},
+    "RelatedTags" => { url: "related_tag" },
     "SavedSearches" => {},
     "Source" => {},
     "TagAliases" => {},

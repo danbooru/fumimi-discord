@@ -69,6 +69,7 @@ class Fumimi
     bot.command(:comments, description: "List comments: `/comments <tags>`", &method(:do_comments))
     bot.command(:forum, description: "List forum posts: `/forum <text>`", &method(:do_forum))
     bot.command(:burs, description: "List BUR stats", &method(:do_burs))
+    bot.command(:related, description: "List related tags: `/related <category> <search>`", &method(:do_related_tags))
     bot.command(:uploads, description: "List posts by year: `/uploads <search>`", &method(:do_upload_stats))
     bot.command(:uploaders, description: "List posts by uploader: `/uploaders <search>`", &method(:do_uploader_stats))
     bot.command(:approvers, description: "List posts by approver: `/approvers <search>`", &method(:do_approver_stats))
