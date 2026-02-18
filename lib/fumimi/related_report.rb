@@ -16,7 +16,7 @@ class Fumimi::RelatedReport
   def initialize(event, booru, tags)
     @event = event
     @booru = booru
-    @category = self.class.category_map[tags.first&.downcase]
+    @category = self.class.category_map[tags.first&.downcase&.delete_suffix("s")]
     @tags = @category.present? ? tags[1..] : tags
   end
 
