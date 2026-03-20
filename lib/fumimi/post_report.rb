@@ -37,7 +37,7 @@ class Fumimi::PostReport
   end
 
   def end_date
-    (Time.now + 1.day).strftime("%Y-%m-%d")
+    (Time.now + 1.year).strftime("%Y-%m-%d")
   end
 
   def report
