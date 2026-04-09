@@ -1,4 +1,4 @@
-class Fumimi::SearchReport
+class Fumimi::PostSearchReport
   def initialize(event, booru, tags)
     @event = event
     @booru = booru

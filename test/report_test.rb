@@ -52,7 +52,7 @@ class PostEmbedTest < Minitest::Test
   end
 
   def test_search_report
-    report = Fumimi::SearchReport.new(@event, @booru, @tags)
+    report = Fumimi::PostSearchReport.new(@event, @booru, @tags)
 
     assert report.description
   end

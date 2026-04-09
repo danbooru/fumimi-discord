@@ -73,7 +73,8 @@ class Fumimi
     bot.command(:uploads, description: "List posts by year: `/uploads <search>`", &method(:do_upload_stats))
     bot.command(:uploaders, description: "List posts by uploader: `/uploaders <search>`", &method(:do_uploader_stats))
     bot.command(:approvers, description: "List posts by approver: `/approvers <search>`", &method(:do_approver_stats))
-    bot.command(:stats, description: "Show various stats about a search: `/stats <search>`", &method(:do_search_stats))
+    bot.command(:stats, description: "Show various stats about a search: `/stats <search>`",
+                &method(:do_post_search_stats))
     bot.command(:raffle, description: "Show the stats for a raffle: `/raffle <topic_id>`", &method(:do_raffle_report))
     bot.command(:rafflepick, description: "Pick raffle winners: `/rafflepick <topic_id> <n>`", &method(:do_raffle_pick))
     bot.command(:modqueue, description: "List modqueue stats: `/modqueue`", &method(:do_modqueue))
