@@ -1,0 +1,7 @@
+{
+    "chat.tools.terminal.autoApprove": {
+        "/^(timeout\\s+\\d+\\s+)?bundle\\s+exec\\s+ruby\\s+(-I[\\w:\\\"]+\\s+)*test\\/[\\w\\/]+\\.rb\\b/": true,
+        "/^(timeout\\s+\\d+\\s+)?bundle\\s+exec\\s+rake\\s+test\\b/": true,
+        "/^ruby\\s+-c(\\s[\\w\\/\\*]+\\.rb)+\\b/": true,
+    }
+}
