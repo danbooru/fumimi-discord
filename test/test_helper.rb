@@ -2,6 +2,7 @@ $LOAD_PATH.unshift File.expand_path("../lib", __dir__)
 
 require "fumimi"
 require "minitest/autorun"
+require "minitest/mock"
 
 USER_MOCK = Struct.new(:id, :username)
 CHANNEL_MOCK = Struct.new(:name, :is_nsfw) do
@@ -28,6 +29,7 @@ EVENT_MOCK = Struct.new(:text, :user, :channel)
 
 FUMIMI_MOCK = Class.new do
   include Fumimi::Events
+
   define_method(:log) { Logger.new(File::NULL) }
   define_method(:booru) { Danbooru.new(log: Logger.new(File::NULL)) }
 end
