@@ -58,4 +58,36 @@ class TagEmbedTest < Minitest::Test
     assert_match(/-# This tag has been deprecated./, tag_embed.description)
     assert_equal tag_embed.title, tag.name.tr("_", " ")
   end
+
+  def test_embed_tag_with_exact_name_does_not_show_alias_line
+    embed = Discordrb::Webhooks::Embed.new
+    tag = @booru.tags.search(name_or_alias_matches: "academic_test").first
+    tag_embed = tag.embed(embed, @channel, searched_tag: "academic_test")
+
+    refute_match(/-# Aliased from/, tag_embed.description)
+  end
+
+  def test_embed_artist_tag_shows_artist_category
+    embed = Discordrb::Webhooks::Embed.new
+    tag = @booru.tags.search(category: 1).first
+    tag_embed = tag.embed(embed, @channel, searched_tag: tag.name)
+
+    assert_match(/Category: Artist/, tag_embed.description)
+  end
+
+  def test_embed_copyright_tag_shows_copyright_category
+    embed = Discordrb::Webhooks::Embed.new
+    tag = @booru.tags.search(category: 3).first
+    tag_embed = tag.embed(embed, @channel, searched_tag: tag.name)
+
+    assert_match(/Category: Copyright/, tag_embed.description)
+  end
+
+  def test_embed_character_tag_shows_character_category
+    embed = Discordrb::Webhooks::Embed.new
+    tag = @booru.tags.search(category: 4).first
+    tag_embed = tag.embed(embed, @channel, searched_tag: tag.name)
+
+    assert_match(/Category: Character/, tag_embed.description)
+  end
 end

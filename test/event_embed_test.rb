@@ -123,4 +123,17 @@ class EventEmbedTest < Minitest::Test
     mock_event("```ruby\n``` post #1 ```test```") => { embeds:, ** }
     assert_equal embeds.length, 1
   end
+
+  def test_pool_embed
+    mock_event("pool #123") => { msgs:, ** }
+
+    assert_equal msgs.length, 1
+    assert_equal msgs.first, "https://danbooru.donmai.us/pools/123"
+  end
+
+  def test_nonexistent_post_embed
+    mock_event("post #999999999") => { embeds:, ** }
+
+    assert_equal embeds.length, 0
+  end
 end

@@ -1,6 +1,6 @@
 require "test_helper"
 
-class PostEmbedTest < Minitest::Test
+class ReportTest < Minitest::Test
   include TestMocks
 
   def setup
@@ -61,5 +61,29 @@ class PostEmbedTest < Minitest::Test
     report = Fumimi::FutureReport.new(@event, @booru)
 
     assert report.description
+  end
+
+  def test_uploader_report_title
+    report = Fumimi::PostReport::UploaderReport.new(@event, @booru, @tags)
+
+    assert_equal "Uploader Report for: academic\\_test", report.title
+  end
+
+  def test_rating_report_headers
+    report = Fumimi::PostReport::RatingReport.new(@event, @booru, @tags)
+
+    assert_equal %w[Rating Posts %], report.headers
+  end
+
+  def test_deleted_report_headers
+    report = Fumimi::PostReport::DeletedReport.new(@event, @booru, @tags)
+
+    assert_equal %w[Deleted Posts %], report.headers
+  end
+
+  def test_modqueue_report_title
+    report = Fumimi::PostReport::ModqueueReport.new(@event, @booru, @tags)
+
+    assert_equal "Modqueue Report", report.title
   end
 end

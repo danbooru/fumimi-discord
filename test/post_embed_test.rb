@@ -58,4 +58,33 @@ class PostEmbedTest < Minitest::Test
 
     assert_match(POST_FOOTER_PATTERN, post_embed.footer&.text)
   end
+
+  def test_flagged_post_has_red_border
+    @flagged_post = @booru.posts.index(tags: "is:flagged", limit: 1).first
+    post_embed = @flagged_post.embed(Discordrb::Webhooks::Embed.new, @sfw_channel)
+
+    assert_equal Fumimi::Colors::RED, post_embed.color
+  end
+
+  def test_pending_post_has_blue_border
+    @pending_post = @booru.posts.index(tags: "is:pending -parent:any -is:flagged rating:general", limit: 1).first
+    post_embed = @pending_post.embed(Discordrb::Webhooks::Embed.new, @sfw_channel)
+
+    assert_equal Fumimi::Colors::BLUE, post_embed.color
+  end
+
+  def test_post_with_active_children_has_green_border
+    @parent_post = @booru.posts.index(tags: "child:any -parent:any -is:flagged rating:general", limit: 1).first
+    post_embed = @parent_post.embed(Discordrb::Webhooks::Embed.new, @nsfw_channel)
+
+    assert @parent_post.has_active_children, "Expected post #{@parent_post.id} to have active children"
+    assert_equal Fumimi::Colors::GREEN, post_embed.color
+  end
+
+  def test_deleted_post_has_white_border
+    @deleted_post = @booru.posts.index(tags: "status:deleted rating:e -parent:any -is:flagged", limit: 1).first
+    post_embed = @deleted_post.embed(Discordrb::Webhooks::Embed.new, @sfw_channel)
+
+    assert_equal Fumimi::Colors::WHITE, post_embed.color
+  end
 end

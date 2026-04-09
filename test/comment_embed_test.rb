@@ -38,7 +38,7 @@ class CommentEmbedTest < Minitest::Test
   def test_sfw_post_comment_on_nsfw_channel
     embed = Discordrb::Webhooks::Embed.new
     @sfw_comment = @booru.comments.index(tags: "rating:general", limit: 1).first
-    comment_embed = @sfw_comment.embed(embed, @sfw_channel)
+    comment_embed = @sfw_comment.embed(embed, @nsfw_channel)
 
     assert_equal comment_embed.title, "comment ##{@sfw_comment.id}"
     assert_equal comment_embed.url, "https://danbooru.donmai.us/comments/#{@sfw_comment.id}"
@@ -57,5 +57,20 @@ class CommentEmbedTest < Minitest::Test
     assert_equal @comment.post.preview_variant.url.to_s, comment_embed.thumbnail&.url
     assert_nil comment_embed.color
     assert_match(COMMENT_FOOTER_PATTERN, comment_embed.footer&.text)
+  end
+
+  def test_comment_author_name_and_url
+    embed = Discordrb::Webhooks::Embed.new
+    comment_embed = @nsfw_comment.embed(embed, @sfw_channel)
+
+    assert_equal "@#{@nsfw_comment.creator.name}", comment_embed.author&.name
+    assert_equal @nsfw_comment.creator.url.to_s, comment_embed.author&.url
+  end
+
+  def test_comment_has_description
+    embed = Discordrb::Webhooks::Embed.new
+    comment_embed = @nsfw_comment.embed(embed, @sfw_channel)
+
+    assert comment_embed.description
   end
 end
