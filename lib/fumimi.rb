@@ -80,6 +80,8 @@ class Fumimi
     bot.command(:modqueue, description: "List modqueue stats: `/modqueue`", &method(:do_modqueue))
     bot.command(:downbooru, description: "Check if the site's up: `/downbooru`", &method(:do_downbooru))
     bot.command(:future, description: "Predict future post milestones", &method(:do_future))
+    bot.command(:searches, description: "Check unique IPs for a tag search: `/searches cat_ears [hour|day]",
+                &method(:do_searches))
     bot.command(:say, help_available: false, &method(:do_say))
   end
 

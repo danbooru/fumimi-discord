@@ -1,6 +1,8 @@
 require "zache"
 
-module Fumimi::Commands
+require "fumimi/exceptions"
+
+module Fumimi::Commands # rubocop:disable Metrics/ModuleLength
   OWNERS = [310167383912349697, 1373735183425208331].freeze # rubocop:disable Style/NumericLiterals
 
   zache = Zache.new
@@ -208,6 +210,14 @@ module Fumimi::Commands
 
     event.channel.send_embed do |embed|
       report = Fumimi::FutureReport.new(event, booru)
+      report.send_embed(embed)
+    end
+  end
+
+  command :searches do |event, *tags|
+    event.channel.start_typing
+    event.channel.send_embed do |embed|
+      report = Fumimi::AnalyticsReport.new(event, tags, log, zache)
       report.send_embed(embed)
     end
   end
