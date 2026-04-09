@@ -1,11 +1,11 @@
-FROM ruby:3.4.4 AS build
+FROM ruby:4.0.2 AS build
 WORKDIR /tmp
 RUN apt update && apt install -y ragel
 COPY Gemfile Gemfile.lock fumimi-discord.gemspec ./
 RUN gem install bundler:2.6.9
 RUN bundle install
 
-FROM ruby:3.4.4-slim AS fumimi
+FROM ruby:4.0.2 AS fumimi
 WORKDIR /root
 RUN apt update && apt install -y libsodium-dev libglib2.0-dev libpq-dev
 COPY --from=build /usr/local/bundle /usr/local/bundle

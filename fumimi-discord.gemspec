@@ -4,11 +4,11 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 Gem::Specification.new do |spec|
   spec.name          = "fumimi-discord"
   spec.version       = "0.1.0"
-  spec.authors       = ["evazion"]
-  spec.email         = ["noizave@gmail.com"]
+  spec.authors       = %w[evazion nonamethanks]
+  spec.email         = ["noizave@gmail.com", "hellafrickingepic@gmail.com"]
 
   spec.summary       = "A Danbooru Discord bot."
-  spec.homepage      = "https://github.com/evazion/fumimi-discord.git"
+  spec.homepage      = "https://github.com/danbooru/fumimi-discord.git"
   spec.license       = "MIT"
 
   spec.files         = []
@@ -19,6 +19,6 @@ Gem::Specification.new do |spec|
   spec.executables   = %w[fumimi]
   spec.require_paths = ["lib"]
 
-  spec.required_ruby_version = "~> 3.4"
+  spec.required_ruby_version = "4.0.2"
   spec.metadata["rubygems_mfa_required"] = "true"
 end
