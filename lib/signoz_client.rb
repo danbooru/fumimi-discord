@@ -108,6 +108,6 @@ class SigNozClient
     #                   [+(]*      any amount of spaces and parentheses, ex: tags=++(tag
     # #{tag}
     # ([+&)]|$)                   a space, a &, an end bracket, or the end of line
-    /tags=(?:[^&]*\++\(?|[+(]*)(#{tag})([+&)]|$)/.source
+    /tags=(?i)(?:[^&]*\++\(?|[+(]*)(#{tag})([+&)]|$)/.source
   end
 end
