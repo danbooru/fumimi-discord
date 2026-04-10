@@ -12,4 +12,5 @@ COPY --from=build /usr/local/bundle /usr/local/bundle
 COPY . .
 
 ENV LANG=C.UTF-8
+ENV DISCORDRB_NONACL=1
 ENTRYPOINT ["bundle", "exec", "ruby", "bin/fumimi"]
