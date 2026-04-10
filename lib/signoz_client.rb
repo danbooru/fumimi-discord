@@ -3,10 +3,9 @@ require "json"
 require "time"
 
 class SigNozClient # rubocop:disable Metrics/ClassLength
-  def initialize(base, email, password, log, cache)
+  def initialize(base, api_key, log, cache)
     @base     = base
-    @email    = email
-    @password = password
+    @api_key  = api_key
     @log      = log
     @cache    = cache
   end
@@ -30,23 +29,10 @@ class SigNozClient # rubocop:disable Metrics/ClassLength
     end
   end
 
-  def token
-    @cache.get(:signoz_token_response)
-  rescue RuntimeError
-    @log.info("[Signoz] Fetching signoz token...")
-    response = HTTP.post("#{@base}/api/v1/login", json: { email: @email, password: @password })
-    json_data = JSON.parse(response.body)
-    token = json_data["data"]["accessJwt"]
-    # cache signoz token for its lifetime minus 1 minute, just to make sure :^)
-    token_lifetime = (json_data["data"]["accessJwtExpiry"] - Time.now.to_i - 60).to_i
-    @cache.put(:signoz_token_response, token, lifetime: token_lifetime)
-    token
-  end
-
   def post_json(url, payload)
     response = HTTP.post(url,
                          json: payload,
-                         headers: { Accept: "application/json", Authorization: "Bearer #{token}" })
+                         headers: { Accept: "application/json", "SIGNOZ-API-KEY": @api_key })
 
     if response.code >= 400
       @log.info("[Signoz] Response: #{response.body}")

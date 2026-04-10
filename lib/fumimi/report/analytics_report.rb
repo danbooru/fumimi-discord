@@ -83,16 +83,14 @@ class Fumimi::AnalyticsReport
     return @client if defined? @client
 
     begin
-      signoz_email = ENV.fetch("FUMIMI_SIGNOZ_EMAIL")
-      signoz_password = ENV.fetch("FUMIMI_SIGNOZ_PASSWORD")
+      signoz_api_key = ENV.fetch("SIGNOZ_API_KEY")
     rescue KeyError
       raise Fumimi::Exceptions::MissingCredentialsError
     end
 
     @client ||= SigNozClient.new(
       "https://signoz.donmai.us",
-      signoz_email,
-      signoz_password,
+      signoz_api_key,
       @log,
       @cache
     )
