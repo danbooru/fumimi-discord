@@ -50,7 +50,7 @@ class Fumimi::AnalyticsReport
   end
 
   def table
-    headers = ["Contains", "Searches <24h", "Searches <1h"]
+    headers = ["Contains", "Users <24h", "Users <1h"]
     rows = [[@tags.join(" + ").truncate(20, omission: "…"),
              searches_in_last_hours(24),
              searches_in_last_hours(1),]]
