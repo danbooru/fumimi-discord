@@ -48,7 +48,12 @@ class SigNozClient
 
   def create_payload(since_ms, until_ms, tags)
     # creates a payload for a query that gets the amount of searches for a tag every hour for the past 24 days
-    expression = "(k8s.daemonset.name = 'nginx-ingress-controller' AND url CONTAINS '/posts?' AND url CONTAINS 'tags='"
+    expression = "(k8s.daemonset.name = 'nginx-ingress-controller'"
+    expression += " AND userAgent CONTAINS 'Mozilla/5.0' "
+    expression += " AND userAgent NOT CONTAINS 'compatible'" # googlebot, etc
+    expression += " AND url CONTAINS '/posts?'"
+    expression += " AND url CONTAINS 'tags='"
+
     tags.each do |tag|
       expression += " and url REGEXP '#{tag_regex(tag)}'"
     end
