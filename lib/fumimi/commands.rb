@@ -223,7 +223,9 @@ module Fumimi::Commands # rubocop:disable Metrics/ModuleLength
   end
 
   command :allsearches do |event, *args|
-    raise Fumimi::Exceptions::PermissionError unless OWNERS.include? event.user.id
+    if event.user.roles.none? { |role| %w[mod admin].include? role.name.downcase }
+      raise Fumimi::Exceptions::PermissionError
+    end
 
     days = args.first.to_i
     raise Fumimi::Exceptions::CommandArgumentError, "First argument must be # of days" if days < 1
