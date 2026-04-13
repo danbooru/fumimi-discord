@@ -1,9 +1,10 @@
 class Fumimi::AnalyticsReport
-  def initialize(event, tags, log, cache)
+  def initialize(event, tags, log, cache, range: 1.day)
     @event = event
     @tags = tags.sort
     @log = log
     @cache = cache
+    @range = range
   end
 
   def send_embed(embed)
@@ -50,15 +51,20 @@ class Fumimi::AnalyticsReport
   end
 
   def table
-    headers = ["Contains", "Users <24h", "Users <1h"]
-    rows = [[@tags.join(" + ").truncate(20, omission: "…"),
-             searches_in_last_hours(24),
-             searches_in_last_hours(1),]]
+    if @range == 1.day
+      headers = ["Contains", "Users <24h", "Users <1h"]
+      rows = [[@tags.join(" + ").truncate(20, omission: "…"),
+               searches_in_last_hours(24),
+               searches_in_last_hours(1),]]
 
-    if negated_tags.present?
-      rows << [negated_tags.join(" + ").truncate(20, omission: "…"),
-               negated_searches_in_last_hours(24),
-               negated_searches_in_last_hours(1),]
+      if negated_tags.present?
+        rows << [negated_tags.join(" + ").truncate(20, omission: "…"),
+                 negated_searches_in_last_hours(24),
+                 negated_searches_in_last_hours(1),]
+      end
+    else
+      headers = ["Contains", "Users <#{@range.in_days.to_i}d"]
+      rows = [[@tags.join(" + ").truncate(20, omission: "…"), searches_in_last_hours(@range.in_hours.to_i)]]
     end
 
     Fumimi::DiscordTable.new(headers: headers, rows: rows)

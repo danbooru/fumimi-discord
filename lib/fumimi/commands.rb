@@ -221,5 +221,20 @@ module Fumimi::Commands # rubocop:disable Metrics/ModuleLength
       report.send_embed(embed)
     end
   end
+
+  command :allsearches do |event, *args|
+    raise Fumimi::Exceptions::PermissionError unless OWNERS.include? event.user.id
+
+    days = args.first.to_i
+    raise Fumimi::Exceptions::CommandArgumentError, "First argument must be # of days" if days < 1
+
+    tags = args[1..]
+
+    event.channel.start_typing
+    event.channel.send_embed do |embed|
+      report = Fumimi::AnalyticsReport.new(event, tags, log, zache, range: days.days)
+      report.send_embed(embed)
+    end
+  end
   nil
 end

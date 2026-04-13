@@ -82,6 +82,7 @@ class Fumimi
     bot.command(:future, description: "Predict future post milestones", &method(:do_future))
     bot.command(:searches, description: "Check unique IPs for a tag search: `/searches cat_ears [hour|day]",
                 &method(:do_searches))
+    bot.command(:allsearches, help_available: false, &method(:do_allsearches)) # only for admins
     bot.command(:say, help_available: false, &method(:do_say))
   end
 

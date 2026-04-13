@@ -9,6 +9,7 @@ module Fumimi::ExceptionHandler
     response = block.call
   rescue Fumimi::Exceptions::PermissionError
     event.drain
+    send_error(event.channel, "No Permissions", "You can't do that! Stop touching me that way!", img: "https://imgur.com/fZ4Hr2g.jpg")
   rescue Fumimi::Exceptions::CommandArgumentError => e
     event << "```#{e}```"
   rescue Danbooru::Response::TimeoutError
