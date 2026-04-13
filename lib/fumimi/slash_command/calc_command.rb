@@ -1,7 +1,7 @@
-require "fumimi/command"
+require "fumimi/slash_command"
 require "active_support/number_helper"
 
-class Fumimi::Command::CalcCommand < Fumimi::Command
+class Fumimi::SlashCommand::CalcCommand < Fumimi::SlashCommand
   def self.name
     "calc"
   end

@@ -60,6 +60,7 @@ class Fumimi
       text = text.gsub("_", "\\_") # Escape underscores
       text = text.gsub("*", "\\*") # Escape asterisks
       text = text.gsub("~", "\\~") # Escape tildes
+      text = text.gsub(/`.*?`/m) { |match| match.gsub(/\\([_*~])/, '\1') } # unescape them again in code blocks
       text = "#{text[..3000]}\n**[...text was too long and has been cut off]**" if text.size > 3000
       text
     end

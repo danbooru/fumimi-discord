@@ -32,27 +32,6 @@ module Fumimi::Commands # rubocop:disable Metrics/ModuleLength
     event << "`#{result.inspect}`"
   end
 
-  def do_forum(event, *args)
-    event.channel.start_typing
-
-    limit = args.grep(/limit:(\d+)/i) { ::Regexp.last_match(1).to_i }.first
-    limit ||= 3
-    limit = [5, limit].min
-    body = args.grep_v(/limit:(\d+)/i).join(" ")
-
-    forum_posts = booru.forum_posts.index("search[body_matches]": body,
-                                          "search[topic][is_private]": false,
-                                          limit: limit)
-    embeds = forum_posts.map do |forum_post|
-      next if forum_post.hidden?
-
-      embed = Discordrb::Webhooks::Embed.new
-      forum_post.embed(embed, event.channel)
-    end
-    event.channel.send_embed("", embeds) unless embeds.blank?
-    nil
-  end
-
   def do_comments(event, *tags)
     limit = tags.grep(/limit:(\d+)/i) { ::Regexp.last_match(1).to_i }.first
     limit ||= 3
@@ -170,7 +149,7 @@ module Fumimi::Commands # rubocop:disable Metrics/ModuleLength
     begin
       booru.posts.index({ limit: 1 }, { timeout: 2 })
     rescue Timeout::Error
-      raise Danbooru::Response::DownbooruError
+      raise Danbooru::Exceptions::DownbooruError
     end
 
     event.channel.send_embed do |embed|

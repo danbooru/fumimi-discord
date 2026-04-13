@@ -57,16 +57,12 @@ class Fumimi
   end
 
   def register_commands
-    Fumimi::Command.register_all(bot, server_id, log: log)
-
-    bot.message(contains: Regexp.union(@@regex_listeners.pluck(:regex)), &method(:respond_to_embeds))
+    # bot.message(contains: Regexp.union(@@regex_listeners.pluck(:regex)), &method(:respond_to_embeds))
 
     bot.message(contains: %r{https?://\w+\.donmai\.us/posts/\d+}i, &method(:do_convert_post_links))
     bot.message(contains: %r{https?://\w+\.donmai\.us/users/\d+}i, &method(:do_convert_user_links))
 
-    bot.command(:ruby, description: "Evaluate a ruby expression", &method(:do_ruby))
     bot.command(:comments, description: "List comments: `/comments <tags>`", &method(:do_comments))
-    bot.command(:forum, description: "List forum posts: `/forum <text>`", &method(:do_forum))
     bot.command(:burs, description: "List BUR stats", &method(:do_burs))
     bot.command(:related, description: "List related tags: `/related <category> <search>`", &method(:do_related_tags))
     bot.command(:uploads, description: "List posts by year: `/uploads <search>`", &method(:do_upload_stats))
@@ -82,6 +78,7 @@ class Fumimi
     bot.command(:searches, description: "Check unique IPs for a tag search: `/searches cat_ears [hour|day]",
                 &method(:do_searches))
     bot.command(:allsearches, help_available: false, &method(:do_allsearches)) # only for admins
+    bot.command(:ruby, description: "Evaluate a ruby expression", &method(:do_ruby))
     bot.command(:say, help_available: false, &method(:do_say))
   end
 
@@ -94,6 +91,9 @@ class Fumimi
       token: token,
       prefix: "/"
     )
+
+    Fumimi::SlashCommand.register_all(bot: bot, server_id: server_id, log: log, booru: @booru)
+    Fumimi::Event.register_all(bot: bot, log: log, booru: @booru)
 
     register_commands
     bot.run(:async)

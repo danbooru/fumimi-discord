@@ -38,7 +38,7 @@ class Danbooru
     "DtextPreviews" => {},
     "FavoriteGroups" => {},
     "Favorites" => {},
-    "ForumPosts" => { default_params: { only: "id,body,created_at,creator,topic,bulk_update_request" } },
+    "ForumPosts" => { default_params: { only: "id,body,created_at,creator,topic,bulk_update_request,votes" } },
     "ForumTopics" => {},
     "IpBans" => {},
     "IqdbQueries" => {},

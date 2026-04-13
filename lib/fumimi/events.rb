@@ -20,6 +20,8 @@ module Fumimi::Events
     end
   end
 
+  # TODO: implement asset #123 etc
+
   def self.respond(name, regex, &block)
     @@regex_listeners ||= []
     @@regex_listeners << { name: name, regex: regex, block: block }
@@ -30,13 +32,6 @@ module Fumimi::Events
 
     post = booru.posts.show(post_id)
     post.create_embed(event.channel) if post.succeeded?
-  end
-
-  respond(:forum_id, /forum #[0-9]+/i) do |event, text|
-    forum_post_id = text[/[0-9]+/].to_i
-
-    forum_post = booru.forum_posts.show(forum_post_id)
-    forum_post.create_embed(event.channel) if forum_post.succeeded? && !forum_post.hidden?
   end
 
   respond(:topic_id, /topic #[0-9]+/i) do |event, text|
@@ -52,13 +47,6 @@ module Fumimi::Events
 
     comment = booru.comments.show(id)
     comment.create_embed(event.channel) if comment.succeeded?
-  end
-
-  respond(:bur_id, /bur #[0-9]+/i) do |event, text|
-    id = text[/[0-9]+/]
-
-    bur = booru.bulk_update_requests.show(id)
-    bur.create_embed(event.channel) if bur.succeeded?
   end
 
   respond(:tag_link, /\[\[ [^\]]+ \]\]/x) do |event, text|
@@ -85,7 +73,7 @@ module Fumimi::Events
     embed
   end
 
-  respond(:search_link, /{{ [^\}]+ }}/x) do |event, text|
+  respond(:search_link, /{{ [^}]+ }}/x) do |event, text|
     search = text[/[^{}]+/]
     limit = (text[/limit:(\d+)/, 1] || 3).to_i
 

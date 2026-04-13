@@ -116,12 +116,12 @@ module TestMocks
   def mock_slash_command(name, args: {}, user_id: 123, username: "tester", channel_name: "#test", is_nsfw: true)
     command_name = name.to_s.delete_prefix("/")
     command_class = ObjectSpace.each_object(Class).find do |klass|
-      klass < Fumimi::Command && klass.name == command_name
+      klass < Fumimi::SlashCommand && klass.name == command_name
     end
     raise ArgumentError, "Unknown slash command: #{name}" unless command_class
 
     event = slash_event_mock(args:, user_id:, username:, channel_name:, is_nsfw:)
-    command = command_class.new(event)
+    command = command_class.new(event, booru: setup_booru)
     command.safe_handle_event
     event.captured
   end

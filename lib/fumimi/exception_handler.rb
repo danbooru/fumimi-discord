@@ -31,7 +31,7 @@ module Fumimi::ExceptionHandler
       event.edit_response(embeds: [error_embed])
     else
       event.drain
-      event.channel.send_embed(error_embed)
+      event.channel.send_embed("", error_embed)
     end
   end
 

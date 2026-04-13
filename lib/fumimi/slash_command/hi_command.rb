@@ -1,6 +1,6 @@
-require "fumimi/command"
+require "fumimi/slash_command"
 
-class Fumimi::Command::HiCommand < Fumimi::Command
+class Fumimi::SlashCommand::HiCommand < Fumimi::SlashCommand
   def self.name
     "hi"
   end

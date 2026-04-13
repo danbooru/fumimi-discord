@@ -3,29 +3,40 @@ require "fumimi/model"
 class Fumimi::Model::BulkUpdateRequest < Fumimi::Model
   include Fumimi::HasDTextFields
 
-  def embed(embed, channel) # rubocop:disable Lint/UnusedMethodArgument
-    embed.title = shortlink
-    embed.url = url
+  # no embed, just embed the forum post instead so we can also get votes and argument
 
-    embed.author = Discordrb::Webhooks::EmbedAuthor.new(
-      name: forum_topic.title,
-      url: try(:forum_post)&.url || forum_topic.url # for when a BUR is removed from a forum post
-    )
-
-    embed.description = pretty_bur
-
-    embed.footer = embed_footer
-    embed.footer.text = "Status: #{status.titleize} | #{embed_footer.text}"
-
-    embed
+  def pretty_title
+    "**[BUR ##{id}](#{url}) (#{status.titleize})**"
   end
 
-  def pretty_bur
-    lines = script.split("\n").compact
-    body = lines.first(10).join("\n")
-    body += "\n...and #{lines.size - 10} more lines." if lines.size > 10
+  def pretty_script
+    lines = normalized_script.split("\n")
+    body = "```\n#{lines.first(10).join("\n\n")}```"
+    body += "...and #{lines.size - 10} more lines." if lines.size > 10
     sanitize_for_discord(body)
   end
+
+  def normalized_script
+    script.split("\n").map do |line|
+      line.gsub(/^create implication/, "imply")
+          .gsub(/^remove implication/, "unimply")
+          .gsub(/^create alias/, "alias")
+          .gsub(/^remove alias/, "unalias")
+          .gsub(/^mass update/, "update")
+    end.map(&:strip).compact.join("\n").gsub(" -> ", " → ")
+  end
+
+  # def pretty_status
+  #   color = case status
+  #           when "approved" || "processing"
+  #             "green"
+  #           when "pending"
+  #             "blue"
+  #           else
+  #             "red"
+  #           end
+  #   Fumimi::Colors.message_to_ansi(message: status.titleize, color: color)
+  # end
 
   def self.send_embed_for_stats(embed, booru, max_topics: 5)
     bulk_update_requests = booru.bulk_update_requests.index(limit: 1000, "search[status]": "pending")
