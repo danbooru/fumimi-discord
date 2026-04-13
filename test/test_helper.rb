@@ -5,6 +5,12 @@ require "minitest/autorun"
 require "minitest/mock"
 
 USER_MOCK = Struct.new(:id, :username)
+MESSAGE_MOCK = Struct.new(:content) do
+  def delete
+    nil
+  end
+end
+
 class CHANNEL_MOCK
   attr_reader :name, :messages, :embeds
 
@@ -15,7 +21,7 @@ class CHANNEL_MOCK
     @embeds = []
   end
 
-  def send_embed(msg = nil, embeds = nil)
+  def send_embed(msg = nil, embeds = nil, *_rest)
     @messages << msg unless msg.nil?
     @embeds.concat(Array(embeds)) if embeds
     true
@@ -36,12 +42,13 @@ class CHANNEL_MOCK
 end
 
 class EVENT_MOCK
-  attr_reader :text, :user, :channel
+  attr_reader :text, :user, :channel, :message
 
   def initialize(text:, user:, channel:)
     @text = text
     @user = user
     @channel = channel
+    @message = nil
   end
 
   def captured
@@ -49,6 +56,15 @@ class EVENT_MOCK
       msgs: @channel.messages,
       embeds: @channel.embeds,
     }
+  end
+
+  def send_message(msg)
+    @channel.send_message(msg)
+    MESSAGE_MOCK.new(msg)
+  end
+
+  def drain
+    nil
   end
 end
 
@@ -139,6 +155,14 @@ module TestMocks
   def mock_event(mocked_text)
     event = event_mock(mocked_text)
     fumimi.respond_to_embeds(event)
+    text = mocked_text.gsub(/```.*?```/m, "").gsub(/`.*?`/m, "")
+    Fumimi::Event.subclasses.each do |event_class|
+      matches = text.scan(event_class.pattern).flatten.uniq
+      next if matches.empty?
+
+      handler = event_class.new(event, log: Logger.new(File::NULL), booru: setup_booru)
+      handler.safe_handle_event
+    end
     event.captured
   end
 

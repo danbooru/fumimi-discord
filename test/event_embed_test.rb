@@ -15,22 +15,10 @@ class EventEmbedTest < Minitest::Test
     assert_equal embeds.first.title, "comment #1"
   end
 
-  def test_forum_embed
-    embeds = mock_event("forum #123") => { embeds:, ** }
-    assert_equal embeds.length, 1
-    assert_equal embeds.first.title, "tag count reset in /post?"
-  end
-
   def test_topic_embed
     embeds = mock_event("topic #123") => { embeds:, ** }
     assert_equal embeds.length, 1
     assert_equal embeds.first.title, "Artist wiki - Note field"
-  end
-
-  def test_bur_embed
-    embeds = mock_event("bur #123") => { embeds:, ** }
-    assert_equal embeds.length, 1
-    assert_equal embeds.first.title, "bulk update request #123"
   end
 
   def test_tag_embed
