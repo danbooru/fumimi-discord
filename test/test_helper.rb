@@ -26,6 +26,7 @@ CHANNEL_MOCK = Struct.new(:name, :is_nsfw) do
 end
 
 EVENT_MOCK = Struct.new(:text, :user, :channel)
+SLASH_EVENT_MOCK = Struct.new(:user, :channel, :channels, :options)
 
 FUMIMI_MOCK = Class.new do
   include Fumimi::Events
@@ -35,6 +36,38 @@ FUMIMI_MOCK = Class.new do
 end
 
 module TestMocks
+  def slash_event_mock(args: {}, user_id: 123, username: "tester", channel_name: "#test", is_nsfw: true)
+    user_mock = USER_MOCK.new(user_id, username)
+    channel_mock = CHANNEL_MOCK.new(channel_name, is_nsfw)
+
+    SLASH_EVENT_MOCK.new(user_mock, channel_mock, { channel_name => channel_mock }, args)
+  end
+
+  def mock_slash_command(name, args: {}, user_id: 123, username: "tester", channel_name: "#test", is_nsfw: true)
+    command_name = name.to_s.delete_prefix("/")
+    command_class = ObjectSpace.each_object(Class).find do |klass|
+      klass < Fumimi::Command && klass.name == command_name
+    end
+    raise ArgumentError, "Unknown slash command: #{name}" unless command_class
+
+    event = slash_event_mock(args:, user_id:, username:, channel_name:, is_nsfw:)
+    command = command_class.new(event)
+
+    captured = {
+      replies: [],
+      messages: [],
+    }
+
+    command.stub(:reply_to_user, ->(message) { captured[:replies] << message }) do
+      command.stub(:send_to_channel, ->(message, channel: nil) { captured[:messages] << message }) do
+        command.stub(:sleep, nil) do
+          command.respond_to_event
+        end
+      end
+    end
+    captured
+  end
+
   def event_mock(text, &block)
     user_mock = USER_MOCK.new(123, "tester")
     channel_mock = CHANNEL_MOCK.new("#test", true)

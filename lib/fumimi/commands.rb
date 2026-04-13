@@ -15,24 +15,6 @@ module Fumimi::Commands # rubocop:disable Metrics/ModuleLength
     end
   end
 
-  def do_hi(event, *_args)
-    event.send_message "Command received. Deleting all animes."
-    sleep 1
-
-    event.send_message "5..."
-    sleep 1
-    event.send_message "4..."
-    sleep 1
-    event.send_message "3..."
-    sleep 1
-    event.send_message "2..."
-    sleep 1
-    event.send_message "1..."
-    sleep 1
-
-    event.send_message "Done! Animes deleted."
-  end
-
   def do_say(event, *args)
     raise Fumimi::Exceptions::PermissionError unless OWNERS.include? event.user.id
 
