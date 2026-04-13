@@ -28,17 +28,17 @@ class Danbooru
       options = default_options.merge(options)
       resp = nil
 
-      Retriable.retriable(on: Danbooru::Response::TemporaryError, **options) do
+      Retriable.retriable(on: Danbooru::Exceptions::TemporaryError, **options) do
         resp = booru.http.request(method, url + path, **params)
         resp = Danbooru::Response.new(self, resp)
 
-        raise Danbooru::Response::TimeoutError if resp.timeout?
-        raise Danbooru::Response::MaintenanceError if resp.maintenance?
-        raise Danbooru::Response::DownbooruError if resp.downbooru?
+        raise Danbooru::Exceptions::TimeoutError if resp.timeout?
+        raise Danbooru::Exceptions::MaintenanceError if resp.maintenance?
+        raise Danbooru::Exceptions::DownbooruError if resp.downbooru?
 
-        raise Danbooru::Response::TemporaryError if resp.retry?
+        raise Danbooru::Exceptions::TemporaryError if resp.retry?
       end
-    rescue Danbooru::Response::TemporaryError
+    rescue Danbooru::Exceptions::TemporaryError
       resp
     else
       resp

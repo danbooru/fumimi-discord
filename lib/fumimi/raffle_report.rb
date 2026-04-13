@@ -88,7 +88,7 @@ class Fumimi::RaffleReport
       candidate_ids = valid_candidates.pluck(:id)
 
       1.step do |page|
-        raise Danbooru::Response::TimeoutError if page > 50 # abort if by some unknown reason the bot broke
+        raise Danbooru::Exceptions::TimeoutError if page > 50 # abort if by some unknown reason the bot broke
 
         page_posts = @booru.posts.index(tags: post_search_string, page: page).to_a.each do |post|
           next unless candidate_ids.include? post.uploader.id

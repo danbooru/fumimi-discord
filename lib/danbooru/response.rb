@@ -5,11 +5,6 @@ require "pp"
 
 class Danbooru
   class Response
-    class TemporaryError < StandardError; end
-    class TimeoutError < StandardError; end
-    class DownbooruError < StandardError; end
-    class MaintenanceError < StandardError; end
-
     attr_reader :model, :resource, :response
 
     delegate_missing_to :model
