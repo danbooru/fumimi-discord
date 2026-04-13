@@ -2,6 +2,7 @@ require "fumimi/model"
 
 class Fumimi::Model::BulkUpdateRequest < Fumimi::Model
   include Fumimi::HasDTextFields
+
   def embed(embed, channel) # rubocop:disable Lint/UnusedMethodArgument
     embed.title = shortlink
     embed.url = url
@@ -44,12 +45,17 @@ class Fumimi::Model::BulkUpdateRequest < Fumimi::Model
     embed.fields << Discordrb::Webhooks::EmbedField.new(inline: false, name: "", value: "")
 
     burs_by_topic = bulk_update_requests.group_by { |bur| bur.forum_topic.id }.sort_by { |_, bur| -bur.count }
-    burs_by_topic.first(max_topics).map do |_, burs|
+    burs_by_topic.map do |_, burs|
+      break if embed.fields.length > 10
+
       topic = burs.first.forum_topic
       topic_pending_link = pending_link_for_topic(booru, topic)
-      embed.fields << Discordrb::Webhooks::EmbedField.new(inline: false,
-                                                          name: topic.title,
-                                                          value: "[#{burs.count} pending](#{topic_pending_link})")
+
+      embed_name = topic.title
+      embed_value = "[#{burs.count} pending](#{topic_pending_link})"
+      break if embed_length(embed) + embed_value.length + embed_name.length >= 5800
+
+      embed.fields << Discordrb::Webhooks::EmbedField.new(inline: false, name: embed_name, value: embed_value)
     end
   end
 

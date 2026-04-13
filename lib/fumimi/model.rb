@@ -61,6 +61,15 @@ class Fumimi::Model
     printer.pp("#<#{self.class.name}:0x#{object_id.to_s(16)}>" => attributes.to_h)
   end
 
+  def self.embed_length(embed)
+    length = embed.title.length
+    length += embed.author&.name&.length || 0
+    length += embed.footer&.text || 0
+    length += embed.description.length
+    length += embed.fields.sum { |e| e.name.length + e.value.length }
+    length
+  end
+
   protected
 
   def cast_attributes(attributes)
