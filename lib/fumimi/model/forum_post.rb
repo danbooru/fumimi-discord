@@ -35,7 +35,6 @@ class Fumimi::Model::ForumPost < Fumimi::Model
 
       #{bulk_update_request.pretty_title}
       #{bulk_update_request.pretty_script}
-
       ```ansi
       Score: #{pretty_votes}```
     EOS

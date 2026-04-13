@@ -11,9 +11,9 @@ class Fumimi::Model::BulkUpdateRequest < Fumimi::Model
 
   def pretty_script
     lines = normalized_script.split("\n")
-    body = "```\n#{lines.first(10).join("\n\n")}```"
+    body = "```\n#{lines.first(10).join("\n")}```"
     body += "...and #{lines.size - 10} more lines." if lines.size > 10
-    sanitize_for_discord(body)
+    body
   end
 
   def normalized_script
