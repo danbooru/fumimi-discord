@@ -6,7 +6,11 @@ class Fumimi::Command::HiCommand < Fumimi::Command
   end
 
   def self.description
-    "Say hi to Fumimi"
+    "Say hi to Fumimi!"
+  end
+
+  def show_typing_activity?
+    false
   end
 
   def respond_to_event

@@ -5,19 +5,29 @@ require "minitest/autorun"
 require "minitest/mock"
 
 USER_MOCK = Struct.new(:id, :username)
-CHANNEL_MOCK = Struct.new(:name, :is_nsfw) do
-  attr_writer :send_embed_proc, :send_msg_proc
+class CHANNEL_MOCK
+  attr_reader :name, :messages, :embeds
 
-  def send_embed(msg, embeds)
-    @send_embed_proc.call(msg, embeds)
+  def initialize(name:, is_nsfw: true)
+    @name = name
+    @is_nsfw = is_nsfw
+    @messages = []
+    @embeds = []
+  end
+
+  def send_embed(msg = nil, embeds = nil)
+    @messages << msg unless msg.nil?
+    @embeds.concat(Array(embeds)) if embeds
+    true
   end
 
   def send_message(msg)
-    @send_msg_proc.call(msg)
+    @messages << msg
+    true
   end
 
   def nsfw?
-    is_nsfw
+    @is_nsfw
   end
 
   def start_typing
@@ -25,8 +35,67 @@ CHANNEL_MOCK = Struct.new(:name, :is_nsfw) do
   end
 end
 
-EVENT_MOCK = Struct.new(:text, :user, :channel)
-SLASH_EVENT_MOCK = Struct.new(:user, :channel, :channels, :options)
+class EVENT_MOCK
+  attr_reader :text, :user, :channel
+
+  def initialize(text:, user:, channel:)
+    @text = text
+    @user = user
+    @channel = channel
+  end
+
+  def captured
+    {
+      msgs: @channel.messages,
+      embeds: @channel.embeds,
+    }
+  end
+end
+
+class SLASH_EVENT_MOCK
+  attr_reader :user, :channel, :channels, :options, :replies, :reply_embeds, :deferred
+
+  def initialize(user:, channel:, channels:, options: {})
+    @user = user
+    @channel = channel
+    @channels = channels
+    @options = options
+    @replies = []
+    @reply_embeds = []
+    @deferred = false
+  end
+
+  def is_a?(val)
+    val == Discordrb::Events::ApplicationCommandEvent || super
+  end
+
+  def defer(ephemeral: false)
+    @deferred = true
+    ephemeral
+  end
+
+  def edit_response(content: nil, embeds: nil)
+    @replies << content if content
+    @reply_embeds.concat(Array(embeds)) if embeds
+  end
+
+  def drain
+    nil
+  end
+
+  def sleep(_seconds = nil)
+    nil
+  end
+
+  def captured
+    {
+      replies: @replies,
+      messages: @channel.messages,
+      reply_embeds: @reply_embeds,
+      deferred: @deferred,
+    }
+  end
+end
 
 FUMIMI_MOCK = Class.new do
   include Fumimi::Events
@@ -38,9 +107,10 @@ end
 module TestMocks
   def slash_event_mock(args: {}, user_id: 123, username: "tester", channel_name: "#test", is_nsfw: true)
     user_mock = USER_MOCK.new(user_id, username)
-    channel_mock = CHANNEL_MOCK.new(channel_name, is_nsfw)
+    channel_mock = CHANNEL_MOCK.new(name: channel_name, is_nsfw: is_nsfw)
 
-    SLASH_EVENT_MOCK.new(user_mock, channel_mock, { channel_name => channel_mock }, args)
+    SLASH_EVENT_MOCK.new(user: user_mock, channel: channel_mock, channels: { channel_name => channel_mock },
+                         options: args)
   end
 
   def mock_slash_command(name, args: {}, user_id: 123, username: "tester", channel_name: "#test", is_nsfw: true)
@@ -52,35 +122,14 @@ module TestMocks
 
     event = slash_event_mock(args:, user_id:, username:, channel_name:, is_nsfw:)
     command = command_class.new(event)
-
-    captured = {
-      replies: [],
-      messages: [],
-    }
-
-    command.stub(:reply_to_user, ->(message) { captured[:replies] << message }) do
-      command.stub(:send_to_channel, ->(message, channel: nil) { captured[:messages] << message }) do
-        command.stub(:sleep, nil) do
-          command.respond_to_event
-        end
-      end
-    end
-    captured
+    command.safe_handle_event
+    event.captured
   end
 
-  def event_mock(text, &block)
+  def event_mock(text)
     user_mock = USER_MOCK.new(123, "tester")
-    channel_mock = CHANNEL_MOCK.new("#test", true)
-    channel_mock.send_embed_proc = lambda { |msg, embeds|
-      block&.call(msg, embeds)
-      true
-    }
-    channel_mock.send_msg_proc = lambda { |msg|
-      block&.call(msg)
-      true
-    }
-    event_mock = EVENT_MOCK.new(text, user_mock, channel_mock)
-    event_mock
+    channel_mock = CHANNEL_MOCK.new(name: "#test", is_nsfw: true)
+    EVENT_MOCK.new(text:, user: user_mock, channel: channel_mock)
   end
 
   def fumimi
@@ -88,19 +137,9 @@ module TestMocks
   end
 
   def mock_event(mocked_text)
-    captured = {
-      msgs: [],
-      embeds: [],
-    }
-    event = event_mock(mocked_text) do |msg, embeds|
-      captured[:msgs] << msg
-      captured[:embeds] << embeds
-    end
-
+    event = event_mock(mocked_text)
     fumimi.respond_to_embeds(event)
-    captured[:msgs].flatten!
-    captured[:embeds].flatten!
-    captured
+    event.captured
   end
 
   def setup_booru

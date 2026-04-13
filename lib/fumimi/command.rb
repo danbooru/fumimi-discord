@@ -7,7 +7,9 @@ require "fumimi/exception_handler"
 # * one of message, embed, or respond_to_event
 #
 # Optional implementations:
+# * self.options
 # * self.description
+# * self.show_typing_activity?
 class Fumimi::Command
   include Fumimi::ExceptionHandler
 
@@ -36,9 +38,14 @@ class Fumimi::Command
   def embed
   end
 
+  # Whether to send the "fumimi is typing..." message to the chat.
+  def show_typing_activity?
+    true
+  end
+
   def respond_to_event
     if message
-      send_to_channel(message)
+      reply_to_user(message)
     elsif embed
       raise NotImplementedError
       # @event.channel.send_embed(embed)
@@ -49,7 +56,7 @@ class Fumimi::Command
 
   # Utility alias for event.options
   def arguments
-    @event.options
+    @event.options.with_indifferent_access
   end
 
   # Reply to the user
@@ -67,19 +74,20 @@ class Fumimi::Command
     channel.send_message(message)
   end
 
-  @@commands = [] # rubocop:disable Style/ClassVars
-
-  def self.inherited(klass)
-    @@commands << klass
-    super
-  end
-
   def initialize(event, cache: nil, log: nil)
     @event = event
     @cache = cache || Zache.new
     @log = log
   end
 
+  @@commands = [] # rubocop:disable Style/ClassVars
+
+  def self.inherited(kommand)
+    @@commands << kommand
+    super
+  end
+
+  # Registers all classes that inherit this class as commands
   def self.register_all(bot, server_id, log: nil)
     opts = {
       cache: Zache.new,
@@ -97,11 +105,17 @@ class Fumimi::Command
 
       # register how the command replies
       bot.application_command(command.name) do |event|
-        klass = command.new(event, **opts)
-        klass.execute_and_rescue_errors(event, slash_command: true) do
-          klass.respond_to_event
-        end
+        kommand = command.new(event, **opts)
+        kommand.safe_handle_event
       end
+    end
+  end
+
+  # makes sure that fumimi exceptions are invoked to sanitize errors
+  def safe_handle_event
+    execute_and_rescue_errors(@event) do
+      @event.channel.start_typing if show_typing_activity?
+      respond_to_event
     end
   end
 

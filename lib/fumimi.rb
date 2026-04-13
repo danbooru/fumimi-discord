@@ -64,7 +64,6 @@ class Fumimi
     bot.message(contains: %r{https?://\w+\.donmai\.us/posts/\d+}i, &method(:do_convert_post_links))
     bot.message(contains: %r{https?://\w+\.donmai\.us/users/\d+}i, &method(:do_convert_user_links))
 
-    bot.command(:calc, description: "Calculate a math expression", &method(:do_calc))
     bot.command(:ruby, description: "Evaluate a ruby expression", &method(:do_ruby))
     bot.command(:comments, description: "List comments: `/comments <tags>`", &method(:do_comments))
     bot.command(:forum, description: "List forum posts: `/forum <text>`", &method(:do_forum))

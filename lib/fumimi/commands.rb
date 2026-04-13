@@ -24,13 +24,6 @@ module Fumimi::Commands # rubocop:disable Metrics/ModuleLength
     channels[channel_name].send_message(message)
   end
 
-  command :calc do |event, *args|
-    args = args.join(" ")
-
-    result = Dentaku::Calculator.new.evaluate(args)
-    event << "`#{args} = #{result}`"
-  end
-
   command :ruby do |event, *args|
     raise Fumimi::Exceptions::PermissionError unless OWNERS.include? event.user.id
 
