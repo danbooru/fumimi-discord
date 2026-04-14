@@ -21,26 +21,16 @@ class Fumimi::Event
     raise NotImplementedError, "Must implement embeds for pattern results."
   end
 
-  # Utility alias for event.channel
-  def channel
-    @event.channel
-  end
-
-  def user
-    @event&.user
-  end
-
   def respond_to_event
     text = @event.text.gsub(/```.*?```/m, "").gsub(/`.*?`/m, "") # remove code blocks
     matches = text.scan(self.class.pattern).flatten.uniq
     return unless matches
 
-    @log.info("command='#{self.class.pattern.inspect}' args=`#{text}` user_id=#{user.id} username='#{user.username}' channel='##{channel.name}'") # rubocop:disable Layout/LineLength
+    @log.info("command='#{self.class.pattern.inspect}' args=`#{text}` user_id=#{@event.user.id} username='#{@event.user.username}' channel='##{@event.channel.name}'") # rubocop:disable Layout/LineLength
 
     begin
       embeds = embeds_for(matches)
-    rescue Danbooru::Exceptions::BadRequestError
-      # usually IDs that are too long
+    rescue Danbooru::Exceptions::BadRequestError # IDs are too long, like "post #1111111111111111111"
       embeds = []
     end
     return if embeds.blank?
@@ -72,7 +62,7 @@ class Fumimi::Event
 
   # makes sure that fumimi exceptions are invoked to sanitize errors
   def safe_handle_event
-    execute_and_rescue_errors(@event) do
+    execute_and_rescue_errors(@event, wait_message: false) do
       respond_to_event
     end
   end

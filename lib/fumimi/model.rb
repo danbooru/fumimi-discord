@@ -43,6 +43,10 @@ class Fumimi::Model
     url
   end
 
+  def embed_title
+    shortlink
+  end
+
   def embed_timestamp
     created_at
   end

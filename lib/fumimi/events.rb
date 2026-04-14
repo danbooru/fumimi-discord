@@ -27,13 +27,6 @@ module Fumimi::Events
     @@regex_listeners << { name: name, regex: regex, block: block }
   end
 
-  respond(:post_id, /post #[0-9]+/i) do |event, text|
-    post_id = text[/[0-9]+/].to_i
-
-    post = booru.posts.show(post_id)
-    post.create_embed(event.channel) if post.succeeded?
-  end
-
   respond(:comment_id, /comment #[0-9]+/i) do |event, text|
     id = text[/[0-9]+/]
 

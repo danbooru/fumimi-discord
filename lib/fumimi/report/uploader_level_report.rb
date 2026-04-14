@@ -17,7 +17,7 @@ class Fumimi::PostReport::UploaderLevelReport < Fumimi::PostReport
   end
 
   def levels_for_search
-    @levels_for_search ||= report.sort_by { |u| Fumimi::Model::Post::Levels.const_get(u["level"].upcase.to_sym) }
+    @levels_for_search ||= report.sort_by { |u| Fumimi::Model::User::Levels.const_get(u["level"].upcase.to_sym) }
   end
 
   def search_params

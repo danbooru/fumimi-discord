@@ -121,41 +121,35 @@ FUMIMI_MOCK = Class.new do
 end
 
 module TestMocks
-  def slash_event_mock(args: {}, user_id: 123, username: "tester", channel_name: "#test", is_nsfw: true)
-    user_mock = USER_MOCK.new(user_id, username)
-    channel_mock = CHANNEL_MOCK.new(name: channel_name, is_nsfw: is_nsfw)
-
-    SLASH_EVENT_MOCK.new(user: user_mock, channel: channel_mock, channels: { channel_name => channel_mock },
-                         options: args)
+  def fumimi
+    @fumimi ||= FUMIMI_MOCK.new
   end
 
-  def mock_slash_command(name, args: {}, user_id: 123, username: "tester", channel_name: "#test", is_nsfw: true)
+  def mock_slash_command(name, args: {}, user_id: 123, username: "tester", channel_name: "#test", nsfw_channel: false)
     command_name = name.to_s.delete_prefix("/")
     command_class = ObjectSpace.each_object(Class).find do |klass|
       klass < Fumimi::SlashCommand && klass.name == command_name
     end
     raise ArgumentError, "Unknown slash command: #{name}" unless command_class
 
-    event = slash_event_mock(args:, user_id:, username:, channel_name:, is_nsfw:)
+    user_mock = USER_MOCK.new(user_id, username)
+    channel_mock = CHANNEL_MOCK.new(name: channel_name, is_nsfw: nsfw_channel)
+
+    event = SLASH_EVENT_MOCK.new(user: user_mock, channel: channel_mock, channels: { channel_name => channel_mock },
+                                 options: args)
+
     command = command_class.new(event, log: Logger.new(File::NULL), booru: setup_booru)
     command.safe_handle_event
     event.captured
   end
 
-  def event_mock(text)
-    user_mock = USER_MOCK.new(123, "tester")
-    channel_mock = CHANNEL_MOCK.new(name: "#test", is_nsfw: true)
-    EVENT_MOCK.new(text:, user: user_mock, channel: channel_mock)
-  end
+  def mock_event(text, user_id: 123, username: "tester", channel_name: "#test", nsfw_channel: false)
+    user_mock = USER_MOCK.new(user_id, username)
+    channel_mock = CHANNEL_MOCK.new(name: channel_name, is_nsfw: nsfw_channel)
+    event = EVENT_MOCK.new(text: text, user: user_mock, channel: channel_mock)
 
-  def fumimi
-    @fumimi ||= FUMIMI_MOCK.new
-  end
-
-  def mock_event(mocked_text)
-    event = event_mock(mocked_text)
     fumimi.respond_to_embeds(event)
-    text = mocked_text.gsub(/```.*?```/m, "").gsub(/`.*?`/m, "")
+
     Fumimi::Event.subclasses.each do |event_class|
       matches = text.scan(event_class.pattern).flatten.uniq
       next if matches.empty?

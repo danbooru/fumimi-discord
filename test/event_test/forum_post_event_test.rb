@@ -9,8 +9,8 @@ class ForumEventTest < Minitest::Test
     assert_equal "tag count reset in /post?", embeds.first.title
   end
 
-  def test_no_post
-    embeds = mock_event("post #101010101") => { embeds:, ** }
+  def test_no_forum
+    embeds = mock_event("forum #99999999") => { embeds:, ** }
     assert_equal 0, embeds.length
   end
 end

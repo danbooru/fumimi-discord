@@ -13,7 +13,7 @@ module Fumimi::ExceptionHandler
     thinking_message&.delete unless slash_command?(event)
   end
 
-  def send_error(event, exception)
+  def embed_for_exception(exception)
     error_embed = Discordrb::Webhooks::Embed.new
 
     if exception.is_a?(Fumimi::Exceptions::FumimiException) || exception.is_a?(Danbooru::Exceptions::DanbooruError)
@@ -26,12 +26,16 @@ module Fumimi::ExceptionHandler
     error_embed.description ||= exception.to_s
     embed_image ||= "https://i.imgur.com/0CsFWP3.png"
     error_embed.image = Discordrb::Webhooks::EmbedImage.new(url: embed_image)
+    error_embed
+  end
 
+  def send_error(event, exception)
+    embed = embed_for_exception(exception)
     if slash_command?(event)
-      event.edit_response(embeds: [error_embed])
+      event.edit_response(embeds: [embed])
     else
       event.drain
-      event.channel.send_embed("", error_embed)
+      event.channel.send_embed("", embed)
     end
   end
 

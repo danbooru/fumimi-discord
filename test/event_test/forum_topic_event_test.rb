@@ -9,7 +9,7 @@ class TopicEventTest < Minitest::Test
     assert_equal "Artist wiki - Note field", embeds.first.title
   end
 
-  def test_no_post
+  def test_no_topic
     embeds = mock_event("topic #1010101") => { embeds:, ** }
     assert_equal 0, embeds.length
   end

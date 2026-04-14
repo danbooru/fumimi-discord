@@ -2,6 +2,24 @@ require "fumimi/model"
 require "active_support/core_ext"
 
 class Fumimi::Model::User < Fumimi::Model
+  module Levels
+    ANONYMOUS = 0
+    RESTRICTED = 10
+    MEMBER = 20
+    GOLD = 30
+    PLATINUM = 31
+    BUILDER = 32
+    CONTRIBUTOR = 35
+    APPROVER = 37
+    MODERATOR = 40
+    ADMIN = 50
+    OWNER = 60
+  end
+
+  LEVEL_MAP = Levels.constants.to_h do |c|
+    [c, Levels.const_get(c)]
+  end
+
   def embed(embed, channel) # rubocop:disable Lint/UnusedMethodArgument
     embed.title = styled_at_name
     embed.url = url

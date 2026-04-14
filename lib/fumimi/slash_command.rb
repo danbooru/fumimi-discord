@@ -49,14 +49,6 @@ class Fumimi::SlashCommand
     @event.options.with_indifferent_access
   end
 
-  def channel
-    @event.channel
-  end
-
-  def user
-    @event.user
-  end
-
   def respond_to_event
     msg, embs = message, embeds
     raise NotImplementedError, "No message or embeds to return." if msg.blank? && embs.blank?
@@ -106,8 +98,8 @@ class Fumimi::SlashCommand
   # makes sure that fumimi exceptions are invoked to sanitize errors
   def safe_handle_event
     execute_and_rescue_errors(@event) do
-      @log.info("command='/#{self.class.name}' args=`#{@event.options}` user_id=#{user.id} username='#{user.username}' channel='##{channel.name}'") # rubocop:disable Layout/LineLength
-      channel.start_typing if show_typing_activity?
+      @log.info("command='/#{self.class.name}' args=`#{@event.options}` user_id=#{@event.user.id} username='#{@event.user.username}' channel='##{@event.channel.name}'") # rubocop:disable Layout/LineLength
+      @event.channel.start_typing if show_typing_activity?
       respond_to_event
     end
   end
