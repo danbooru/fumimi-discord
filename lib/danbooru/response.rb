@@ -72,6 +72,10 @@ class Danbooru
       response.code == 503 && (@response.body.to_s.include? "<h1>Danbooru is down for maintenance.</h1>")
     end
 
+    def bad_request?
+      response.code >= 500 && ["ActiveModel::RangeError"].include?(json["error"])
+    end
+
     def downbooru?
       response.code >= 500
     end

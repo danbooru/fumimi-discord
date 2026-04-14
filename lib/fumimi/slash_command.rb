@@ -113,7 +113,7 @@ class Fumimi::SlashCommand
   # makes sure that fumimi exceptions are invoked to sanitize errors
   def safe_handle_event
     execute_and_rescue_errors(@event) do
-      @log.info("command='#{self.class.name}' args=`#{@event.options}` user_id=#{user.id} username='#{user.username}' channel='##{channel.name}'") # rubocop:disable Layout/LineLength
+      @log.info("command='/#{self.class.name}' args=`#{@event.options}` user_id=#{user.id} username='#{user.username}' channel='##{channel.name}'") # rubocop:disable Layout/LineLength
       channel.start_typing if show_typing_activity?
       respond_to_event
     end

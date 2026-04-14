@@ -12,6 +12,12 @@ module Danbooru::Exceptions
     end
   end
 
+  class BadRequestError < DanbooruError
+    def embed_description
+      "Bad parameters."
+    end
+  end
+
   class TemporaryError < DanbooruError
   end
 

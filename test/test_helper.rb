@@ -137,7 +137,7 @@ module TestMocks
     raise ArgumentError, "Unknown slash command: #{name}" unless command_class
 
     event = slash_event_mock(args:, user_id:, username:, channel_name:, is_nsfw:)
-    command = command_class.new(event, booru: setup_booru)
+    command = command_class.new(event, log: Logger.new(File::NULL), booru: setup_booru)
     command.safe_handle_event
     event.captured
   end

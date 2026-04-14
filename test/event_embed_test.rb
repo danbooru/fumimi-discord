@@ -15,12 +15,6 @@ class EventEmbedTest < Minitest::Test
     assert_equal embeds.first.title, "comment #1"
   end
 
-  def test_topic_embed
-    embeds = mock_event("topic #123") => { embeds:, ** }
-    assert_equal embeds.length, 1
-    assert_equal embeds.first.title, "Artist wiki - Note field"
-  end
-
   def test_tag_embed
     embeds = mock_event("[[fate (series)]]") => { embeds:, ** }
     assert_equal embeds.length, 1

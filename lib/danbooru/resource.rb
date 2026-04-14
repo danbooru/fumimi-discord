@@ -33,6 +33,7 @@ class Danbooru
         resp = Danbooru::Response.new(self, resp)
 
         raise Danbooru::Exceptions::TimeoutError if resp.timeout?
+        raise Danbooru::Exceptions::BadRequestError if resp.bad_request?
         raise Danbooru::Exceptions::MaintenanceError if resp.maintenance?
         raise Danbooru::Exceptions::DownbooruError if resp.downbooru?
 

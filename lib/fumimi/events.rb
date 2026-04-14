@@ -34,14 +34,6 @@ module Fumimi::Events
     post.create_embed(event.channel) if post.succeeded?
   end
 
-  respond(:topic_id, /topic #[0-9]+/i) do |event, text|
-    topic_id = text[/[0-9]+/]
-
-    forum_posts = booru.forum_posts.search(topic_id: topic_id)
-    forum_post = forum_posts.to_a.last
-    forum_post.create_embed(event.channel) if forum_post.present? && !forum_post.hidden?
-  end
-
   respond(:comment_id, /comment #[0-9]+/i) do |event, text|
     id = text[/[0-9]+/]
 

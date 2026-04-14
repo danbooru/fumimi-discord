@@ -5,6 +5,7 @@ module Fumimi::Exceptions
     end
 
     def embed_description
+      # Automatically populated from the message, if not present
     end
 
     def embed_image
@@ -42,5 +43,6 @@ module Fumimi::Exceptions
     end
   end
 
-  class MissingCredentialsError < FumimiException; end
+  class MissingCredentialsError < FumimiException
+  end
 end

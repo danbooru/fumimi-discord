@@ -16,7 +16,7 @@ module Fumimi::ExceptionHandler
   def send_error(event, exception)
     error_embed = Discordrb::Webhooks::Embed.new
 
-    if [Fumimi::Exceptions::FumimiException, Danbooru::Exceptions::DanbooruError].member? exception.class
+    if exception.is_a?(Fumimi::Exceptions::FumimiException) || exception.is_a?(Danbooru::Exceptions::DanbooruError)
       error_embed.title = exception&.embed_title
       error_embed.description = exception&.embed_description
       embed_image = exception&.embed_image

@@ -30,7 +30,6 @@ class Fumimi::Event
     @event&.user
   end
 
-  # by default the bot responds to the user.
   def respond_to_event
     text = @event.text.gsub(/```.*?```/m, "").gsub(/`.*?`/m, "") # remove code blocks
     matches = text.scan(self.class.pattern).flatten.uniq
@@ -38,7 +37,12 @@ class Fumimi::Event
 
     @log.info("command='#{self.class.pattern.inspect}' args=`#{text}` user_id=#{user.id} username='#{user.username}' channel='##{channel.name}'") # rubocop:disable Layout/LineLength
 
-    embeds = embeds_for(matches)
+    begin
+      embeds = embeds_for(matches)
+    rescue Danbooru::Exceptions::BadRequestError
+      # usually IDs that are too long
+      embeds = []
+    end
     return if embeds.blank?
 
     @event.channel.send_embed(
