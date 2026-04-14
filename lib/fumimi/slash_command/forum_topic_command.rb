@@ -11,10 +11,10 @@ class Fumimi::SlashCommand::ForumTopicCommand < Fumimi::SlashCommand
 
   def self.options
     [
-      { type: OPTION_TYPES[:integer], name: "limit", description: "Max amount to return.", required: false, min_value: 1, max_value: 10 }, # rubocop:disable Layout/LineLength
-      { type: OPTION_TYPES[:string], name: "creator", description: "Created by a user.", required: false },
       # https://github.com/danbooru/danbooru/issues/6394
       # { type: OPTION_TYPES[:string], name: "contains", description: "Contains this string.", required: false },
+      { type: OPTION_TYPES[:string], name: "creator", description: "Created by a user.", required: false },
+      { type: OPTION_TYPES[:integer], name: "limit", description: "Max amount to return.", required: false, min_value: 1, max_value: 10 }, # rubocop:disable Layout/LineLength
     ]
   end
 
@@ -24,11 +24,9 @@ class Fumimi::SlashCommand::ForumTopicCommand < Fumimi::SlashCommand
 
   def forum_posts
     forum_post_ids = forum_topics.map { |t| t.original_post.id }
-
     raise Fumimi::Exceptions::NoResultsError if forum_post_ids.blank?
 
     forum_posts = @booru.forum_posts.index("search[id]": forum_post_ids.join(",")).reject(&:hidden?)
-
     raise Fumimi::Exceptions::NoResultsError if forum_posts.blank?
 
     forum_posts

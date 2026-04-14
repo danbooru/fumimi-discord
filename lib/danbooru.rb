@@ -30,7 +30,7 @@ class Danbooru
     "ArtistVersions" => {},
     "Bans" => {},
     "BulkUpdateRequests" => { default_params: { only: "id,script,user,forum_topic,forum_post,created_at,status,tags" } },
-    "Comments" => { default_params: { group_by: "comment", only: "id,body,created_at,creator,post" } },
+    "Comments" => { default_params: { group_by: "comment", only: "id,body,created_at,creator,post,score" } },
     "CommentVotes" => {},
     "Counts" => { url: "counts/posts", default_params: { limit: nil } },
     "DelayedJobs" => {},

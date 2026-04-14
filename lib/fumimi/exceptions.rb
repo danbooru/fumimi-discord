@@ -21,6 +21,10 @@ module Fumimi::Exceptions
     def embed_description
       "Fumimi tried really hard, but there were no results..."
     end
+
+    def embed_image
+      "https://cdn.donmai.us/original/4d/5d/4d5dc247841712306a142267eb07cb0a.jpg"
+    end
   end
 
   class CommandArgumentError < FumimiException

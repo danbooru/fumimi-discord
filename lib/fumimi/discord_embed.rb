@@ -5,7 +5,7 @@ class Fumimi::DiscordEmbed < Discordrb::Webhooks::Embed
   MAX_MESSAGE_LENGTH = 5800
 
   def add_field(name: nil, value: nil, inline: nil)
-    if length + (value&.length || 0) + (name&.length || 0) > MAX_MESSAGE_LENGTH
+    if length + (value.to_s.length || 0) + (name.to_s.length || 0) > MAX_MESSAGE_LENGTH
       raise Fumimi::Exceptions::FumimiException
     end
 
@@ -16,7 +16,7 @@ class Fumimi::DiscordEmbed < Discordrb::Webhooks::Embed
     length = title.length
     length += author&.name&.length || 0
     length += footer&.text || 0
-    length += description.length
+    length += description&.length || 0
     length += fields&.sum { |e| e.name.length + e.value.length } || 0
     length
   end

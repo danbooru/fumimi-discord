@@ -27,13 +27,6 @@ module Fumimi::Events
     @@regex_listeners << { name: name, regex: regex, block: block }
   end
 
-  respond(:comment_id, /comment #[0-9]+/i) do |event, text|
-    id = text[/[0-9]+/]
-
-    comment = booru.comments.show(id)
-    comment.create_embed(event.channel) if comment.succeeded?
-  end
-
   respond(:tag_link, /\[\[ [^\]]+ \]\]/x) do |event, text|
     title = text[/[^\[\]]+/]
     next unless title.present?

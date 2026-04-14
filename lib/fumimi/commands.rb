@@ -32,21 +32,6 @@ module Fumimi::Commands # rubocop:disable Metrics/ModuleLength
     event << "`#{result.inspect}`"
   end
 
-  def do_comments(event, *tags)
-    limit = tags.grep(/limit:(\d+)/i) { ::Regexp.last_match(1).to_i }.first
-    limit ||= 3
-    limit = [5, limit].min
-    tags = tags.grep_v(/limit:(\d+)/i)
-
-    comments = booru.comments.index("search[post_tags_match]": tags.join(" "), limit: limit)
-    embeds = comments.map do |comment|
-      embed = Discordrb::Webhooks::Embed.new
-      comment.embed(embed, event.channel)
-    end
-    event.channel.send_embed("", embeds) unless embeds.blank?
-    nil
-  end
-
   command :related_tags do |event, *args|
     event.channel.start_typing
 

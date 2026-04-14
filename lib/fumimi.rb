@@ -62,7 +62,6 @@ class Fumimi
     bot.message(contains: %r{https?://\w+\.donmai\.us/posts/\d+}i, &method(:do_convert_post_links))
     bot.message(contains: %r{https?://\w+\.donmai\.us/users/\d+}i, &method(:do_convert_user_links))
 
-    bot.command(:comments, description: "List comments: `/comments <tags>`", &method(:do_comments))
     bot.command(:related, description: "List related tags: `/related <category> <search>`", &method(:do_related_tags))
     bot.command(:uploads, description: "List posts by year: `/uploads <search>`", &method(:do_upload_stats))
     bot.command(:uploaders, description: "List posts by uploader: `/uploaders <search>`", &method(:do_uploader_stats))

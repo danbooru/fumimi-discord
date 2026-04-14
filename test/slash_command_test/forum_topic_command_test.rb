@@ -21,7 +21,7 @@ class ForumTopicCommandTest < Minitest::Test
     assert forum_post.timestamp
   end
 
-  def test_error
+  def test_no_results
     mock_slash_command("/topics", args: { limit: 1, creator: "~~~" }) => { reply_embeds:, ** }
     assert_equal reply_embeds.length, 1
     error = reply_embeds.first
