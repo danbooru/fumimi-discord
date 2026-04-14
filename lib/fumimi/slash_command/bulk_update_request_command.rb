@@ -6,7 +6,7 @@ class Fumimi::SlashCommand::BursCommand < Fumimi::SlashCommand
   end
 
   def self.description
-    "Show a report on active Bulk Update Requests."
+    "Show a report on pending Bulk Update Requests."
   end
 
   def embeds
