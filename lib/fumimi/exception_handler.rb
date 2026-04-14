@@ -4,7 +4,7 @@ module Fumimi::ExceptionHandler
   def execute_and_rescue_errors(event, wait_message: true, &block)
     thinking_message = create_thinking_message(event) if wait_message
     response = block.call
-  rescue StandardError, RestClient::Exception => e
+  rescue StandardError, RestClient::Exception, NotImplementedError => e
     @log&.error e
     send_error(event, e)
   else

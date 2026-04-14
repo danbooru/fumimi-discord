@@ -18,7 +18,7 @@ class ForumTopicCommandTest < Minitest::Test
     assert_nil forum_post.image
     assert forum_post.author.name
     assert_match %r{^https://danbooru.donmai.us/users/\d+$}, forum_post.author.url
-    assert_match(FORUM_POST_FOOTER_PATTERN, forum_post.footer&.text)
+    assert forum_post.timestamp
   end
 
   def test_error

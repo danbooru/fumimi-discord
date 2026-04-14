@@ -5,6 +5,8 @@ require "ostruct"
 require "pp"
 
 class Fumimi::Model
+  include Fumimi::HasDiscordEmbed
+
   attr_reader :api, :attributes, :resource_name, :url
 
   delegate_missing_to :attributes
@@ -37,19 +39,12 @@ class Fumimi::Model
     end
   end
 
-  def create_embed(channel, **options)
-    e = Discordrb::Webhooks::Embed.new
-    embed(e, channel, **options)
-    e
+  def embed_url
+    url
   end
 
-  def embed_field_for(name, value, inline: true)
-    Discordrb::Webhooks::EmbedField.new(inline: inline, name: name, value: value)
-  end
-
-  def embed_footer
-    timestamp = "#{created_at.strftime("%F")} at #{created_at.strftime("%l:%M %p")}".gsub(/ +/, " ")
-    Discordrb::Webhooks::EmbedFooter.new(text: timestamp)
+  def embed_timestamp
+    created_at
   end
 
   def booru
@@ -59,15 +54,6 @@ class Fumimi::Model
   alias_method :inspect, :pretty_inspect
   def pretty_print(printer)
     printer.pp("#<#{self.class.name}:0x#{object_id.to_s(16)}>" => attributes.to_h)
-  end
-
-  def self.embed_length(embed)
-    length = embed.title.length
-    length += embed.author&.name&.length || 0
-    length += embed.footer&.text || 0
-    length += embed.description.length
-    length += embed.fields.sum { |e| e.name.length + e.value.length }
-    length
   end
 
   protected

@@ -47,14 +47,6 @@ module Fumimi::Commands # rubocop:disable Metrics/ModuleLength
     nil
   end
 
-  command :burs do |event, *_args|
-    event.channel.start_typing
-
-    event.channel.send_embed do |embed|
-      Fumimi::Model::BulkUpdateRequest.send_embed_for_stats(embed, booru)
-    end
-  end
-
   command :related_tags do |event, *args|
     event.channel.start_typing
 

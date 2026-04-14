@@ -15,6 +15,8 @@ class Fumimi::SlashCommand
   include Fumimi::ClassRegister
   include Fumimi::ExceptionHandler
 
+  OPTION_TYPES = { string: 3, integer: 4, boolean: 5, number: 10 }.freeze
+
   # The name of the command.
   #   Example: "calc"
   def self.name
@@ -26,12 +28,8 @@ class Fumimi::SlashCommand
   def self.description
   end
 
-  # The options of a command, in discord.rb style
-  # https://github.com/shardlab/discordrb/blob/main/examples/slash_commands.rb#L36-L38
-  #   Ex.
-  #     cmd.string("option name", "help message", required: true)
-  #     cmd.boolean("option name", "help message")
-  def self.options(cmd)
+  # { type: OPTION_TYPES[:integer], name: "", description: ".", required: false, min_value: 1, max_value: 10 },
+  def self.options
   end
 
   # Override this to reply with a single message
@@ -59,11 +57,12 @@ class Fumimi::SlashCommand
     @event.user
   end
 
-  # by default the bot responds to the user.
-  # commands that do more than one message at once should override this
-  # note that multiple embeds can be sent at once by overriding .embeds instead
   def respond_to_event
-    @event.edit_response(content: message, embeds: embeds)
+    msg, embs = message, embeds
+    raise NotImplementedError, "No message or embeds to return." if msg.blank? && embs.blank?
+    raise TypeError, ".embeds must be an array" if embs.present? && !embs.is_a?(Array)
+
+    @event.edit_response(content: msg, embeds: embs)
   end
 
   # Reply to the user
@@ -83,29 +82,23 @@ class Fumimi::SlashCommand
 
   ## Internal methods
 
-  def initialize(event, cache: nil, log: nil, booru: nil)
+  def initialize(event, cache: nil, log: nil, booru: nil, **_args)
     @event = event
     @cache = cache || Zache.new
     @booru = booru
     @log = log
   end
 
-  def self.register(command, **opts)
-    bot = opts[:bot]
-    log = opts[:log]
-    server_id = opts[:server_id]
+  def self.register_all(**opts)
+    register_slash_commands(**opts) if outdated_commands?(**opts)
+    super
+  end
+
+  # register how the command replies to a message
+  def self.register(command, bot:, **opts)
     opts[:cache] ||= Zache.new
-    init_opts = opts.slice(:cache, :log, :booru)
-
-    # register the command
-    log.debug("Registering slash command /#{command.name}.")
-    bot.register_application_command(command.name, command.description, server_id: server_id) do |cmd|
-      command.options(cmd)
-    end
-
-    # register how the command replies
     bot.application_command(command.name) do |event|
-      kommand = command.new(event, **init_opts)
+      kommand = command.new(event, **opts)
       kommand.safe_handle_event
     end
   end
@@ -117,5 +110,43 @@ class Fumimi::SlashCommand
       channel.start_typing if show_typing_activity?
       respond_to_event
     end
+  end
+
+  # Discord ratelimits slash command endpoints
+  # So we just check if the existing commands are misaligned before we try resyncing them.
+  # This is not an issue in prod, but in dev when testing stuff you can quickly get ratelimited limit.
+  def self.outdated_commands?(bot:, server_id:, log:, **_args)
+    response = Discordrb::API::Application.get_guild_commands(bot.token,
+                                                              bot.profile.id,
+                                                              server_id)
+
+    existing_commands = JSON.parse(response.body, symbolize_names: true).index_by { |c| c[:name] }
+
+    subclasses.map(&:to_h).any? do |new_command|
+      existing = existing_commands[new_command[:name]]
+      outdated = existing.nil?
+            || existing[:description] != new_command[:description]
+            || (existing[:options] || []) != new_command[:options]
+
+      log.debug("Refreshing outdated slash command /#{new_command[:name]}.") if outdated
+      outdated
+    end
+  end
+
+  def self.register_slash_commands(bot:, server_id:, **_args)
+    # register the commands in bulk to avoid ratelimiting, and to make sure they're all refreshed
+
+    Discordrb::API::Application.bulk_overwrite_guild_commands(
+      bot.token,
+      bot.profile.id,
+      server_id,
+      subclasses.map(&:to_h)
+    )
+  end
+
+  def self.to_h # rubocop:disable Metrics/CyclomaticComplexity
+    command_options = options&.map(&:with_indifferent_access)&.map(&:symbolize_keys) || []
+    command_options.each { |opt| opt.delete(:required) if opt[:required] == false }
+    { name: name, description: description, options: command_options }.symbolize_keys
   end
 end

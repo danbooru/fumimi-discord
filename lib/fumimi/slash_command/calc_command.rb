@@ -10,8 +10,10 @@ class Fumimi::SlashCommand::CalcCommand < Fumimi::SlashCommand
     "Calculate a mathematical expression."
   end
 
-  def self.options(cmd)
-    cmd.string("expression", "The math expression.", required: true)
+  def self.options
+    [
+      { type: OPTION_TYPES[:string], name: "expression", description: "The math expression", required: true },
+    ]
   end
 
   def show_typing_activity?

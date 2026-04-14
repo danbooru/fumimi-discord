@@ -9,13 +9,32 @@ class Fumimi::SlashCommand::ForumTopicCommand < Fumimi::SlashCommand
     "Do a topic search."
   end
 
-  def self.options(cmd)
-    cmd.integer("limit", "Max amount to return.", min_value: 1, max_value: 10)
-    cmd.string("creator", "Name of the forum topic creator.")
-    # cmd.string("contains", "A string to search.") # https://github.com/danbooru/danbooru/issues/6394
+  def self.options
+    [
+      { type: OPTION_TYPES[:integer], name: "limit", description: "Max amount to return.", required: false, min_value: 1, max_value: 10 }, # rubocop:disable Layout/LineLength
+      { type: OPTION_TYPES[:string], name: "creator", description: "Created by a user.", required: false },
+      # https://github.com/danbooru/danbooru/issues/6394
+      # { type: OPTION_TYPES[:string], name: "contains", description: "Contains this string.", required: false },
+    ]
   end
 
-  def query_params
+  def embeds
+    forum_posts.map(&:embed)
+  end
+
+  def forum_posts
+    forum_post_ids = forum_topics.map { |t| t.original_post.id }
+
+    raise Fumimi::Exceptions::NoResultsError if forum_post_ids.blank?
+
+    forum_posts = @booru.forum_posts.index("search[id]": forum_post_ids.join(",")).reject(&:hidden?)
+
+    raise Fumimi::Exceptions::NoResultsError if forum_posts.blank?
+
+    forum_posts
+  end
+
+  def forum_topics
     query_params = {
       "search[is_private]": false,
       "search[order]": "id",
@@ -24,24 +43,6 @@ class Fumimi::SlashCommand::ForumTopicCommand < Fumimi::SlashCommand
     }
 
     query_params["search[creator_name]"] = arguments[:creator] if arguments[:creator].present?
-
-    query_params
-  end
-
-  def embeds
-    forum_topics = @booru.forum_topics.index(**query_params)
-    forum_post_ids = forum_topics.map { |t| t.original_post.id }
-
-    raise Fumimi::Exceptions::NoResultsError if forum_post_ids.blank?
-
-    forum_posts = @booru.forum_posts.index("search[id]": forum_post_ids.join(","))
-
-    raise Fumimi::Exceptions::NoResultsError if forum_posts.blank?
-
-    forum_posts.map do |forum_post|
-      next if forum_post.hidden?
-
-      forum_post.create_embed(channel)
-    end
+    @booru.forum_topics.index(**query_params)
   end
 end

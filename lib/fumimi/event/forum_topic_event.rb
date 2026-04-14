@@ -17,11 +17,6 @@ class Fumimi::Event::ForumTopicEvent < Fumimi::Event
 
     query_parameters = { "search[id]": forum_post_ids.join(",") }
     forum_posts = @booru.forum_posts.index(**query_parameters)
-
-    forum_posts.map do |forum_post|
-      next if forum_post.hidden?
-
-      forum_post.create_embed(channel)
-    end
+    forum_posts.reject(&:hidden?).map(&:embed)
   end
 end

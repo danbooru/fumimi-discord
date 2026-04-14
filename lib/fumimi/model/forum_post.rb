@@ -3,27 +3,17 @@ require "fumimi/model"
 class Fumimi::Model::ForumPost < Fumimi::Model
   include Fumimi::HasDTextFields
 
-  def embed(embed, _channel)
-    raise Fumimi::Exceptions::PermissionError if hidden?
-
-    embed.title = topic.title
-    embed.url = url
-    embed.author = embed_author
-    embed.description = description
-    embed.footer = embed_footer
-    embed.color = embed_color
-
-    embed
+  def embed_title
+    topic.title
   end
 
   def embed_author
-    Discordrb::Webhooks::EmbedAuthor.new(
-      name: creator.at_name,
-      url: creator.url
-    )
+    { name: creator.at_name, url: creator.url }
   end
 
-  def description
+  def embed_description
+    raise Fumimi::Exceptions::PermissionError if hidden?
+
     description = pretty_body
     description += bur_description if try(:bulk_update_request).present?
     description

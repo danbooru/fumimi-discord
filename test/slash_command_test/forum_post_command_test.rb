@@ -18,15 +18,15 @@ class ForumPostCommandTest < Minitest::Test
     assert_nil forum_post.image
     assert forum_post.author.name
     assert_match %r{^https://danbooru.donmai.us/users/\d+$}, forum_post.author.url
-    assert_match(FORUM_POST_FOOTER_PATTERN, forum_post.footer&.text)
+    assert forum_post.timestamp
   end
 
   def test_error
     string = "Daily Report (2022-07-13)"
     mock_slash_command("/forum", args: { limit: 1, contains: string, creator: "NNTBot" }) => { reply_embeds:, ** }
     assert_equal reply_embeds.length, 1
-    assert_equal reply_embeds[0].title, "New/Repopulated/Nuked Tag Report"
-    assert_equal reply_embeds[0].author.name, "NNTBot"
-    assert_equal reply_embeds[0].author.url, "https://danbooru.donmai.us/users/865894"
+    assert_equal "New/Repopulated/Nuked Tag Report", reply_embeds[0].title
+    assert_equal "@NNTBot", reply_embeds[0].author.name
+    assert_equal "https://danbooru.donmai.us/users/865894", reply_embeds[0].author.url
   end
 end

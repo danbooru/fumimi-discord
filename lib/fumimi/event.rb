@@ -45,19 +45,14 @@ class Fumimi::Event
     end
     return if embeds.blank?
 
-    @event.channel.send_embed(
-      "",
-      embeds,
-      nil,
-      false,
-      { replied_user: false }, # don't ping who you're replying to
-      @event.message
-    )
+    @event.channel.send_embed("", embeds, nil, false,
+                              { replied_user: false }, # don't ping who you're replying to
+                              @event.message)
   end
 
   ## Internal methods
 
-  def initialize(event, cache: nil, log: nil, booru: nil)
+  def initialize(event, cache: nil, log: nil, booru: nil, **_opts)
     @event = event
     @cache = cache || Zache.new
     @booru = booru
@@ -65,16 +60,12 @@ class Fumimi::Event
   end
 
   # Registers all classes that inherit this class as commands
-  def self.register(command, **opts)
-    bot = opts[:bot]
-    log = opts[:log]
+  def self.register(command, bot:, **opts)
     opts[:cache] ||= Zache.new
-    init_opts = opts.slice(:cache, :log, :booru)
 
-    log.debug("Registering pattern #{command.pattern.inspect}.")
     # start listening to the pattern
     bot.message(contains: command.pattern) do |event|
-      kommand = command.new(event, **init_opts)
+      kommand = command.new(event, **opts)
       kommand.safe_handle_event
     end
   end

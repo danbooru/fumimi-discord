@@ -9,10 +9,24 @@ class Fumimi::SlashCommand::ForumPostCommand < Fumimi::SlashCommand
     "Do a forum search."
   end
 
-  def self.options(cmd)
-    cmd.integer("limit", "Max amount to return.", min_value: 1, max_value: 10)
-    cmd.string("creator", "Name of the forum post creator.")
-    cmd.string("contains", "A string to search.")
+  def self.options
+    [
+      { type: OPTION_TYPES[:integer], name: "limit", description: "Max amount to return.", required: false, min_value: 1, max_value: 10 }, # rubocop:disable Layout/LineLength
+      { type: OPTION_TYPES[:string], name: "creator", description: "Created by a user.", required: false },
+      { type: OPTION_TYPES[:string], name: "contains", description: "Contains this string.", required: false },
+    ]
+  end
+
+  def embeds
+    forum_posts.map(&:embed)
+  end
+
+  def forum_posts
+    forum_posts = @booru.forum_posts.index(**query_params).reject(&:hidden?)
+
+    raise Fumimi::Exceptions::NoResultsError if forum_posts.blank?
+
+    forum_posts
   end
 
   def query_params
@@ -29,17 +43,5 @@ class Fumimi::SlashCommand::ForumPostCommand < Fumimi::SlashCommand
     query_params["search[creator_name]"] = arguments[:creator] if arguments[:creator].present?
 
     query_params
-  end
-
-  def embeds
-    forum_posts = @booru.forum_posts.index(**query_params)
-
-    raise Fumimi::Exceptions::NoResultsError if forum_posts.blank?
-
-    forum_posts.map do |forum_post|
-      next if forum_post.hidden?
-
-      forum_post.create_embed(channel)
-    end
   end
 end
