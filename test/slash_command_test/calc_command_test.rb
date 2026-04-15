@@ -6,7 +6,7 @@ class CalcCommandTest < Minitest::Test
   def test_responds_to_command
     mock_slash_command("/calc", args: { expression: "100*100" }) => { replies:, ** }
 
-    assert_equal ["`100*100 = 10_000`"], replies
+    assert_equal ["`100*100 = 10,000`"], replies
   end
 
   def test_decimal_rounding

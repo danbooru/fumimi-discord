@@ -51,12 +51,13 @@ class Fumimi::Model::Tag < Fumimi::Model
   def example_post
     return @example_post if instance_variable_defined?(:@example_post)
 
-    @example_post = searches_for_tag_preview.each do |tag_search|
-      response = booru.posts.index(limit: 1, tags: tag_search)
-      next if response.failed?
-
-      break response.first
-    end
+    @example_post = searches_for_tag_preview
+                    .lazy.map { |tag| booru.posts.index(limit: 1, tags: tag) }
+                         .reject(&:failed?)
+                    .map(&:first)
+                    .first
+    @example_post.nsfw_channel = nsfw_channel? if @example_post
+    @example_post
   end
 
   def wiki_page
@@ -73,7 +74,7 @@ class Fumimi::Model::Tag < Fumimi::Model
     tag_searches = []
 
     always_present_preview_tags = "status:any -video -ugoira -flash" # videos can't be embedded on discord
-    always_present_preview_tags += " rating:g" unless channel&.nsfw?
+    always_present_preview_tags += " rating:g" unless nsfw_channel?
 
     # first try to grab one of the embedded posts
     if (linked_posts = wiki_page&.linked_post_ids).present?

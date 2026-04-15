@@ -11,8 +11,9 @@ class Fumimi::Model
 
   delegate_missing_to :attributes
 
-  def initialize(attributes, resource_name, api = nil)
+  def initialize(attributes, resource_name, api = nil, parent = nil)
     @api = api
+    @parent = parent
     @resource_name = resource_name
 
     attr_url = attributes.delete("url")
@@ -76,7 +77,7 @@ class Fumimi::Model
     elsif value.is_a?(Hash)
       name = Danbooru.map_attribute(name) || name
       model = api.booru.factory[name.pluralize] || "Fumimi::Model::#{name.singularize.camelize}".safe_constantize || Fumimi::Model
-      model.new(value, name, api)
+      model.new(value, name, api, self)
     elsif value.is_a?(Array)
       value.map { |item| cast_attribute(name, item) }
     else
@@ -97,5 +98,9 @@ class Fumimi::Model
     else
       value.as_json(options)
     end
+  end
+
+  def nsfw_channel?
+    @parent&.nsfw_channel? || @nsfw_channel
   end
 end

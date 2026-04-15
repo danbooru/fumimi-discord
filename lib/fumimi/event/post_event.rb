@@ -7,6 +7,6 @@ class Fumimi::Event::PostEvent < Fumimi::Event
 
   def embeds_for(matches)
     posts = @booru.posts.index(tags: "id:#{matches.join(",")}")
-    posts.map { |post| post.embed(channel: @event.channel) }
+    posts.map { |post| post.embed(nsfw_channel: @event.channel.nsfw?) }
   end
 end

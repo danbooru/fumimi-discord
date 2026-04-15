@@ -80,4 +80,25 @@ class TagEventTest < Minitest::Test
     assert_nil tag.image
     assert_nil tag.author
   end
+
+  def test_nsfw_tag_on_nsfw_channel
+    embeds = mock_event("[[sex]]", nsfw_channel: true) => { embeds:, ** }
+
+    assert_equal 1, embeds.length
+    tag = embeds.first
+
+    assert_match(/^post #\d+$/, tag.author.name)
+    assert_match %r{^https://danbooru.donmai.us/posts/\d+$}, tag.author.url
+    assert_match %r{^https://cdn.donmai.us/original/}, tag.image.url
+  end
+
+  def test_nsfw_tag_on_sfw_channel
+    embeds = mock_event("[[sex]]", nsfw_channel: false) => { embeds:, ** }
+
+    assert_equal 1, embeds.length
+    tag = embeds.first
+
+    assert_nil tag.image
+    assert_nil tag.author
+  end
 end

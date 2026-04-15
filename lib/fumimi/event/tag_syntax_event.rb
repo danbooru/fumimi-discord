@@ -21,11 +21,11 @@ class Fumimi::Event::TagSyntaxEvent < Fumimi::Event
       tag = @booru.tags.index("search[name_or_alias_matches]": tag_name, "search[order]": "count").to_a.first
       if tag.present?
         tag.searched_term = tag_name
-        next tag.embed(channel: @event.channel)
+        next tag.embed(nsfw_channel: @event.channel.nsfw?)
       end
 
       wiki_page = @booru.wiki_pages.index("search[title_normalize]": tag_name).to_a.first
-      next wiki_page.embed(channel: @event.channel) if wiki_page.present?
+      next wiki_page.embed if wiki_page.present?
 
       Fumimi::Model::WikiPage.fallback_embed(tag_name, @booru)
     end

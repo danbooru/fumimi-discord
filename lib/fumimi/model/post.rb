@@ -21,7 +21,7 @@ class Fumimi::Model::Post < Fumimi::Model
 
   def embed_image
     return nil if censored?
-    return nil unless channel&.nsfw? || !nsfw?
+    return nil unless nsfw_channel? || !nsfw?
 
     return file_variant.url if file_ext.match?(/jpe?g|png|gif/i)
 
@@ -30,7 +30,7 @@ class Fumimi::Model::Post < Fumimi::Model
 
   def embed_thumbnail
     return nil if censored?
-    return nil unless channel&.nsfw? || !nsfw?
+    return nil unless nsfw_channel? || !nsfw?
 
     preview_variant&.url
   end

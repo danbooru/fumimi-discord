@@ -1,12 +1,16 @@
 require "fumimi/discord_embed"
 
 module Fumimi::HasDiscordEmbed
-  attr_accessor :channel
+  attr_writer :nsfw_channel
 
-  def embed(channel:)
-    @channel ||= channel
+  def embed(nsfw_channel: false)
+    @nsfw_channel ||= nsfw_channel
     @embed ||= Fumimi::DiscordEmbed.new
     populate_embed
+  end
+
+  def nsfw_channel?
+    @nsfw_channel
   end
 
   private
