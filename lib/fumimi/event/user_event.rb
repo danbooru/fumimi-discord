@@ -2,11 +2,11 @@ require "fumimi/event"
 
 class Fumimi::Event::UserEvent < Fumimi::Event
   def self.pattern
-    shortlink_pattern = /user #([0-9]+)/i
+    /user #([0-9]+)/i
+  end
 
-    link_pattern = %r{\b(?!https?://\w+\.donmai\.us/users/\d+/\w+)https?://(?!testbooru)\w+\.donmai\.us/users/(\d+)\b[^[:space:]]*}i # rubocop:disable Layout/LineLength
-
-    Regexp.union(shortlink_pattern, link_pattern)
+  def self.model_for_link_capture
+    "users"
   end
 
   def embeds_for(matches)

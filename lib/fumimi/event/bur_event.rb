@@ -5,6 +5,10 @@ class Fumimi::Event::BulkUpdateRequestEvent < Fumimi::Event
     /bur #([0-9]+)/i
   end
 
+  def self.model_for_link_capture
+    "bulk_update_requests"
+  end
+
   def embeds_for(matches)
     query_parameters = { "search[bulk_update_request][id]": matches.join(",") }
     forum_posts = @booru.forum_posts.index(**query_parameters)

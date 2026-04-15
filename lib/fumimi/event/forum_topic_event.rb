@@ -5,6 +5,10 @@ class Fumimi::Event::ForumTopicEvent < Fumimi::Event
     /topic #([0-9]+)/i
   end
 
+  def self.model_for_link_capture
+    "forum_topics"
+  end
+
   def embeds_for(matches)
     forum_topics = @booru.forum_topics.index("search[id]": matches.join(","),
                                              "search[is_private]": false,

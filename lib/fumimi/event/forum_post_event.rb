@@ -5,6 +5,10 @@ class Fumimi::Event::ForumPostEvent < Fumimi::Event
     /forum #([0-9]+)/i
   end
 
+  def self.model_for_link_capture
+    "forum_posts"
+  end
+
   def embeds_for(matches)
     query_parameters = { "search[id]": matches.join(",") }
     forum_posts = @booru.forum_posts.index(**query_parameters)

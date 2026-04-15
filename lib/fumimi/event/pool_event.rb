@@ -5,6 +5,10 @@ class Fumimi::Event::PoolEvent < Fumimi::Event
     /pool #([0-9]+)/i
   end
 
+  def self.model_for_link_capture
+    "pools"
+  end
+
   def embeds_for(matches)
     query_parameters = { "search[id]": matches.join(",") }
     pools = @booru.pools.index(**query_parameters)

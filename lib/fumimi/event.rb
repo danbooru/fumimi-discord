@@ -3,9 +3,10 @@ require "fumimi/exception_handler"
 
 # Abstract base class for message-triggered Discord events.
 #
-# Events are triggered when a Discord message matches a specific regex pattern.
+# Events are triggered when a Discord message matches a subclass pattern.
 # Subclasses must implement {.pattern} and {#embeds_for} to define when they
-# trigger and what embeds to send in response.
+# trigger and what embeds to send in response. Subclasses may also opt into
+# automatic URL matching for a resource type via {.model_for_link_capture}.
 #
 # The event system automatically discovers and registers all subclasses via the
 # {Fumimi::ClassRegister} mixin, so no explicit registration is needed beyond
@@ -14,10 +15,11 @@ require "fumimi/exception_handler"
 # Lifecycle:
 # 1. User sends a message in Discord
 # 2. {.respond_to_all_matches} strips code blocks and inline code from message text
-# 3. Each subclass scans the cleaned text with its {.pattern}
+# 3. Each subclass scans the cleaned text with its {.total_pattern}
 # 4. Matching subclasses are instantiated and asked to {#respond_to_matches}
 # 5. {#respond_to_matches} runs {#messages_for} and {#embeds_for} inside exception handling
-# 6. {.send_combined_message} sends one combined reply with up to 10 embeds
+# 6. If {.delete_link_embed?} is true, the original link embed is suppressed
+# 7. {.send_combined_message} sends one combined reply with up to 10 embeds
 #
 # Example:
 #   class MyEvent < Fumimi::Event
@@ -50,6 +52,21 @@ class Fumimi::Event
     raise NotImplementedError, "Must implement a pattern."
   end
 
+  # Returns the full regex used when scanning message text for this subclass.
+  #
+  # If {.model_for_link_capture} is set, this unions {.pattern} with a URL
+  # matcher for that model (for example, /posts/:id links).
+  #
+  # @return [Regexp]
+  def self.total_pattern
+    return pattern unless model_for_link_capture
+
+    model = model_for_link_capture.strip("/")
+    model_pattern = %r{\b(?!https?://\w+\.donmai\.us/#{model}/\d+/\w+)https?://(?!testbooru)\w+\.donmai\.us/#{model}/(\d+)\b[^[:space:]]*}i # rubocop:disable Layout/LineLength
+
+    Regexp.union(pattern, model_pattern)
+  end
+
   # Generates embeds to send in response to matched pattern.
   #
   # This method is called with all unique, flattened matches from the message.
@@ -78,6 +95,26 @@ class Fumimi::Event
   #     matches.map { |id| "You typed #{id}" }
   #   end
   def messages_for(matches)
+  end
+
+  # Opts into automatic URL matching for a given Danbooru resource.
+  #
+  # Return a path segment like "posts", "users", or "/posts".
+  # Default is nil, meaning only {.pattern} matching is used.
+  #
+  # @return [String, nil]
+  def self.model_for_link_capture
+    nil
+  end
+
+  # Whether matching this event should suppress embeds on the original message.
+  #
+  # This is primarily useful for link-based events where the bot posts a richer
+  # replacement embed and wants to hide Discord's automatic URL preview.
+  #
+  # @return [Boolean]
+  def self.delete_link_embed?
+    false
   end
 
   # Executes this event instance for a precomputed set of regex matches.
@@ -128,7 +165,7 @@ class Fumimi::Event
   def self.register_all(**opts)
     bot = opts[:bot]
     opts[:cache] ||= Zache.new
-    total_regex = Regexp.union(subclasses.map(&:pattern))
+    total_regex = Regexp.union(subclasses.map(&:total_pattern))
 
     bot.message(contains: total_regex) do |event|
       respond_to_all_matches(event, **opts)
@@ -138,7 +175,7 @@ class Fumimi::Event
   # Runs all registered event subclasses against one message event.
   #
   # The message text is sanitized by removing fenced and inline code first.
-  # Every subclass receives unique flattened captures from its own pattern.
+  # Every subclass receives unique flattened captures from its own total pattern.
   #
   # @param event [Discordrb::Events::MessageEvent]
   # @param opts [Hash] keyword args forwarded to event subclass constructors
@@ -147,10 +184,12 @@ class Fumimi::Event
     text = event.text.gsub(/```.*?```/m, "").gsub(/`.*?`/m, "")
 
     messages, embeds = subclasses.each_with_object([[], []]) do |subclass, (messages, embeds)|
-      matches = text.scan(subclass.pattern).flatten.compact.uniq
+      matches = text.scan(subclass.total_pattern).flatten.compact.uniq
       next unless matches.present?
 
-      break if embeds.length > 10
+      next if embeds.length > 10
+
+      event.message.suppress_embeds if subclass.delete_link_embed?
 
       kommand = subclass.new(event, **opts)
       submessages, subembeds = kommand.respond_to_matches(matches)

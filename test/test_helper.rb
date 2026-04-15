@@ -11,7 +11,12 @@ MESSAGE_MOCK = Struct.new(:content) do
   end
 
   def suppress_embeds
+    @suppress_embeds_calls = suppress_embeds_calls + 1
     nil
+  end
+
+  def suppress_embeds_calls
+    @suppress_embeds_calls ||= 0
   end
 end
 
@@ -60,6 +65,7 @@ class EVENT_MOCK
     {
       msgs: @channel.messages,
       embeds: @channel.embeds,
+      suppress_embeds_calls: @message.suppress_embeds_calls,
     }
   end
 
