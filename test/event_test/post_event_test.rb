@@ -113,6 +113,19 @@ class PostEventTest < Minitest::Test
     assert post.timestamp
   end
 
+  def test_post_event
+    embeds = mock_event("https://danbooru.donmai.us/posts/3840621 https://danbooru.donmai.us/posts/1722315", nsfw_channel: true) => { embeds:, ** }
+    assert_equal 2, embeds.length
+    post = embeds.first
+
+    assert_equal "post #3840621", post.title
+    assert_equal Fumimi::Colors::WHITE, post.color
+    assert_equal "https://danbooru.donmai.us/posts/3840621", post.url
+    assert_nil post.image
+    assert_match POST_FOOTER_PATTERN, post.footer.text
+    assert post.timestamp
+  end
+
   def test_no_post
     embeds = mock_event("post #6") => { embeds:, ** }
     assert_equal 0, embeds.length

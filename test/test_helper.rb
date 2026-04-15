@@ -9,6 +9,10 @@ MESSAGE_MOCK = Struct.new(:content) do
   def delete
     nil
   end
+
+  def suppress_embeds
+    nil
+  end
 end
 
 class CHANNEL_MOCK
@@ -49,7 +53,7 @@ class EVENT_MOCK
     @text = text
     @user = user
     @channel = channel
-    @message = nil
+    @message = MESSAGE_MOCK.new(text)
   end
 
   def captured
@@ -114,18 +118,7 @@ class SLASH_EVENT_MOCK
   end
 end
 
-FUMIMI_MOCK = Class.new do
-  include Fumimi::Events
-
-  define_method(:log) { Logger.new(File::NULL) }
-  define_method(:booru) { Danbooru.new(log: Logger.new(File::NULL)) }
-end
-
 module TestMocks
-  def fumimi
-    @fumimi ||= FUMIMI_MOCK.new
-  end
-
   def mock_slash_command(name, args: {}, user_id: 123, username: "tester", channel_name: "#test", nsfw_channel: false)
     command_name = name.to_s.delete_prefix("/")
     command_class = ObjectSpace.each_object(Class).find do |klass|

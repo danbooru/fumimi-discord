@@ -147,7 +147,7 @@ class Fumimi::Event
     text = event.text.gsub(/```.*?```/m, "").gsub(/`.*?`/m, "")
 
     messages, embeds = subclasses.each_with_object([[], []]) do |subclass, (messages, embeds)|
-      matches = text.scan(subclass.pattern).flatten.uniq
+      matches = text.scan(subclass.pattern).flatten.compact.uniq
       next unless matches.present?
 
       break if embeds.length > 10

@@ -9,7 +9,7 @@ class Fumimi::Event::PoolEvent < Fumimi::Event
     query_parameters = { "search[id]": matches.join(",") }
     pools = @booru.pools.index(**query_parameters)
 
-    pools.sort_by { |pool| matches.index(pool.id) || Float::INFINITY }
+    pools = pools.sort_by { |pool| matches.index(pool.id) || Float::INFINITY }
     pools.map(&:embed)
   end
 end
