@@ -2,7 +2,7 @@ require "fumimi/event"
 
 class Fumimi::Event::TagSyntaxEvent < Fumimi::Event
   def self.pattern
-    /\[\[\s*([^\]]+)\s*\]\]/
+    /\[\[\s*([^\]\\*]+)\s*\]\]/
   end
 
   def embeds_for(matches)

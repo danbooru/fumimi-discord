@@ -5,20 +5,20 @@ class Fumimi::Model::Tag < Fumimi::Model
 
   delegate :embed_image, :embed_is_nsfw?, to: :example_post, allow_nil: true
 
-  def searched_term=(value)
-    @searched_term = value.tr(" ", "_").strip.downcase
-  end
-
-  def alias_search?
-    searched_term && searched_term != name
-  end
-
   def embed_description
     description = "-# Category: #{category_name} | Post Count: #{post_count.to_fs(:delimited)}\n"
     description += "-# This tag has been deprecated.\n" if is_deprecated
     description += "-# Aliased from `#{searched_term&.downcase&.strip}`.\n" if alias_search?
     description += "\n#{wiki_preview}"
     description
+  end
+
+  def searched_term=(value)
+    @searched_term = value.tr(" ", "_").strip.downcase
+  end
+
+  def alias_search?
+    searched_term && searched_term != name
   end
 
   def embed_title
@@ -38,7 +38,9 @@ class Fumimi::Model::Tag < Fumimi::Model
   end
 
   def example_post
-    @example_post ||= example_post_from_wiki || example_post_narrow || example_post_wide if post_count.to_i > 0
+    return @example_post if instance_variable_defined?(:@example_post)
+
+    @example_post = example_post_from_wiki || example_post_narrow || example_post_wide if post_count.to_i > 0
   end
 
   def wiki_page
@@ -47,9 +49,9 @@ class Fumimi::Model::Tag < Fumimi::Model
   end
 
   def example_post_from_wiki
-    return unless wiki_page&.linked_posts.present?
+    return unless (linked_posts = wiki_page&.linked_post_ids).present?
 
-    tag_string = "id:#{post_ids.join(",")} #{always_present_tags} order:custom"
+    tag_string = "id:#{linked_posts.join(",")} #{always_present_tags} order:custom"
     return if tag_string.split.include? "-#{name}"
 
     response = booru.posts.index(limit: 1, tags: tag_string)
