@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "dtext"
 require "nokogiri"
 
@@ -12,6 +14,8 @@ class Fumimi::DText # rubocop:disable Metrics/ClassLength
   # @param wiki_page [Boolean] whether wiki-specific collapsing should run
   # @return [String] converted markdown output
   def self.dtext_to_markdown(dtext, max_lines: 30, max_characters: 1500, wiki_page: false)
+    return "" unless dtext.strip.present?
+
     html = Nokogiri::HTML5.fragment(DText.parse(dtext), max_tree_depth: -1)
     transformed = normalize_markdown(html_to_markdown(html))
     transformed = collapse_for_wiki_page(transformed) if wiki_page

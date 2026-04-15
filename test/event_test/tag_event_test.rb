@@ -101,4 +101,47 @@ class TagEventTest < Minitest::Test
     assert_nil tag.image
     assert_nil tag.author
   end
+
+  def test_pool_by_number
+    embeds = mock_event("[[pool:8948]]") => { embeds:, ** }
+
+    assert_equal 1, embeds.length
+    pool = embeds.first
+
+    assert_equal "https://danbooru.donmai.us/pools/8948", pool.url
+    assert_equal "Pool #8948: Original - Pop Team Epic (bkub)", pool.title
+
+    assert_equal Fumimi::Colors::PURPLE, pool.color
+
+    assert_match(/Start Reading Here/, pool.description)
+    assert_match(/-# Category: Series | Post Count: \d+\n/, pool.description)
+  end
+
+  def test_pool_by_name
+    embeds = mock_event("[[pool:perfect feet]]") => { embeds:, ** }
+
+    assert_equal 1, embeds.length
+    pool = embeds.first
+
+    assert_equal "https://danbooru.donmai.us/pools/109", pool.url
+    assert_equal "Pool #109: Perfect Feet", pool.title
+
+    assert_equal Fumimi::Colors::BLUE, pool.color
+
+    refute_match(/Start Reading Here/, pool.description)
+    assert_match(/-# Category: Collection | Post Count: \d+\n/, pool.description)
+  end
+
+  def test_user_by_name
+    embeds = mock_event("[[user:albert]]") => { embeds:, ** }
+    assert_equal 1, embeds.length
+    user = embeds.first
+
+    assert_equal "@albert", user.title
+    assert_equal "https://danbooru.donmai.us/users/1", user.url
+
+    fields = user.fields
+    assert_equal "Admin", fields[0].value
+    assert_match(/\d+/, fields[3].value)
+  end
 end
