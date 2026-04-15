@@ -108,7 +108,7 @@ class PostEventTest < Minitest::Test
     assert_equal "post #3840621", post.title
     assert_equal Fumimi::Colors::WHITE, post.color
     assert_equal "https://danbooru.donmai.us/posts/3840621", post.url
-    assert_nil post.image&.url
+    assert_nil post.image
     assert_match POST_FOOTER_PATTERN, post.footer.text
     assert post.timestamp
   end

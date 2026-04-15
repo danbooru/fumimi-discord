@@ -21,19 +21,27 @@ class Fumimi::DiscordEmbed < Discordrb::Webhooks::Embed
   end
 
   def author=(value)
-    value = { name: value.to_s } unless is_a?(Hash)
+    return unless value.present?
+
+    value = { name: value.to_s } unless value.is_a?(Hash)
     @author = Discordrb::Webhooks::EmbedAuthor.new(**value)
   end
 
   def image=(value)
+    return unless value.present?
+
     @image = Discordrb::Webhooks::EmbedImage.new(url: value)
   end
 
   def thumbnail=(value)
+    return unless value.present?
+
     @thumbnail = Discordrb::Webhooks::EmbedThumbnail.new(url: value)
   end
 
   def footer=(value)
+    return unless value.present?
+
     value = { text: value.to_s } unless value.is_a?(Hash)
     @footer = Discordrb::Webhooks::EmbedFooter.new(**value)
   end

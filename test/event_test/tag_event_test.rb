@@ -14,7 +14,7 @@ class TagEventTest < Minitest::Test
 
     assert_nil tag.color
     assert_match %r{^https://cdn.donmai.us/original/}, tag.image.url
-    assert_nil tag&.footer&.text
+    assert_nil tag.footer
     assert_nil tag.timestamp
 
     assert_match(/^-# Category: General | Post Count: \d+$/, tag.description.split("\n").first)

@@ -51,11 +51,11 @@ class Fumimi::Model::Tag < Fumimi::Model
   def example_post
     return @example_post if instance_variable_defined?(:@example_post)
 
-    @example_post = searches_for_tag_preview.find do |tag_search|
+    @example_post = searches_for_tag_preview.each do |tag_search|
       response = booru.posts.index(limit: 1, tags: tag_search)
       next if response.failed?
 
-      response.first
+      break response.first
     end
   end
 
