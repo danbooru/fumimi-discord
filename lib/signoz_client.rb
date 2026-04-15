@@ -1,17 +1,26 @@
-require "http"
 require "json"
 require "time"
+require_relative "http_client"
 
+# Client for querying SigNoz log analytics endpoints.
 class SigNozClient
   class SignozResponseChangedError < StandardError; end
 
+  # @param base [String] SigNoz base URL.
+  # @param api_key [String] SigNoz API key header value.
+  # @param log [Logger] Logger instance.
+  # @param cache [Object] Cache object with `get` support.
   def initialize(base, api_key, log, cache)
     @base     = base
     @api_key  = api_key
     @log      = log
     @cache    = cache
+    @http     = HTTPClient.new(base: @base, signoz_api_key: @api_key, log: @log)
   end
 
+  # Returns unique IP counts for a tag query over a given time range.
+  #
+  # @return [Integer]
   def unique_ips_in_range(tags, range)
     until_ms = (Time.now.to_f * 1000).to_i
     since_ms = until_ms - range.in_milliseconds
@@ -21,16 +30,17 @@ class SigNozClient
     @cache.get(:"signoz_count_tags_#{tags.join("_")}_#{range.in_milliseconds}", lifetime: range.in_seconds) do
       # cache queries about a tag for their selected timespan
       @log.info("[Signoz] Fetching signoz query for #{tags} for the last #{range.inspect}...")
-      data = post_json("#{@base}/api/v5/query_range", query_payload)
+      data = post_json("/api/v5/query_range", query_payload)
 
       data["data"]["data"]["results"][0]["data"][0][0]
     end
   end
 
-  def post_json(url, payload)
-    response = HTTP.post(url,
-                         json: payload,
-                         headers: { Accept: "application/json", "SIGNOZ-API-KEY": @api_key })
+  # Sends the query payload and returns parsed response JSON.
+  #
+  # @return [Hash]
+  def post_json(path, payload)
+    response = @http.post(path, json: payload)
 
     if response.code >= 400
       @log.info("[Signoz] Response: #{response.body}")
@@ -46,6 +56,9 @@ class SigNozClient
     parsed
   end
 
+  # Builds the query payload used by SigNoz' query_range endpoint.
+  #
+  # @return [Hash]
   def create_payload(since_ms, until_ms, tags)
     # creates a payload for a query that gets the amount of searches for a tag every hour for the past 24 days
     expression = "(k8s.daemonset.name = 'nginx-ingress-controller'"
@@ -93,6 +106,9 @@ class SigNozClient
       .with_indifferent_access
   end
 
+  # Escapes and normalizes user tags for regex use.
+  #
+  # @return [String]
   def normalize_tag(tag)
     # Normalize a tag so it can be properly interpolated in a regex query
 
@@ -105,6 +121,9 @@ class SigNozClient
     tag
   end
 
+  # Builds a query regex matching one tag token inside `tags=`.
+  #
+  # @return [String]
   def tag_regex(tag)
     tag = normalize_tag(tag)
 

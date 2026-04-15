@@ -2,7 +2,9 @@ require "active_support"
 require "active_support/core_ext/string/inflections"
 require "active_support/core_ext/hash/indifferent_access"
 require "addressable/uri"
+require_relative "http_client"
 
+# Top-level Danbooru API client.
 class Danbooru; end
 Dir[__dir__ + "/danbooru/**/*.rb"].each { |file| require file }
 
@@ -88,6 +90,11 @@ class Danbooru
     topic: "forum_posts",
   }.with_indifferent_access.freeze
 
+  # @param url [String, nil] Danbooru base URL.
+  # @param user [String, nil] Danbooru login.
+  # @param api_key [String, nil] Danbooru API key.
+  # @param factory [Hash] Model overrides keyed by resource name.
+  # @param log [Logger] Logger instance.
   def initialize(url: ENV["BOORU_URL"], # rubocop:disable Style/FetchEnvVar
                  user: ENV["BOORU_USER"], # rubocop:disable Style/FetchEnvVar
                  api_key: ENV["BOORU_API_KEY"], # rubocop:disable Style/FetchEnvVar
@@ -98,26 +105,36 @@ class Danbooru
     log.info("Running on instance: #{url}, with user: '#{user}'")
 
     @url, @user, @api_key, @log = Addressable::URI.parse(url), user, api_key, log
-    @http = Danbooru::HTTP.new(url, user: user, pass: api_key, log: log)
+    @http = HTTPClient.new(base: url, user: user, pass: api_key, log: log)
     @factory, @resources = factory.with_indifferent_access, {}
   end
 
+  # Simple health check against the posts endpoint.
+  #
+  # @return [Danbooru::Response]
   def ping(params = {})
     posts.ping(params)
   end
 
+  # Checks if configured credentials can authenticate successfully.
+  #
+  # @return [Boolean]
   def logged_in?
     return false unless user.present? && api_key.present?
 
     users.index(name: user).succeeded?
   end
 
+  # Returns a resource by name.
+  #
+  # @param name [String, Symbol]
+  # @return [Danbooru::Resource]
   def [](name)
     name = name.to_s.camelize
 
     raise ArgumentError, "invalid resource name '#{name}'" unless RESOURCES.has_key?(name)
 
-    resources[name] ||= Resource.const_get(name).new(name.underscore, self, **RESOURCES[name])
+    resources[name] ||= build_resource(name)
   end
 
   RESOURCES.keys.each do |name|
@@ -128,7 +145,18 @@ class Danbooru
     end
   end
 
+  # Maps embedded response attributes to resource names.
   def self.map_attribute(attribute)
     INCLUDE_MAP[attribute]
+  end
+
+  private
+
+  # Instantiates a resource object for a given entry in `RESOURCES`.
+  #
+  # @param class_name [String]
+  # @return [Danbooru::Resource]
+  def build_resource(class_name)
+    Resource.const_get(class_name).new(class_name.underscore, self, **RESOURCES[class_name])
   end
 end
