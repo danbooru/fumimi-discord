@@ -1,100 +1,53 @@
 require "fumimi/model"
 
 class Fumimi::Model::Tag < Fumimi::Model
-  def embed(embed, channel, **options)
-    searched_tag = options[:searched_tag]
+  attr_reader :searched_term
 
-    embed.description = ""
-    embed.description << "-# Category: #{category_name.capitalize} | Post Count: #{post_count.to_fs(:delimited)}\n"
-    embed.description << "-# This tag has been deprecated.\n" if is_deprecated
-    embed.description << "-# Aliased from `#{searched_tag.downcase.strip}`.\n" if alias_search?(searched_tag)
-    embed.description << "\n#{wiki_preview}"
+  delegate :embed_image, :embed_is_nsfw?, to: :example_post, allow_nil: true
 
-    embed.title = name.tr("_", " ")
-    embed.url = embed_url
-
-    embed.image = example_post.embed_image(channel) if example_post.present?
-    embed.author = embed_author
-
-    # embed.color = embed_border
-
-    embed
+  def searched_term=(value)
+    @searched_term = value.tr(" ", "_").strip.downcase
   end
 
-  def alias_search?(searched_tag)
-    found_name = name.downcase.strip
-    searched_name = searched_tag.strip.tr(" ", "_").downcase
-
-    found_name != searched_name
+  def alias_search?
+    searched_term && searched_term != name
   end
 
-  def category_name
-    case category
-    when 1
-      "artist"
-    when 3
-      "copyright"
-    when 4
-      "character"
-    when 5
-      "meta"
-    else
-      "general"
-    end
+  def embed_description
+    description = "-# Category: #{category_name} | Post Count: #{post_count.to_fs(:delimited)}\n"
+    description += "-# This tag has been deprecated.\n" if is_deprecated
+    description += "-# Aliased from `#{searched_term&.downcase&.strip}`.\n" if alias_search?
+    description += "\n#{wiki_preview}"
+    description
   end
 
-  def embed_border
-    case category
-    when 1
-      Fumimi::Colors::RED
-    when 3
-      Fumimi::Colors::PURPLE
-    when 4
-      Fumimi::Colors::GREEN
-    when 5
-      Fumimi::Colors::YELLOW
-    else
-      Fumimi::Colors::BLUE
-    end
-  end
-
-  def embed_url
-    if try(:wiki_page).present?
-      wiki_page.url
-    else
-      "#{api.booru.url}/posts?tags=#{CGI.escape(name.tr(" ", "_"))}"
-    end
-  end
-
-  def wiki_preview
-    if try(:wiki_page).present?
-      wiki_page.pretty_body
-    else
-      Fumimi::Model::WikiPage.empty_wiki_for(name)
-    end
+  def embed_title
+    name.tr("_", " ")
   end
 
   def embed_author
-    return unless example_post
+    { name: example_post.shortlink, url: example_post.url } if example_post.present?
+  end
 
-    Discordrb::Webhooks::EmbedAuthor.new(
-      name: example_post.shortlink,
-      url: example_post.url
-    )
+  def embed_url
+    wiki_page&.url || "#{api.booru.url}/posts?tags=#{CGI.escape(name.tr(" ", "_"))}"
+  end
+
+  def wiki_preview
+    wiki_page&.embed_description || Fumimi::Model::WikiPage.empty_wiki_for(name)
   end
 
   def example_post
-    return if post_count.to_i.zero?
-    return @example_post if defined? @example_post
+    @example_post ||= example_post_from_wiki || example_post_narrow || example_post_wide if post_count.to_i > 0
+  end
 
-    @example_post ||= example_post_from_wiki || example_post_narrow || example_post_wide
+  def wiki_page
+    # bypass openstruct
+    attributes.wiki_page if attributes.respond_to?(:wiki_page)
   end
 
   def example_post_from_wiki
-    return unless (wiki_body = try(:wiki_page)&.body).present?
-
-    post_ids = wiki_body.scan(/!post #(\d+)/)
-    return if post_ids.blank?
+    return unless wiki_page&.linked_posts.present?
 
     tag_string = "id:#{post_ids.join(",")} #{always_present_tags} order:custom"
     return if tag_string.split.include? "-#{name}"
@@ -155,6 +108,36 @@ class Fumimi::Model::Tag < Fumimi::Model
       "solo chartags:<5"
     else # meta or general # rubocop:disable Lint/DuplicateBranch
       ""
+    end
+  end
+
+  def category_name
+    case category
+    when 1
+      "Artist"
+    when 3
+      "Copyright"
+    when 4
+      "Character"
+    when 5
+      "Meta"
+    else
+      "General"
+    end
+  end
+
+  def embed_border
+    case category
+    when 1
+      Fumimi::Colors::RED
+    when 3
+      Fumimi::Colors::PURPLE
+    when 4
+      Fumimi::Colors::GREEN
+    when 5
+      Fumimi::Colors::YELLOW
+    else
+      Fumimi::Colors::BLUE
     end
   end
 end

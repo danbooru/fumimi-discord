@@ -27,30 +27,6 @@ module Fumimi::Events
     @@regex_listeners << { name: name, regex: regex, block: block }
   end
 
-  respond(:tag_link, /\[\[ [^\]]+ \]\]/x) do |event, text|
-    title = text[/[^\[\]]+/]
-    next unless title.present?
-
-    event.channel.start_typing
-
-    if title =~ /^user:(.*)/
-      user = booru.users.index(name: ::Regexp.last_match(1))
-      embed = user.create_embed(event.channel) if user.succeeded?
-    elsif (tag = booru.tags.search(name_or_alias_matches: title).max_by(&:post_count)).present?
-      embed = tag.create_embed(event.channel, searched_tag: title)
-    else
-      wiki_page = booru.wiki_pages.search(title_normalize: title).first
-      if wiki_page.present?
-        embed = wiki_page.create_embed(event.channel)
-      else
-        embed = Discordrb::Webhooks::Embed.new
-        Fumimi::Model::WikiPage.fallback_embed(embed, title, booru)
-      end
-    end
-
-    embed
-  end
-
   respond(:search_link, /{{ [^}]+ }}/x) do |event, text|
     search = text[/[^{}]+/]
     limit = (text[/limit:(\d+)/, 1] || 3).to_i

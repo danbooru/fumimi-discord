@@ -1,6 +1,5 @@
 class Fumimi::Colors
   RED = 0xC41C19
-  # BLUE = 0x0000FF
   BLUE = 0x009BE6
   GREEN = 0x35C64A
 
@@ -26,9 +25,9 @@ class Fumimi::Colors
   end
 
   def self.message_to_ansi(message:, color:, format: "normal")
-    ansi_color = ANSI.const_get(color.upcase)
+    color = ANSI.const_get(color.upcase) unless color.is_a?(Integer)
     ansi_format = ANSI.const_get(format.upcase)
-    ansi_string = "\u001b[#{ansi_format};#{ansi_color}m"
-    ansi_string + message.to_s + "\u001b[0m" # rubocop:disable Style/StringConcatenation
+    ansi_string = "\u001b[#{ansi_format};#{color}m"
+    ansi_string + message.to_s + "\u001b[0m"
   end
 end

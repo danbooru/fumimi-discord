@@ -1,5 +1,4 @@
 require "fumimi/slash_command"
-require "active_support/number_helper"
 
 class Fumimi::SlashCommand::CalcCommand < Fumimi::SlashCommand
   def self.name
@@ -29,7 +28,7 @@ class Fumimi::SlashCommand::CalcCommand < Fumimi::SlashCommand
     result = smart_round(result, sig_figs: 4) # => 0.000001
 
     # format big numbers
-    result = ActiveSupport::NumberHelper.number_to_delimited(result, delimiter: "_")
+    result = result.to_fs(:delimited)
 
     "`#{expr} = #{result}`"
   end

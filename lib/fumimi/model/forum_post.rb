@@ -1,8 +1,6 @@
 require "fumimi/model"
 
 class Fumimi::Model::ForumPost < Fumimi::Model
-  include Fumimi::HasDTextFields
-
   def embed_title
     topic.title
   end
@@ -14,7 +12,7 @@ class Fumimi::Model::ForumPost < Fumimi::Model
   def embed_description
     raise Fumimi::Exceptions::PermissionError if hidden?
 
-    description = pretty_body
+    description = Fumimi::DText.dtext_to_markdown(body)
     description += bur_description if try(:bulk_update_request).present?
     description
   end

@@ -1,8 +1,6 @@
 require "fumimi/model"
 
 class Fumimi::Model::BulkUpdateRequest < Fumimi::Model
-  include Fumimi::HasDTextFields
-
   # no embed, just embed the forum post instead so we can also get votes and argument
 
   def pretty_title

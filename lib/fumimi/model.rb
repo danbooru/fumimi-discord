@@ -48,7 +48,7 @@ class Fumimi::Model
   end
 
   def embed_timestamp
-    created_at
+    try(:created_at)
   end
 
   def booru

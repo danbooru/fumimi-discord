@@ -1,8 +1,6 @@
 require "fumimi/model"
 
 class Fumimi::Model::Comment < Fumimi::Model
-  include Fumimi::HasDTextFields
-
   delegate :embed_thumbnail, :embed_is_nsfw?, to: :post
 
   def embed_author
@@ -10,7 +8,7 @@ class Fumimi::Model::Comment < Fumimi::Model
   end
 
   def embed_description
-    pretty_body
+    Fumimi::DText.dtext_to_markdown(body)
   end
 
   def embed_footer
