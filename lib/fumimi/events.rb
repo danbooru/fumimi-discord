@@ -27,16 +27,6 @@ module Fumimi::Events
     @@regex_listeners << { name: name, regex: regex, block: block }
   end
 
-  respond(:search_link, /{{ [^}]+ }}/x) do |event, text|
-    search = text[/[^{}]+/]
-    limit = (text[/limit:(\d+)/, 1] || 3).to_i
-
-    event.channel.start_typing
-    posts = booru.posts.index(limit: limit.clamp(1, 5), tags: search)
-
-    posts.map { |post| post.create_embed(event.channel) }
-  end
-
   respond(:artist_id, /artist #[0-9]+/i) do |event, text|
     id = text[/[0-9]+/]
     event.channel.send_message("https://danbooru.donmai.us/artists/#{id}")

@@ -80,7 +80,7 @@ class Fumimi::Event
     matches = text.scan(self.class.pattern).flatten.uniq
     return unless matches
 
-    @log.info("command='#{self.class.pattern.inspect}' args=`#{text}` user_id=#{@event.user.id} username='#{@event.user.username}' channel='##{@event.channel.name}'") # rubocop:disable Layout/LineLength
+    @log.info("command='#{self.class.name.demodulize}' args=`#{text}` user_id=#{@event.user.id} username='#{@event.user.username}' channel='##{@event.channel.name}'") # rubocop:disable Layout/LineLength
 
     begin
       embeds = embeds_for(matches)
