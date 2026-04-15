@@ -13,11 +13,11 @@ require "fumimi/exception_handler"
 #
 # Lifecycle:
 # 1. User sends a message in Discord
-# 2. Bot checks if message matches the event's {.pattern}
-# 3. If matched, creates a new event instance and calls {#safe_handle_event}
-# 4. Safe event handler calls {#respond_to_event} within an exception wrapper
-# 5. {#respond_to_event} extracts matches and calls {#embeds_for} to generate embeds
-# 6. Embeds are sent as a reply to the original message
+# 2. {.respond_to_all_matches} strips code blocks and inline code from message text
+# 3. Each subclass scans the cleaned text with its {.pattern}
+# 4. Matching subclasses are instantiated and asked to {#respond_to_matches}
+# 5. {#respond_to_matches} runs {#messages_for} and {#embeds_for} inside exception handling
+# 6. {.send_combined_message} sends one combined reply with up to 10 embeds
 #
 # Example:
 #   class MyEvent < Fumimi::Event
@@ -57,41 +57,49 @@ class Fumimi::Event
   #
   # @param matches [Array<String>] the captured groups from {.pattern} matches
   # @return [Array<Discordrb::Webhooks::Embed>] embeds to send, or empty array
-  # @raise [NotImplementedError] if not overridden by subclass
   #
   # @example
   #   def embeds_for(matches)
   #     matches.map { |id| Fumimi::PostReport.new(id).embed }
   #   end
   def embeds_for(matches)
-    raise NotImplementedError, "Must implement embeds for pattern results."
   end
 
-  # Processes the event by matching the pattern and sending embeds.
+  # Generates messages to send in response to matched pattern.
   #
-  # Returns early if no matches are found or if {#embeds_for} returns empty.
-  # Code blocks (triple backticks) and inline code (backticks) are stripped before
-  # pattern matching to avoid matching inside code.
+  # This method is called with all unique, flattened matches from the message.
+  # It should return an array of messages or an empty array if no messages should be sent.
   #
-  # @return [Object] result of channel.send_embed call, or nil if no embeds
-  # @raise [Danbooru::Exceptions::BadRequestError] caught and converted to empty embeds
-  def respond_to_event
-    text = @event.text.gsub(/```.*?```/m, "").gsub(/`.*?`/m, "") # remove code blocks
-    matches = text.scan(self.class.pattern).flatten.uniq
-    return unless matches
+  # @param matches [Array<String>] the captured groups from {.pattern} matches
+  # @return [Array<String>] messages to send, or empty array
+  #
+  # @example
+  #   def messages_for(matches)
+  #     matches.map { |id| "You typed #{id}" }
+  #   end
+  def messages_for(matches)
+  end
 
-    @log.info("command='#{self.class.name.demodulize}' args=`#{text}` user_id=#{@event.user.id} username='#{@event.user.username}' channel='##{@event.channel.name}'") # rubocop:disable Layout/LineLength
+  # Executes this event instance for a precomputed set of regex matches.
+  #
+  # This method wraps execution in {Fumimi::ExceptionHandler}, logs context,
+  # and returns two arrays: plain messages and embed objects.
+  #
+  # @param matches [Array<String>] unique captures for this subclass pattern
+  # @return [Array<(Array<String>, Array<Discordrb::Webhooks::Embed>)>]
+  def respond_to_matches(matches)
+    execute_and_rescue_errors(@event, wait_message: false) do
+      @log.info("command='#{self.class.name.demodulize}' args=`#{matches}` user_id=#{@event.user.id} username='#{@event.user.username}' channel='##{@event.channel.name}'") # rubocop:disable Layout/LineLength
 
-    begin
-      embeds = embeds_for(matches)
-    rescue Danbooru::Exceptions::BadRequestError # IDs are too long, like "post #1111111111111111111"
-      embeds = []
+      messages = messages_for(matches)
+      begin
+        embeds = embeds_for(matches)
+      rescue Danbooru::Exceptions::BadRequestError
+        embeds = []
+      end
+
+      [messages.to_a, embeds.to_a]
     end
-    return if embeds.blank?
-
-    @event.channel.send_embed("", embeds, nil, false,
-                              { replied_user: false }, # don't ping who you're replying to
-                              @event.message)
   end
 
   ## Internal methods
@@ -101,7 +109,7 @@ class Fumimi::Event
   # @param event [Discordrb::Events::MessageEvent] the Discord message event
   # @param cache [Zache] optional cache instance (defaults to new Zache)
   # @param log [Logger] optional logger instance
-  # @param booru [Danbooru::Client] optional Danbooru API client
+  # @param booru [Danbooru] optional Danbooru API client
   # @param _opts [Hash] additional options (ignored)
   def initialize(event, cache: nil, log: nil, booru: nil, **_opts)
     @event = event
@@ -110,34 +118,67 @@ class Fumimi::Event
     @log = log
   end
 
-  # Registers an event class to listen for messages matching its pattern.
+  # Registers all tracked subclasses with the provided options.
   #
-  # Called by {register_all} for each subclass. Sets up a Discord message listener
-  # that triggers {#safe_handle_event} when the pattern matches.
+  # This installs one Discord message listener that delegates to
+  # {.respond_to_all_matches}.
   #
-  # @param command [Class] the event subclass to register
-  # @param bot [Discordrb::Bot] the Discord bot instance
-  # @param opts [Hash] keyword arguments including cache, logger, booru client
-  # @return [Proc] the message handler registered with the bot
-  def self.register(command, bot:, **opts)
+  # @param opts [Hash] keyword arguments passed to subclass initializers
+  # @return [void]
+  def self.register_all(**opts)
+    bot = opts[:bot]
     opts[:cache] ||= Zache.new
+    total_regex = Regexp.union(subclasses.map(&:pattern))
 
-    # start listening to the pattern
-    bot.message(contains: command.pattern) do |event|
-      kommand = command.new(event, **opts)
-      kommand.safe_handle_event
+    bot.message(contains: total_regex) do |event|
+      respond_to_all_matches(event, **opts)
     end
   end
 
-  # Wraps event handling with exception handling and error logging.
+  # Runs all registered event subclasses against one message event.
   #
-  # Calls {#respond_to_event} within an exception handler that sanitizes
-  # errors and sends appropriate error messages to the channel.
+  # The message text is sanitized by removing fenced and inline code first.
+  # Every subclass receives unique flattened captures from its own pattern.
   #
-  # @return [Object] result of {#respond_to_event}
-  def safe_handle_event
-    execute_and_rescue_errors(@event, wait_message: false) do
-      respond_to_event
+  # @param event [Discordrb::Events::MessageEvent]
+  # @param opts [Hash] keyword args forwarded to event subclass constructors
+  # @return [void]
+  def self.respond_to_all_matches(event, **opts)
+    text = event.text.gsub(/```.*?```/m, "").gsub(/`.*?`/m, "")
+
+    messages, embeds = subclasses.each_with_object([[], []]) do |subclass, (messages, embeds)|
+      matches = text.scan(subclass.pattern).flatten.uniq
+      next unless matches.present?
+
+      break if embeds.length > 10
+
+      kommand = subclass.new(event, **opts)
+      submessages, subembeds = kommand.respond_to_matches(matches)
+      messages.concat(submessages)
+      embeds.concat(subembeds)
     end
+
+    send_combined_message(event, messages:, embeds:)
+  end
+
+  # Sends a single combined Discord response for collected event outputs.
+  #
+  # @param event [Discordrb::Events::MessageEvent]
+  # @param messages [Array<String>, nil]
+  # @param embeds [Array<Discordrb::Webhooks::Embed>, nil]
+  # @return [void]
+  def self.send_combined_message(event, messages: nil, embeds: nil)
+    messages = messages.to_a.join("\n").strip
+    embeds = embeds.to_a.flatten.compact
+    return unless embeds.present? || messages.present?
+
+    event.channel.send_message(
+      messages,
+      false,
+      embeds.first(10),
+      nil,
+      { replied_user: false }, # allowed mentions: don't ping who you're replying to
+      event.message # message reference
+    )
   end
 end

@@ -57,8 +57,6 @@ class Fumimi
   end
 
   def register_commands
-    # bot.message(contains: Regexp.union(@@regex_listeners.pluck(:regex)), &method(:respond_to_embeds))
-
     bot.message(contains: %r{https?://\w+\.donmai\.us/posts/\d+}i, &method(:do_convert_post_links))
     bot.message(contains: %r{https?://\w+\.donmai\.us/users/\d+}i, &method(:do_convert_user_links))
 

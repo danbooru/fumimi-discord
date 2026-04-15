@@ -27,12 +27,6 @@ module Fumimi::Events
     @@regex_listeners << { name: name, regex: regex, block: block }
   end
 
-  respond(:artist_id, /artist #[0-9]+/i) do |event, text|
-    id = text[/[0-9]+/]
-    event.channel.send_message("https://danbooru.donmai.us/artists/#{id}")
-    nil
-  end
-
   respond(:pixiv_id, /pixiv #[0-9]+/i) do |event, text|
     id = text[/[0-9]+/]
     event.channel.send_message("https://www.pixiv.net/artworks/#{id}")

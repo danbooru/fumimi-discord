@@ -205,7 +205,7 @@ class Fumimi::SlashCommand
   # @param event [Discordrb::Events::InteractionCreateEvent] the Discord interaction event
   # @param cache [Zache] optional cache instance (defaults to new Zache)
   # @param log [Logger] optional logger instance
-  # @param booru [Danbooru::Client] optional Danbooru API client
+  # @param booru [Danbooru] optional Danbooru API client
   # @param _args [Hash] additional arguments (ignored)
   def initialize(event, cache: nil, log: nil, booru: nil, **_args)
     @event = event

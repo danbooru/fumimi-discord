@@ -27,8 +27,9 @@ class CHANNEL_MOCK
     true
   end
 
-  def send_message(msg)
+  def send_message(msg = nil, _tts = false, embeds = nil, *_rest)
     @messages << msg
+    @embeds.concat(Array(embeds)) if embeds
     true
   end
 
@@ -150,13 +151,7 @@ module TestMocks
 
     fumimi.respond_to_embeds(event)
 
-    Fumimi::Event.subclasses.each do |event_class|
-      matches = text.scan(event_class.pattern).flatten.uniq
-      next if matches.empty?
-
-      handler = event_class.new(event, log: Logger.new(File::NULL), booru: setup_booru)
-      handler.safe_handle_event
-    end
+    Fumimi::Event.respond_to_all_matches(event, log: Logger.new(File::NULL), booru: setup_booru)
     event.captured
   end
 
