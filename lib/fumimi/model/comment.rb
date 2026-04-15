@@ -1,7 +1,7 @@
 require "fumimi/model"
 
 class Fumimi::Model::Comment < Fumimi::Model
-  delegate :embed_thumbnail, :embed_is_nsfw?, to: :post
+  delegate :embed_thumbnail, to: :post
 
   def embed_author
     { name: creator.at_name, url: creator.url }

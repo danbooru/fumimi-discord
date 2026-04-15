@@ -3,7 +3,7 @@ require "test_helper"
 class PostEventTest < Minitest::Test
   include TestMocks
 
-  POST_FOOTER_PATTERN = /\d+⇧ \d+♥ | Rating: [GSQE] | \d+x\d+ (\d+.\d+ \d+ \w+)/
+  POST_FOOTER_PATTERN = /^-?\d+⇧ \d+♥  •  Rating: [GSQE]  •  \d+x\d+ \(\d+\.\d+ \w+ \w+\)$/
 
   def test_sfw_post_on_sfw_channel
     embeds = mock_event("post #3", nsfw_channel: false) => { embeds:, ** }
@@ -96,6 +96,19 @@ class PostEventTest < Minitest::Test
     assert_equal Fumimi::Colors::YELLOW, post.color
     assert_equal "https://danbooru.donmai.us/posts/1722315", post.url
     assert_match %r{^https://cdn.donmai.us/360x360/}, post.image.url
+    assert_match POST_FOOTER_PATTERN, post.footer.text
+    assert post.timestamp
+  end
+
+  def test_flash_post
+    embeds = mock_event("post #3840621", nsfw_channel: true) => { embeds:, ** }
+    assert_equal 1, embeds.length
+    post = embeds.first
+
+    assert_equal "post #3840621", post.title
+    assert_equal Fumimi::Colors::WHITE, post.color
+    assert_equal "https://danbooru.donmai.us/posts/3840621", post.url
+    assert_nil post.image&.url
     assert_match POST_FOOTER_PATTERN, post.footer.text
     assert post.timestamp
   end

@@ -10,10 +10,11 @@ class Fumimi::Model::WikiPage < Fumimi::Model
   end
 
   def linked_post_ids
-    body.scan(/!post #(\d+)/)
+    body.scan(/!post #(\d+)/).flatten
   end
 
-  def self.fallback_embed(embed, title, booru)
+  def self.fallback_embed(title, booru)
+    embed = Discordrb::Webhooks::Embed.new
     embed.title = title.tr("_", " ")
     embed.description = empty_wiki_for(title)
     embed.url = "#{booru.url}/posts?tags=#{CGI.escape(title.tr(" ", "_"))}"

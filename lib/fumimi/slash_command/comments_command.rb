@@ -19,7 +19,7 @@ class Fumimi::SlashCommand::CommentCommand < Fumimi::SlashCommand
   end
 
   def embeds
-    comments.map { |comment| comment.embed(nsfw_channel: @event.channel.nsfw?) }
+    comments.map { |comment| comment.embed(channel: @event.channel) }
   end
 
   def comments

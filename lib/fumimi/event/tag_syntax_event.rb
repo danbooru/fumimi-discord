@@ -2,7 +2,7 @@ require "fumimi/event"
 
 class Fumimi::Event::TagSyntaxEvent < Fumimi::Event
   def self.pattern
-    /\[\[\s*([^\]\\*]+)\s*\]\]/
+    /\[\[\s*([^\]]+)\s*\]\]/
   end
 
   def embeds_for(matches)
@@ -21,14 +21,13 @@ class Fumimi::Event::TagSyntaxEvent < Fumimi::Event
       tag = @booru.tags.index("search[name_or_alias_matches]": tag_name, "search[order]": "count").to_a.first
       if tag.present?
         tag.searched_term = tag_name
-        next tag.embed(nsfw_channel: @event.channel.nsfw?)
+        next tag.embed(channel: @event.channel)
       end
 
       wiki_page = @booru.wiki_pages.index("search[title_normalize]": tag_name).to_a.first
-      next wiki_page.embed(nsfw_channel: @event.channel.nsfw?) if wiki_page.present?
+      next wiki_page.embed(channel: @event.channel) if wiki_page.present?
 
-      embed = Discordrb::Webhooks::Embed.new
-      Fumimi::Model::WikiPage.fallback_embed(embed, tag_name, @booru)
+      Fumimi::Model::WikiPage.fallback_embed(tag_name, @booru)
     end
   end
 end

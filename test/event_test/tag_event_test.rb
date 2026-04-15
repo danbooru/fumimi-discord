@@ -1,6 +1,6 @@
 require "test_helper"
 
-class TagEmbedTest < Minitest::Test
+class TagEventTest < Minitest::Test
   include TestMocks
 
   def test_tag
@@ -31,6 +31,16 @@ class TagEmbedTest < Minitest::Test
     lines = tag.description.split("\n")
     assert_match(/-# Category: Copyright | Post Count: \d+.$/, lines.first.strip)
     assert_equal "-# Aliased from `jjk`.", lines.second.strip
+  end
+
+  def test_tag_wildcard
+    embeds = mock_event("[[*hand_on*]]", nsfw_channel: false) => { embeds:, ** }
+    assert_equal 1, embeds.length
+    tag = embeds.first
+
+    lines = tag.description.split("\n")
+    assert_match(/-# Category: General | Post Count: \d+.$/, lines.first.strip)
+    assert_equal "-# First result for `*hand_on*`.", lines.second.strip
   end
 
   def test_deprecated_tag

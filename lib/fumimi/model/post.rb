@@ -21,26 +21,30 @@ class Fumimi::Model::Post < Fumimi::Model
 
   def embed_image
     return nil if censored?
+    return nil unless channel&.nsfw? || !nsfw?
+
     return file_variant.url if file_ext.match?(/jpe?g|png|gif/i)
 
-    preview_variant.url
+    preview_variant&.url
   end
 
   def embed_thumbnail
     return nil if censored?
+    return nil unless channel&.nsfw? || !nsfw?
 
-    preview_variant.url
+    preview_variant&.url
   end
 
-  def embed_is_nsfw?
+  def nsfw?
     rating != "g"
   end
 
   def embed_footer
-    post_info = "#{score}⇧ #{fav_count}♥ | Rating: #{rating.upcase}"
+    post_info = "#{score}⇧ #{fav_count}♥"
+    rating_info = "Rating: #{rating.upcase}"
     file_info = "#{image_width}x#{image_height} (#{file_size.to_fs(:human_size, precision: 4)} #{file_ext})"
 
-    "#{post_info} | #{file_info}"
+    [post_info, rating_info, file_info].join("  •  ")
   end
 
   def censored?
@@ -57,10 +61,10 @@ class Fumimi::Model::Post < Fumimi::Model
   end
 
   def file_variant
-    media_asset.variants.detect { |v| v["type"] == "original" }
+    media_asset.try(:variants).to_a.detect { |v| v["type"] == "original" }
   end
 
   def preview_variant
-    media_asset.variants.detect { |v| v["type"] == "360x360" }
+    media_asset.try(:variants).to_a.detect { |v| v["type"] == "360x360" }
   end
 end
