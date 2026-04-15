@@ -3,62 +3,7 @@ require "active_support"
 module Fumimi::Events
   extend ActiveSupport::Concern
 
-  def respond_to_embeds(event)
-    text = event.text.gsub(/```.*?```/m, "").gsub(/`.*?`/m, "")
-
-    @@regex_listeners.each do |message|
-      message => { name:, regex:, block: }
-      matches = text.scan(regex)
-
-      embeds = []
-      matches.uniq.each do |match|
-        log.info("Received command '#{match}' from user ##{event&.user&.id} '#{event&.user&.username}' in channel '##{event&.channel&.name}'") # rubocop:disable Layout/LineLength
-        embeds << instance_exec(event, match, &block)
-      end
-      embeds = embeds.flatten.compact
-      event.channel.send_embed("", embeds) if embeds.present?
-    end
-  end
-
   # TODO: implement asset #123 etc
-
-  def self.respond(name, regex, &block)
-    @@regex_listeners ||= []
-    @@regex_listeners << { name: name, regex: regex, block: block }
-  end
-
-  respond(:pixiv_id, /pixiv #[0-9]+/i) do |event, text|
-    id = text[/[0-9]+/]
-    event.channel.send_message("https://www.pixiv.net/artworks/#{id}")
-    nil
-  end
-
-  respond(:pool_id, /pool #[0-9]+/i) do |event, text|
-    id = text[/[0-9]+/]
-    event.channel.send_message("https://danbooru.donmai.us/pools/#{id}")
-    nil
-  end
-
-  respond(:user_id, /user #[0-9]+/i) do |event, text|
-    id = text[/[0-9]+/]
-
-    event.channel.start_typing
-
-    user = booru.users.show(id)
-    user.create_embed(event.channel) if user.succeeded?
-  end
-
-  respond(:issue_id, /issue #[0-9]+/i) do |event, text|
-    issue_id = text[/[0-9]+/]
-    event.channel.send_message "https://github.com/danbooru/danbooru/issues/#{issue_id}"
-    nil
-  end
-
-  respond(:pull_id, /pull #[0-9]+/i) do |event, text|
-    pull_id = text[/[0-9]+/]
-    event.channel.send_message "https://github.com/danbooru/danbooru/pull/#{pull_id}"
-    nil
-  end
 
   def do_convert_post_links(event)
     event.message.suppress_embeds

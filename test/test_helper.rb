@@ -149,8 +149,6 @@ module TestMocks
     channel_mock = CHANNEL_MOCK.new(name: channel_name, is_nsfw: nsfw_channel)
     event = EVENT_MOCK.new(text: text, user: user_mock, channel: channel_mock)
 
-    fumimi.respond_to_embeds(event)
-
     Fumimi::Event.respond_to_all_matches(event, log: Logger.new(File::NULL), booru: setup_booru)
     event.captured
   end
