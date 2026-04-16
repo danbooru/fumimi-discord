@@ -78,6 +78,14 @@ class HTTPClient
   def default_log_message(response, method, duration)
     runtime_ms = (response.headers["X-Runtime"]&.to_f || 0) * 1000
     total_ms = duration * 1000
-    "time=#{runtime_ms.to_i}ms total=#{total_ms.to_i}ms code=#{response.code} method=#{method.upcase} url=#{response.uri}"
+
+    format(
+      "code=%<code>-3s method=%<method>-6s time=%<time>-7s total=%<total>-7s url=%<url>s",
+      code: response.code,
+      method: method.upcase,
+      time: "#{runtime_ms.to_i}ms",
+      total: "#{total_ms.to_i}ms",
+      url: response.uri
+    )
   end
 end
