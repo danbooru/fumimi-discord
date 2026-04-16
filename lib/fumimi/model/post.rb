@@ -3,7 +3,7 @@ require "fumimi/model"
 class Fumimi::Model::Post < Fumimi::Model
   CENSORED_TAGS = ENV["FUMIMI_CENSORED_TAGS"].to_s.split
 
-  delegate :image_width, :image_height, :file_ext, :file_size, to: :media_asset
+  delegate :file_info, :file_variant, :preview_variant, to: :media_asset
 
   def embed_color
     if is_flagged
@@ -39,16 +39,15 @@ class Fumimi::Model::Post < Fumimi::Model
     rating != "g"
   end
 
+  def censored?
+    tags.grep(/^(#{CENSORED_TAGS.join("|")})$/).any?
+  end
+
   def embed_footer
     post_info = "#{score}⇧ #{fav_count}♥"
     rating_info = "Rating: #{rating.upcase}"
-    file_info = "#{image_width}x#{image_height} (#{file_size.to_fs(:human_size, precision: 4)} #{file_ext})"
 
     [post_info, rating_info, file_info].join("  •  ")
-  end
-
-  def censored?
-    tags.grep(/^(#{CENSORED_TAGS.join("|")})$/).any?
   end
 
   def source_url
@@ -58,13 +57,5 @@ class Fumimi::Model::Post < Fumimi::Model
 
   def tags
     tag_string.split
-  end
-
-  def file_variant
-    media_asset.try(:variants).to_a.detect { |v| v["type"] == "original" }
-  end
-
-  def preview_variant
-    media_asset.try(:variants).to_a.detect { |v| v["type"] == "360x360" }
   end
 end

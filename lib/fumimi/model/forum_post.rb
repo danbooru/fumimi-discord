@@ -7,6 +7,10 @@ class Fumimi::Model::ForumPost < Fumimi::Model
     topic.title
   end
 
+  def shortlink
+    "forum ##{id}"
+  end
+
   def embed_author
     { name: creator.at_name, url: creator.url }
   end

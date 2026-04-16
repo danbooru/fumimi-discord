@@ -5,6 +5,10 @@ class Fumimi::Model::ForumTopic < Fumimi::Model
     topic.min_level != "None"
   end
 
+  def shortlink
+    "topic ##{id}"
+  end
+
   def all_posts
     (1..).each_with_object([]) do |page, forum_posts|
       page_posts = booru.forum_posts.index("search[topic_id]": id, page: page)
