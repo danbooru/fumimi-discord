@@ -45,10 +45,6 @@ class CHANNEL_MOCK
   def nsfw?
     @is_nsfw
   end
-
-  def start_typing
-    nil
-  end
 end
 
 class EVENT_MOCK

@@ -15,10 +15,6 @@ class Fumimi::SlashCommand::CalcCommand < Fumimi::SlashCommand
     ]
   end
 
-  def show_typing_activity?
-    false
-  end
-
   def message
     expr = arguments[:expression]
 

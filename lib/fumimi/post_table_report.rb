@@ -2,11 +2,9 @@ module Fumimi::Report
   class PostTableReport
     include Fumimi::HasDiscordEmbed
 
-    def initialize(booru:, tags:, user:)
+    def initialize(booru:, tags:)
       @booru = booru
       @tags = tags
-
-      @user = user
     end
 
     def embed_title
@@ -22,7 +20,7 @@ module Fumimi::Report
         EOF
       else
         <<~EOF.chomp
-          -# Requested by <@#{@user.id}>. Results are cached for one hour.
+          #{cache_message}
           #{tag_description}
           #{table}
         EOF

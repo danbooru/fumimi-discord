@@ -22,7 +22,7 @@ class Fumimi::SlashCommand::ApproversCommand < Fumimi::SlashCommand
   private
 
   def report
-    Fumimi::Report::ApproverReport.new(booru: @booru, tags: tags, user: @event.user)
+    Fumimi::Report::ApproverReport.new(booru: @booru, tags: tags)
   end
 
   def tags

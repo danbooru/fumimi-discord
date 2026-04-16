@@ -33,6 +33,10 @@ module Fumimi::HasDiscordEmbed
     @embed
   end
 
+  def cache_message(time = "one hour")
+    "-# Results are cached for #{time}."
+  end
+
   def embed_title
     raise NotImplementedError
   end

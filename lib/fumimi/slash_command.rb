@@ -119,16 +119,6 @@ class Fumimi::SlashCommand
   def embeds
   end
 
-  # Whether to show the "Bot is thinking..." indicator while processing.
-  #
-  # When true, Discord will show a typing indicator in the channel while waiting
-  # for the response. Useful for commands that take time to process.
-  #
-  # @return [Boolean] true to show typing activity, false otherwise
-  def show_typing_activity?
-    true
-  end
-
   # Returns the parsed command arguments as a hash.
   #
   # Arguments are indexed by option name and can be accessed as:
@@ -255,7 +245,6 @@ class Fumimi::SlashCommand
   def safe_handle_event
     execute_and_rescue_errors(@event) do
       @log.info("command='/#{self.class.name}' args=`#{@event.options}` user_id=#{@event.user.id} username='#{@event.user.username}' channel='##{@event.channel.name}'") # rubocop:disable Layout/LineLength
-      @event.channel.start_typing if show_typing_activity?
       respond_to_event
     end
   end

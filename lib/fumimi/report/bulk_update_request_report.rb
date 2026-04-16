@@ -1,9 +1,8 @@
 class Fumimi::Report::BulkUpdateRequestReport
   include Fumimi::HasDiscordEmbed
 
-  def initialize(booru:, log:)
+  def initialize(booru:)
     @booru = booru
-    @log = log
   end
 
   def embed_title

@@ -9,10 +9,6 @@ class Fumimi::SlashCommand::HiCommand < Fumimi::SlashCommand
     "Say hi to Fumimi!"
   end
 
-  def show_typing_activity?
-    false
-  end
-
   def respond_to_event
     reply_to_user "Command received. Deleting all animes."
     sleep 1

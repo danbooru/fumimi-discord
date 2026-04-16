@@ -14,6 +14,6 @@ class Fumimi::SlashCommand::BursCommand < Fumimi::SlashCommand
   end
 
   def report
-    Fumimi::Report::BulkUpdateRequestReport.new(booru: @booru, log: @log)
+    Fumimi::Report::BulkUpdateRequestReport.new(booru: @booru)
   end
 end
