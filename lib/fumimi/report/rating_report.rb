@@ -1,4 +1,4 @@
-class Fumimi::PostReport::RatingReport < Fumimi::PostReport
+class Fumimi::Report::RatingReport < Fumimi::Report::PostTableReport
   def title
     "Rating Report for: #{@tags.join(" ")}".gsub("_", "\\_")
   end
@@ -25,10 +25,10 @@ class Fumimi::PostReport::RatingReport < Fumimi::PostReport
   def search_params
     {
       id: "posts",
-      "search[from]": start_date,
-      "search[to]": end_date,
+      "search[from]": "2005-05-24",
+      "search[to]": (Time.now + 1.year).strftime("%Y-%m-%d"),
       "search[group]": "rating",
-      "search[tags]": @tags.join(" "),
+      "search[tags]": tag_string,
     }
   end
 end

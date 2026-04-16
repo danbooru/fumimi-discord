@@ -82,10 +82,10 @@ class Fumimi::Model::Tag < Fumimi::Model
     end
 
     # then try with a narrow search
-    tag_searches << "#{Fumimi::TagCategory.narrow_search_tags(category)} order:score -flash"
+    tag_searches << "#{Fumimi::PostSearch.narrow_search_tags(category)} order:score -flash"
 
     # and if that fails, broaden the search one last time
-    tag_searches << "#{Fumimi::TagCategory.wide_search_tags(category)} order:score -flash"
+    tag_searches << "#{Fumimi::PostSearch.wide_search_tags(category)} order:score -flash"
 
     tag_searches
       # make sure all searches have the tag, to filter out counterexamples from example posts etc

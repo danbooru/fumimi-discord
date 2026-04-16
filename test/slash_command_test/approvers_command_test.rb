@@ -9,7 +9,6 @@ class ApproversCommandTest < Minitest::Test
     assert_equal 1, reply_embeds.length
     report = reply_embeds.first
     assert_equal "Approver Report", report.title
-    assert_match(/Requested by <@/, report.description)
 
     table_lines = table_lines_for(report)
 

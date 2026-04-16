@@ -32,30 +32,4 @@ class Fumimi::TagCategory
       raise NotImplementedError, category
     end
   end
-
-  def self.narrow_search_tags(category)
-    case category
-    when 1 # artist
-      ""
-    when 3 # copy
-      "everyone copytags:<5 -parody -crossover"
-    when 4 # char
-      "solo chartags:<5 -cosplay -fusion -character_doll -character_hair_ornament -character_print -crossover -very_wide_shot" # rubocop:disable Layout/LineLength
-    else # meta or general
-      "-6+girls -6+boys -comic -very_wide_shot"
-    end
-  end
-
-  def self.wide_search_tags(category)
-    case category
-    when 1 # artist
-      ""
-    when 3 # copy
-      "everyone copytags:<5"
-    when 4 # char
-      "solo chartags:<5"
-    else # meta or general # rubocop:disable Lint/DuplicateBranch
-      ""
-    end
-  end
 end

@@ -17,14 +17,16 @@ module Fumimi::HasDiscordEmbed
 
   def populate_embed
     @embed.title       = embed_title
-    @embed.description = embed_description.to_s
     @embed.url         = embed_url
+    @embed.author      = embed_author
+
+    @embed.description = embed_description.to_s
+
     @embed.color       = embed_color
-    @embed.timestamp   = embed_timestamp
     @embed.image       = embed_image
     @embed.thumbnail   = embed_thumbnail unless embed_image.present?
 
-    @embed.author      = embed_author
+    @embed.timestamp   = embed_timestamp
     @embed.footer      = embed_footer
 
     @embed.fields.clear

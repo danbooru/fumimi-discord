@@ -151,7 +151,7 @@ class Fumimi::Event
   # @param _opts [Hash] additional options (ignored)
   def initialize(event, cache: nil, log: nil, booru: nil, **_opts)
     @event = event
-    @cache = cache || Zache.new
+    @cache = cache
     @booru = booru
     @log = log
   end
@@ -165,7 +165,6 @@ class Fumimi::Event
   # @return [void]
   def self.register_all(**opts)
     bot = opts[:bot]
-    opts[:cache] ||= Zache.new
     total_regex = Regexp.union(subclasses.map(&:total_pattern))
 
     bot.message(contains: total_regex) do |event|

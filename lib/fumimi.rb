@@ -52,16 +52,15 @@ class Fumimi
     bot.command(:uploaders, description: "List posts by uploader: `/uploaders <search>`", &method(:do_uploader_stats))
     bot.command(:stats, description: "Show various stats about a search: `/stats <search>`",
                 &method(:do_post_search_stats))
-    bot.command(:raffle, description: "Show the stats for a raffle: `/raffle <topic_id>`", &method(:do_raffle_report))
-    bot.command(:rafflepick, description: "Pick raffle winners: `/rafflepick <topic_id> <n>`", &method(:do_raffle_pick))
-    bot.command(:modqueue, description: "List modqueue stats: `/modqueue`", &method(:do_modqueue))
-    bot.command(:downbooru, description: "Check if the site's up: `/downbooru`", &method(:do_downbooru))
-    bot.command(:future, description: "Predict future post milestones", &method(:do_future))
     bot.command(:searches, description: "Check unique IPs for a tag search: `/searches cat_ears [hour|day]",
                 &method(:do_searches))
     bot.command(:allsearches, help_available: false, &method(:do_allsearches)) # only for admins
     bot.command(:ruby, description: "Evaluate a ruby expression", &method(:do_ruby))
     bot.command(:say, help_available: false, &method(:do_say))
+  end
+
+  def cache
+    @cache ||= Zache.new
   end
 
   def run_commands
@@ -74,8 +73,8 @@ class Fumimi
       prefix: "/"
     )
 
-    Fumimi::SlashCommand.register_all(bot: bot, server_id: server_id, log: log, booru: @booru)
-    Fumimi::Event.register_all(bot: bot, log: log, booru: @booru)
+    Fumimi::SlashCommand.register_all(bot: bot, server_id: server_id, log: log, booru: @booru, cache: cache)
+    Fumimi::Event.register_all(bot: bot, log: log, booru: @booru, cache: cache)
     bot.run(:async)
 
     loop do

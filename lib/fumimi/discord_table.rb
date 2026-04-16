@@ -8,7 +8,12 @@ class Fumimi::DiscordTable
 
   def initialize(headers:, rows:)
     @headers = headers
-    @rows = rows
+    @rows = rows.map do |row|
+      row.map do |cell|
+        # limit the max length of usernames etc
+        cell.to_s.truncate(20, omission: "…")
+      end
+    end
   end
 
   def to_s

@@ -87,7 +87,7 @@ class Danbooru
 
   INCLUDE_MAP = {
     creator: "users",
-    topic: "forum_posts",
+    topic: "forum_topic",
   }.with_indifferent_access.freeze
 
   # @param url [String, nil] Danbooru base URL.

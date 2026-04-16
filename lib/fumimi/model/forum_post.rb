@@ -1,6 +1,8 @@
 require "fumimi/model"
 
 class Fumimi::Model::ForumPost < Fumimi::Model
+  delegate :hidden?, to: :topic
+
   def embed_title
     topic.title
   end
@@ -40,10 +42,6 @@ class Fumimi::Model::ForumPost < Fumimi::Model
     vote_types.values.map do |vote|
       Fumimi::Colors.message_to_ansi(message: "#{vote["symbol"]}#{vote["tally"]}", color: vote["color"], format: "bold")
     end.join(" | ")
-  end
-
-  def hidden?
-    topic.min_level != "None"
   end
 
   def embed_color

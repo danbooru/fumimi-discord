@@ -199,7 +199,7 @@ class Fumimi::SlashCommand
   # @param _args [Hash] additional arguments (ignored)
   def initialize(event, cache: nil, log: nil, booru: nil, **_args)
     @event = event
-    @cache = cache || Zache.new
+    @cache = cache
     @booru = booru
     @log = log
   end
@@ -229,7 +229,6 @@ class Fumimi::SlashCommand
   # @param opts [Hash] keyword arguments including cache, logger, booru client
   # @return [Proc] the command handler registered with the bot
   def self.register(command, bot:, **opts)
-    opts[:cache] ||= Zache.new
     bot.application_command(command.name) do |event|
       kommand = command.new(event, **opts)
       kommand.safe_handle_event
