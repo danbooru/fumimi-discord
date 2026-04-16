@@ -48,8 +48,7 @@ class Danbooru
     #
     # @return [Class]
     def factory
-      name = resource.name
-      resource.booru.factory[name] || "Fumimi::Model::#{name.singularize.camelize}".safe_constantize || Fumimi::Model
+      "Fumimi::Model::#{resource.name.singularize.camelize}".safe_constantize || Fumimi::Model
     end
 
     # Builds either one model or a list of models from parsed JSON.

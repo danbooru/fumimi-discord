@@ -76,7 +76,7 @@ class Fumimi::Model
       Addressable::URI.parse(value) rescue value
     elsif value.is_a?(Hash)
       name = Danbooru.map_attribute(name) || name
-      model = api.booru.factory[name.pluralize] || "Fumimi::Model::#{name.singularize.camelize}".safe_constantize || Fumimi::Model
+      model = "Fumimi::Model::#{name.singularize.camelize}".safe_constantize || Fumimi::Model
       model.new(value, name, api, self)
     elsif value.is_a?(Array)
       value.map { |item| cast_attribute(name, item) }

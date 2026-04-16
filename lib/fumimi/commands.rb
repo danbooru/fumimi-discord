@@ -111,31 +111,6 @@ module Fumimi::Commands # rubocop:disable Metrics/ModuleLength
     end
   end
 
-  command :downbooru do |event, *_tags|
-    event.channel.start_typing
-
-    begin
-      booru.posts.index({ limit: 1 }, { timeout: 2 })
-    rescue Timeout::Error
-      raise Danbooru::Exceptions::DownbooruError
-    end
-
-    event.channel.send_embed do |embed|
-      embed.title = "All good! Site's up!"
-      embed.image = Discordrb::Webhooks::EmbedImage.new(url: "https://i.imgur.com/ik5HdCp.png")
-      embed
-    end
-  end
-
-  command :future do |event, *_tags|
-    event.channel.start_typing
-
-    event.channel.send_embed do |embed|
-      report = Fumimi::FutureReport.new(event, booru)
-      report.send_embed(embed)
-    end
-  end
-
   command :searches do |event, *tags|
     event.channel.start_typing
     event.channel.send_embed do |embed|

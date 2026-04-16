@@ -121,27 +121,28 @@ class SLASH_EVENT_MOCK
 end
 
 module TestMocks
-  def mock_slash_command(name, args: {}, user_id: 123, username: "tester", channel_name: "#test", nsfw_channel: false)
+  def mock_slash_command(name, args: {}, nsfw_channel: false,
+                         booru: setup_booru)
     command_name = name.to_s.delete_prefix("/")
     command_class = ObjectSpace.each_object(Class).find do |klass|
       klass < Fumimi::SlashCommand && klass.name == command_name
     end
     raise ArgumentError, "Unknown slash command: #{name}" unless command_class
 
-    user_mock = USER_MOCK.new(user_id, username)
-    channel_mock = CHANNEL_MOCK.new(name: channel_name, is_nsfw: nsfw_channel)
+    user_mock = USER_MOCK.new(123, "tester")
+    channel_mock = CHANNEL_MOCK.new(name: "#test", is_nsfw: nsfw_channel)
 
-    event = SLASH_EVENT_MOCK.new(user: user_mock, channel: channel_mock, channels: { channel_name => channel_mock },
+    event = SLASH_EVENT_MOCK.new(user: user_mock, channel: channel_mock, channels: { "#test" => channel_mock },
                                  options: args)
 
-    command = command_class.new(event, log: Logger.new(File::NULL), booru: setup_booru)
+    command = command_class.new(event, log: Logger.new(File::NULL), booru: booru)
     command.safe_handle_event
     event.captured
   end
 
-  def mock_event(text, user_id: 123, username: "tester", channel_name: "#test", nsfw_channel: false)
-    user_mock = USER_MOCK.new(user_id, username)
-    channel_mock = CHANNEL_MOCK.new(name: channel_name, is_nsfw: nsfw_channel)
+  def mock_event(text, nsfw_channel: false)
+    user_mock = USER_MOCK.new(123, "tester")
+    channel_mock = CHANNEL_MOCK.new(name: "#test", is_nsfw: nsfw_channel)
     event = EVENT_MOCK.new(text: text, user: user_mock, channel: channel_mock)
 
     Fumimi::Event.respond_to_all_matches(event, log: Logger.new(File::NULL), booru: setup_booru)
@@ -149,16 +150,7 @@ module TestMocks
   end
 
   def setup_booru
-    factory = {
-      posts: Fumimi::Model::Post,
-      tags: Fumimi::Model::Tag,
-      comments: Fumimi::Model::Comment,
-      forum_posts: Fumimi::Model::ForumPost,
-      users: Fumimi::Model::User,
-      wiki_pages: Fumimi::Model::WikiPage,
-    }.with_indifferent_access
-
-    Danbooru.new(factory: factory)
+    Danbooru.new
   end
 
   def table_lines_for(embed)

@@ -9,7 +9,7 @@ class Danbooru; end
 Dir[__dir__ + "/danbooru/**/*.rb"].each { |file| require file }
 
 class Danbooru
-  attr_reader :url, :user, :api_key, :log, :http, :resources, :factory
+  attr_reader :url, :user, :api_key, :log, :http, :resources
 
   RESOURCES = {
     "AliasAndImplicationImports" => { url: "admin/alias_and_implication_import" },
@@ -93,12 +93,10 @@ class Danbooru
   # @param url [String, nil] Danbooru base URL.
   # @param user [String, nil] Danbooru login.
   # @param api_key [String, nil] Danbooru API key.
-  # @param factory [Hash] Model overrides keyed by resource name.
   # @param log [Logger] Logger instance.
   def initialize(url: ENV["BOORU_URL"], # rubocop:disable Style/FetchEnvVar
                  user: ENV["BOORU_USER"], # rubocop:disable Style/FetchEnvVar
                  api_key: ENV["BOORU_API_KEY"], # rubocop:disable Style/FetchEnvVar
-                 factory: {},
                  log: Logger.new($stderr))
     url ||= "https://danbooru.donmai.us"
 
@@ -106,7 +104,7 @@ class Danbooru
 
     @url, @user, @api_key, @log = Addressable::URI.parse(url), user, api_key, log
     @http = HTTPClient.new(base: url, user: user, pass: api_key, log: log)
-    @factory, @resources = factory.with_indifferent_access, {}
+    @resources = {}
   end
 
   # Simple health check against the posts endpoint.
