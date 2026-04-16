@@ -27,7 +27,7 @@ class Fumimi::Report::ApproverReport < Fumimi::Report::PostTableReport
       "search[to]": (Time.now + 1.year).strftime("%Y-%m-%d"),
       "search[group]": "approver",
       "search[group_limit]": 25,
-      "search[tags]": @tags.join(" "),
+      "search[tags]": tag_string,
     }
   end
 end

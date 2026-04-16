@@ -2,7 +2,7 @@ require "zache"
 
 require "fumimi/exceptions"
 
-module Fumimi::Commands # rubocop:disable Metrics/ModuleLength
+module Fumimi::Commands
   OWNERS = [310167383912349697, 1373735183425208331].freeze # rubocop:disable Style/NumericLiterals
 
   zache = Zache.new
@@ -99,15 +99,6 @@ module Fumimi::Commands # rubocop:disable Metrics/ModuleLength
         report = Fumimi::RaffleReport.new(event, booru, zache, topic_id)
         report.send_winner_embed(embed, winner_count)
       end
-    end
-  end
-
-  command :modqueue do |event, *tags|
-    event.channel.start_typing
-
-    event.channel.send_embed do |embed|
-      report = Fumimi::Report::ModqueueReport.new(event, booru, tags)
-      report.send_embed(embed)
     end
   end
 

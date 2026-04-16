@@ -51,7 +51,7 @@ class Fumimi::Report::ModQueueReport < Fumimi::Report::PostTableReport
       "search[to]": (Time.now + 1.year).strftime("%Y-%m-%d"),
       "search[group]": "uploader",
       "search[group_limit]": 25,
-      "search[tags]": @tags.join(" "),
+      "search[tags]": tag_string,
       "search[uploader][level]": @level.presence,
     }
   end

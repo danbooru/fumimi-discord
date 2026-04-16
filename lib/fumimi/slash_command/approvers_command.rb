@@ -19,8 +19,6 @@ class Fumimi::SlashCommand::ApproversCommand < Fumimi::SlashCommand
     [report.embed]
   end
 
-  private
-
   def report
     Fumimi::Report::ApproverReport.new(booru: @booru, tags: tags)
   end
