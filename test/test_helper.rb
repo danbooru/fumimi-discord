@@ -164,4 +164,10 @@ module TestMocks
 
     Danbooru.new(factory: factory)
   end
+
+  def table_lines_for(embed)
+    embed.description.split("\n").filter_map do |l|
+      l.split("│").map(&:strip).map(&:presence).compact if l.start_with?("│")
+    end
+  end
 end

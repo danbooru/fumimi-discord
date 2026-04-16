@@ -59,7 +59,6 @@ class Fumimi
     bot.command(:related, description: "List related tags: `/related <category> <search>`", &method(:do_related_tags))
     bot.command(:uploads, description: "List posts by year: `/uploads <search>`", &method(:do_upload_stats))
     bot.command(:uploaders, description: "List posts by uploader: `/uploaders <search>`", &method(:do_uploader_stats))
-    bot.command(:approvers, description: "List posts by approver: `/approvers <search>`", &method(:do_approver_stats))
     bot.command(:stats, description: "Show various stats about a search: `/stats <search>`",
                 &method(:do_post_search_stats))
     bot.command(:raffle, description: "Show the stats for a raffle: `/raffle <topic_id>`", &method(:do_raffle_report))
@@ -86,8 +85,6 @@ class Fumimi
 
     Fumimi::SlashCommand.register_all(bot: bot, server_id: server_id, log: log, booru: @booru)
     Fumimi::Event.register_all(bot: bot, log: log, booru: @booru)
-
-    register_commands
     bot.run(:async)
 
     loop do

@@ -45,7 +45,7 @@ module Fumimi::Commands # rubocop:disable Metrics/ModuleLength
     event.channel.start_typing
 
     event.channel.send_embed do |embed|
-      report = Fumimi::PostReport::UploadReport.new(event, booru, tags)
+      report = Fumimi::Report::UploadReport.new(event, booru, tags)
       report.send_embed(embed)
     end
   end
@@ -54,16 +54,7 @@ module Fumimi::Commands # rubocop:disable Metrics/ModuleLength
     event.channel.start_typing
 
     event.channel.send_embed do |embed|
-      report = Fumimi::PostReport::UploaderReport.new(event, booru, tags)
-      report.send_embed(embed)
-    end
-  end
-
-  command :approver_stats do |event, *tags|
-    event.channel.start_typing
-
-    event.channel.send_embed do |embed|
-      report = Fumimi::PostReport::ApproverReport.new(event, booru, tags)
+      report = Fumimi::Report::UploaderReport.new(event, booru, tags)
       report.send_embed(embed)
     end
   end
@@ -115,7 +106,7 @@ module Fumimi::Commands # rubocop:disable Metrics/ModuleLength
     event.channel.start_typing
 
     event.channel.send_embed do |embed|
-      report = Fumimi::PostReport::ModqueueReport.new(event, booru, tags)
+      report = Fumimi::Report::ModqueueReport.new(event, booru, tags)
       report.send_embed(embed)
     end
   end

@@ -1,6 +1,11 @@
-require "fumimi/report"
+class Fumimi::Report::BulkUpdateRequestReport
+  include Fumimi::HasDiscordEmbed
 
-class Fumimi::Report::BulkUpdateRequestReport < Fumimi::Report
+  def initialize(booru:, log:)
+    @booru = booru
+    @log = log
+  end
+
   def embed_title
     "Pending BUR Stats"
   end
@@ -13,6 +18,10 @@ class Fumimi::Report::BulkUpdateRequestReport < Fumimi::Report
 
       Top topics by pending requests:
     EOF
+  end
+
+  def embed_timestamp
+    Time.now
   end
 
   def embed_fields

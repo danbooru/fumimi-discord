@@ -77,7 +77,8 @@ class Fumimi::Event
   #
   # @example
   #   def embeds_for(matches)
-  #     matches.map { |id| Fumimi::PostReport.new(id).embed }
+  #     posts = @booru.posts.index(tags: "id:#{matches.join(",")} order:custom")
+  #     posts.map { |post| post.embed(nsfw_channel: @event.channel.nsfw?) }
   #   end
   def embeds_for(matches)
   end
