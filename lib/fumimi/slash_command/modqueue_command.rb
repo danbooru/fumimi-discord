@@ -14,6 +14,6 @@ class Fumimi::SlashCommand::ModQueueCommand < Fumimi::SlashCommand
   end
 
   def report
-    @report ||= Fumimi::Report::ModQueueReport.new(booru: @booru, tags: [])
+    Fumimi::Report::ModQueueReport.new(booru: @booru, tags: [])
   end
 end
