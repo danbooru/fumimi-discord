@@ -32,4 +32,18 @@ class Fumimi::TagCategory
       raise NotImplementedError, category
     end
   end
+
+  def self.category_map
+    {
+      gen: "general",
+      general: "general",
+      char: "character",
+      character: "character",
+      copy: "copyright",
+      copyright: "copyright",
+      art: "artist",
+      artist: "artist",
+      meta: "meta",
+    }.with_indifferent_access
+  end
 end

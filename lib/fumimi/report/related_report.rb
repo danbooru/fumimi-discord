@@ -1,52 +1,41 @@
 class Fumimi::RelatedReport
-  def self.category_map
-    {
-      "gen" => "general",
-      "general" => "general",
-      "char" => "character",
-      "character" => "character",
-      "copy" => "copyright",
-      "copyright" => "copyright",
-      "art" => "artist",
-      "artist" => "artist",
-      "meta" => "meta",
-    }
-  end
+  include Fumimi::HasDiscordEmbed
 
-  def initialize(event, booru, tags)
-    @event = event
+  def initialize(booru:, tags:, category: nil)
     @booru = booru
-    @category = self.class.category_map[tags.first&.downcase&.delete_suffix("s")]
-    @tags = @category.present? ? tags[1..] : tags
+    @tags = tags
+    @category = category
   end
 
-  def send_embed(embed)
-    embed.title = title
-    embed.url = url
-    embed.description = description
-    embed
-  end
-
-  def title
+  def embed_title
     category_name = @category.nil? ? "tags" : "#{@category} tags"
-    "Related #{category_name} for: #{@tags.join(" ")}".gsub("_", "\\_")
+    "Related #{category_name.titleize} Report"
   end
 
-  def description
-    return "No tags under that search!" if rows.empty?
+  def embed_description
+    <<~EOF.chomp
+      #{tag_description}
+      #{table}
+    EOF
+  end
 
-    table.to_s
+  def tag_string
+    @tags.join(" ").strip
+  end
+
+  def tag_description
+    "-# Tags: `%s`" % tag_string if tag_string
   end
 
   def table
-    Fumimi::DiscordTable.new(headers: headers, rows: rows)
+    Fumimi::DiscordTable.new(headers: table_headers, rows: table_rows)
   end
 
-  def headers
+  def table_headers
     %w[Name Frequency]
   end
 
-  def rows
+  def table_rows
     related_tags.map do |each_tag|
       percent = each_tag["frequency"] * 100
       [each_tag.dig("tag", "name"), "%.2f" % percent]
@@ -57,19 +46,19 @@ class Fumimi::RelatedReport
     "#{@booru.url}/related_tag?#{search_params.except(:limit).to_query}"
   end
 
-  def report
-    @report ||= @booru.related_tags.index(**search_params).as_json
-  end
-
   def related_tags
     report["related_tags"].to_a
+  end
+
+  def report
+    @report ||= @booru.related_tags.index(**search_params).as_json
   end
 
   def search_params
     {
       limit: 25,
       "search[category]": @category,
-      "search[query]": @tags.join(" "),
+      "search[query]": tag_string,
     }
   end
 end
