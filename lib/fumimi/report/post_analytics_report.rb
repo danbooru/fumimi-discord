@@ -19,7 +19,7 @@ class Fumimi::PostAnalyticsReport
       #{table.prettified}
       ```
       -# Results may be cached for #{@range.inspect}.
-      -# Request time: #{range_request[:duration].to_f}s.
+      -# Request time: #{request_time}s.
     EOS
   end
 
@@ -58,12 +58,7 @@ class Fumimi::PostAnalyticsReport
       raise Fumimi::Exceptions::MissingCredentialsError, "SIGNOZ_API_KEY is not configured."
     end
 
-    @client ||= SigNozClient.new(
-      "https://signoz.donmai.us",
-      signoz_api_key,
-      log: @log,
-      cache: @cache
-    )
+    @client ||= SigNozClient.new("https://signoz.donmai.us", signoz_api_key, log: @log, cache: @cache)
   end
 
   def negated_tags
@@ -120,5 +115,13 @@ class Fumimi::PostAnalyticsReport
 
   def show_hourly_comparison?
     @range > 1.hour && @range <= 1.day
+  end
+
+  def request_time
+    t = range_request[:duration]
+    t += negated_range_request[:duration] if negated_tags.present?
+    t += hourly_request[:duration] if show_hourly_comparison?
+    t += negated_hourly_request[:duration] if show_hourly_comparison? && negated_tags.present?
+    "%.2f" % t
   end
 end

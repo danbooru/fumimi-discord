@@ -101,10 +101,11 @@ class SigNozClient
     expressions << "k8s.daemonset.name = 'nginx-ingress-controller'"
     expressions << "userAgent CONTAINS 'Mozilla/5.0' "
     expressions << "userAgent NOT CONTAINS 'compatible'" # googlebot, etc
-    expressions << "danbooru_path = '/posts'"
+    expressions << "url contains '/posts?'"
+    expressions << "url contains 'tags='"
 
     tags.each do |tag|
-      expressions << "query_string_tags REGEXP '#{tag_regex(tag)}'"
+      expressions << "url REGEXP '#{tag_regex(tag)}'"
     end
 
     {
@@ -114,6 +115,9 @@ class SigNozClient
         signal: "logs",
         filter: {
           expression: expressions.join(" AND "),
+        },
+        having: {
+          expression: "",
         },
         aggregations: [{
           expression: "count_distinct(ip)",
@@ -131,9 +135,7 @@ class SigNozClient
       return tag
     end
 
-    return self.class.negative_tag_regex(tag.delete_prefix("-")).source if tag.start_with?("-")
-
-    self.class.positive_tag_regex(tag).source
+    self.class.old_tag_regex(tag).source
   end
 
   def self.positive_tag_regex(tag)
@@ -142,5 +144,9 @@ class SigNozClient
 
   def self.negative_tag_regex(tag)
     /(?i)(^|\+)(-#{tag}(\+|$)|-%28(.+\+)?#{tag}(\+|%29))/
+  end
+
+  def self.old_tag_regex(tag)
+    /tags=(?i)(?:[^&]*\++\(?|[+(]*)(#{tag})([+&)]|$)/
   end
 end
