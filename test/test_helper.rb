@@ -129,8 +129,8 @@ module TestMocks
     Zache.new
   end
 
-  def user_mock
-    USER_MOCK.new(123, "tester")
+  def user_mock(user_id: 123)
+    USER_MOCK.new(user_id, "tester")
   end
 
   def channel_mock(nsfw_channel:)
@@ -141,9 +141,9 @@ module TestMocks
     Logger.new($stderr, level: Logger::DEBUG)
   end
 
-  def slash_event_mock(nsfw_channel:, args:)
+  def slash_event_mock(nsfw_channel:, args:, user_id: 123)
     channel = channel_mock(nsfw_channel:)
-    SLASH_EVENT_MOCK.new(user: user_mock,
+    SLASH_EVENT_MOCK.new(user: user_mock(user_id:),
                          channel: channel,
                          channels: { channel.name => channel },
                          options: args)
@@ -153,7 +153,7 @@ module TestMocks
     Danbooru.new
   end
 
-  def mock_slash_command(name, args:, nsfw_channel: false, booru: default_booru)
+  def mock_slash_command(name, args:, nsfw_channel: false, booru: default_booru, user_id: 123)
     command_name = name.to_s.delete_prefix("/")
     command_class = ObjectSpace.each_object(Class).find do |klass|
       klass < Fumimi::SlashCommand && klass.name == command_name
@@ -161,7 +161,7 @@ module TestMocks
 
     raise ArgumentError, "Unknown slash command: #{name}" unless command_class
 
-    event = slash_event_mock(nsfw_channel:, args:)
+    event = slash_event_mock(nsfw_channel:, args:, user_id:)
 
     command = command_class.new(event, log: log, booru: booru, cache: cache)
     command.safe_handle_event
