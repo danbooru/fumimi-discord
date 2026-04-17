@@ -10,7 +10,7 @@ class SigNozClient
   # @param api_key [String] SigNoz API key header value.
   # @param log [Logger] Logger instance.
   # @param cache [Object] Cache object with `get` support.
-  def initialize(base, api_key, log, cache)
+  def initialize(base, api_key, log:, cache:)
     @base     = base
     @api_key  = api_key
     @log      = log
@@ -27,13 +27,23 @@ class SigNozClient
 
     query_payload = create_payload(since_ms, until_ms, tags)
 
-    @cache.get(:"signoz_count_tags_#{tags.join("_")}_#{range.in_milliseconds}", lifetime: range.in_seconds) do
+    @cache.get(cache_key(range, tags), lifetime: cache_lifetime(range)) do
       # cache queries about a tag for their selected timespan
       @log.info("[Signoz] Fetching signoz query for #{tags} for the last #{range.inspect}...")
+
       data = post_json("/api/v5/query_range", query_payload)
 
       data["data"]["data"]["results"][0]["data"][0][0]
     end
+  end
+
+  def cache_key(range, tags)
+    :"signoz_count_tags_#{tags.join("_")}_#{range.in_seconds}"
+  end
+
+  def cache_lifetime(range)
+    # cache queries for a minimum of one hour, to a maximum of one day
+    Fumimi::TimeRangeParser.clamp(range, min: 1.hour, max: 1.day).in_seconds
   end
 
   # Sends the query payload and returns parsed response JSON.
@@ -61,7 +71,7 @@ class SigNozClient
   # @return [Hash]
   def create_payload(since_ms, until_ms, tags)
     # creates a payload for a query that gets the amount of searches for a tag every hour for the past 24 days
-    expression = "(k8s.daemonset.name = 'nginx-ingress-controller'"
+    expression = "k8s.daemonset.name = 'nginx-ingress-controller'"
     expression += " AND userAgent CONTAINS 'Mozilla/5.0' "
     expression += " AND userAgent NOT CONTAINS 'compatible'" # googlebot, etc
     expression += " AND url CONTAINS '/posts?'"
@@ -70,7 +80,6 @@ class SigNozClient
     tags.each do |tag|
       expression += " and url REGEXP '#{tag_regex(tag)}'"
     end
-    expression += ")"
 
     {
       schemaVersion: "v1",
@@ -106,32 +115,25 @@ class SigNozClient
       .with_indifferent_access
   end
 
-  # Escapes and normalizes user tags for regex use.
-  #
-  # @return [String]
-  def normalize_tag(tag)
-    # Normalize a tag so it can be properly interpolated in a regex query
-
+  def tag_regex(tag)
     tag = URI.encode_www_form_component(tag)
-    # escape regex
     tag = Regexp.escape(tag)
-
     # Replace encoded asterisk back with a regex wildcard that stops at tag boundaries
     tag = tag.gsub('\*', ".*")
-    tag
+
+    return negative_tag_regex(tag.delete_prefix("-")) if tag.start_with?("-")
+
+    positive_tag_regex(tag)
   end
 
-  # Builds a query regex matching one tag token inside `tags=`.
-  #
-  # @return [String]
-  def tag_regex(tag)
-    tag = normalize_tag(tag)
+  def positive_tag_regex(tag)
+    /(?i)(^|\+)(#{tag}(\+|$)|%28#{tag}(\+|%29)|%28.+\+#{tag}(\+|%29))/.source
+  end
 
-    # tags=([^&]*\++\(?|[+(]*)    tags= can only be followed by:
-    #       [^&]*\++\(*            anything except &, followed by space(s), and optional brackets, ex: tags=1girl+(tag
-    #                   [+(]*      any amount of spaces and parentheses, ex: tags=++(tag
-    # #{tag}
-    # ([+&)]|$)                   a space, a &, an end bracket, or the end of line
-    /tags=(?i)(?:[^&]*\++\(?|[+(]*)(#{tag})([+&)]|$)/.source
+  def negative_tag_regex(tag)
+    /(?i)(^|\+)(-#{tag}(\+|$)|-%28#{tag}(\+|%29)|-%28.+\+#{tag}(\+|%29))/.source
+  end
+
+  def wildcard_tag_regex(tag)
   end
 end

@@ -12,19 +12,7 @@ class Danbooru
   attr_reader :url, :user, :api_key, :log, :http, :resources
 
   RESOURCES = {
-    "AliasAndImplicationImports" => { url: "admin/alias_and_implication_import" },
     "AdminUsers" => { url: "admin/users" },
-    "MaintenanceUserApiKey" => { url: "maintenance/user/api_key" },
-    "MaintenanceUserDeletion" => { url: "maintenance/user/deletion" },
-    "MaintenanceUserDmailFilter" => { url: "maintenance/user/dmail_filter" },
-    "MaintenanceUserEmailChange" => { url: "maintenance/user/email_change" },
-    "MaintenanceUserEmailNotification" => { url: "maintenance/user/email_notification" },
-    "MaintenanceUserLoginReminder" => { url: "maintenance/user/login_reminder" },
-    "MaintenanceUserPasswordReset" => { url: "maintenance/user/password_reset" },
-    "ModeratorBulkRevert" => { url: "moderator/bulk_revert" },
-    "ModeratorInvitations" => { url: "moderator/invitations" },
-    "ModeratorIpAddrs" => { url: "moderator/ip_addrs" },
-    "ModeratorTag" => { url: "moderator/tag" },
     "ExplorePosts" => { url: "explore/posts" },
     "ArtistCommentaries" => {},
     "ArtistCommentaryVersions" => {},
@@ -44,7 +32,7 @@ class Danbooru
     "ForumTopics" => {},
     "IpBans" => {},
     "IqdbQueries" => {},
-    "JanitorTrials" => {},
+    "MediaAssets" => {},
     "ModActions" => {},
     "Modqueue" => {},
     "NewsUpdates" => {},

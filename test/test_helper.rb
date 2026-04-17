@@ -4,7 +4,11 @@ require "fumimi"
 require "minitest/autorun"
 require "minitest/mock"
 
-USER_MOCK = Struct.new(:id, :username)
+USER_MOCK = Struct.new(:id, :username) do
+  def roles
+    []
+  end
+end
 MESSAGE_MOCK = Struct.new(:content) do
   def delete
     nil
@@ -121,36 +125,56 @@ class SLASH_EVENT_MOCK
 end
 
 module TestMocks
-  def mock_slash_command(name, args: {}, nsfw_channel: false,
-                         booru: setup_booru)
+  def cache
+    Zache.new
+  end
+
+  def user_mock
+    USER_MOCK.new(123, "tester")
+  end
+
+  def channel_mock(nsfw_channel:)
+    CHANNEL_MOCK.new(name: "#test", is_nsfw: nsfw_channel)
+  end
+
+  def log
+    Logger.new($stderr, level: Logger::DEBUG)
+  end
+
+  def slash_event_mock(nsfw_channel:, args:)
+    channel = channel_mock(nsfw_channel:)
+    SLASH_EVENT_MOCK.new(user: user_mock,
+                         channel: channel,
+                         channels: { channel.name => channel },
+                         options: args)
+  end
+
+  def default_booru
+    Danbooru.new
+  end
+
+  def mock_slash_command(name, args:, nsfw_channel: false, booru: default_booru)
     command_name = name.to_s.delete_prefix("/")
     command_class = ObjectSpace.each_object(Class).find do |klass|
       klass < Fumimi::SlashCommand && klass.name == command_name
     end
+
     raise ArgumentError, "Unknown slash command: #{name}" unless command_class
 
-    user_mock = USER_MOCK.new(123, "tester")
-    channel_mock = CHANNEL_MOCK.new(name: "#test", is_nsfw: nsfw_channel)
+    event = slash_event_mock(nsfw_channel:, args:)
 
-    event = SLASH_EVENT_MOCK.new(user: user_mock, channel: channel_mock, channels: { "#test" => channel_mock },
-                                 options: args)
-
-    command = command_class.new(event, log: Logger.new(File::NULL), booru: booru)
+    command = command_class.new(event, log: log, booru: booru, cache: cache)
     command.safe_handle_event
     event.captured
   end
 
   def mock_event(text, nsfw_channel: false)
-    user_mock = USER_MOCK.new(123, "tester")
-    channel_mock = CHANNEL_MOCK.new(name: "#test", is_nsfw: nsfw_channel)
-    event = EVENT_MOCK.new(text: text, user: user_mock, channel: channel_mock)
+    event = EVENT_MOCK.new(text: text,
+                           channel: channel_mock(nsfw_channel:),
+                           user: user_mock)
 
-    Fumimi::Event.respond_to_all_matches(event, log: Logger.new(File::NULL), booru: setup_booru)
+    Fumimi::Event.respond_to_all_matches(event_mock(nsfw_channel:), log: log, booru: default_booru)
     event.captured
-  end
-
-  def setup_booru
-    Danbooru.new
   end
 
   def table_lines_for(embed)

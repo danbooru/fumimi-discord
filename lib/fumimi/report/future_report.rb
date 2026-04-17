@@ -25,7 +25,7 @@ class Fumimi::FutureReport
       end.join("\n")
     end
 
-    description + "\n\n#{cache_message("one day")}"
+    description + "\n\n#{cache_message(1.day)}"
   end
 
   def forecasted_milestones
