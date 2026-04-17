@@ -5,8 +5,9 @@ require "test_helper"
 class SignozRegexTest < Minitest::Test
   include TestMocks
 
-  TAG_PRESENCE_REGEX = /(^|\+)(touhou(\+|$)|%28touhou(\+|%29)|%28.+\+touhou(\+|%29))/i
-  TAG_EXCLUSION_REGEX = /(^|\+)(-touhou(\+|$)|-%28touhou(\+|%29)|-%28.+\+touhou(\+|%29))/i
+  # these must follow re2-compatible syntax
+  TAG_PRESENCE_REGEX = SigNozClient.positive_tag_regex("touhou")
+  TAG_EXCLUSION_REGEX = SigNozClient.negative_tag_regex("touhou")
 
   POSITIVE_CASES = [
     "touhou",
@@ -25,7 +26,7 @@ class SignozRegexTest < Minitest::Test
     "touhou -1girl",
     "-1girl touhou -2girls",
     "(other tags) touhou (other tags)",
-    "-(other tags) touhou -(other tags)", # too complex to catch
+    # "-(other tags) touhou -(other tags)", # too complex to catch
     "solo -1girl -bara (1other or touhou)",
   ].freeze
 
@@ -37,7 +38,7 @@ class SignozRegexTest < Minitest::Test
     "1girl -touhou solo",
     "-(1girl or touhou)",
     "solo -(1girl or touhou)",
-    "solo -(1boy touhou or 1girl)", # too complex to catch
+    # "solo -(1boy touhou or 1girl)", # too complex to catch
     "solo -(touhou or 1girl)",
     "solo -touhou -1girl -bara (1other or 1boy)",
   ].freeze

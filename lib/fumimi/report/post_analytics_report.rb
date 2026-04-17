@@ -18,25 +18,25 @@ class Fumimi::PostAnalyticsReport
       ```
       #{table.prettified}
       ```
-      -# Results are cached for a minimum of 1 hour and a maximum of 1 day.
+      -# Results may be cached for #{@range.inspect}.
+      -# Request time: #{range_request[:duration].to_f}s.
     EOS
   end
 
   def clarification # rubocop:disable Metrics/CyclomaticComplexity,Metrics/PerceivedComplexity
-    lines = ["Time range: #{@range.inspect}."]
-
+    lines = []
     if @tags.to_a.length > 1
-      lines << "Unique users whose searches included all of these tags at once:"
+      lines << "Unique users whose searches in the last #{@range.inspect} included all of these tags at once:"
       lines << @tags.map { |t| "`#{t}`" }.join(", ")
     elsif @tags.present?
-      lines << "Unique users whose searches included `#{@tags.first}`:"
+      lines << "Unique users whose searches in the last #{@range.inspect} included `#{@tags.first}`:"
     else
-      lines << "Unique users who searched for anything:"
+      lines << "Unique users who searched for anything in the last #{@range.inspect}:"
     end
 
     lines << "Order does not matter." if @tags.length > 1
 
-    lines << "Note: `*` matches anything, it's not a literal danbooru wildcard." if @tags.any? { |t| t.include?("*") }
+    lines << "Note: `*` matches anything, including exclusions." if @tags.any? { |t| t.include?("*") }
 
     if @tags.any? { |t| t =~ /^rating:(\w+)$/ }
       lines << "Note: `rating:#{Regexp.last_match(1)}` will be an exact search. Use `rating:#{Regexp.last_match(1)[0]}*` if you want to find all forms." # rubocop:disable Layout/LineLength
@@ -67,7 +67,9 @@ class Fumimi::PostAnalyticsReport
   end
 
   def negated_tags
-    return [] unless @tags.length == 1
+    return nil if @range > 1.day
+    return nil unless @tags.length == 1
+    return nil if @tags.any? { |t| t.include? "*" }
 
     @tags.map { |t| t.start_with?("-") || t == "or" ? t.delete_prefix("-") : "-#{t}" }
   end
@@ -81,22 +83,42 @@ class Fumimi::PostAnalyticsReport
   end
 
   def table_rows
-    rows = [build_row(@tags)]
-    rows << build_row(negated_tags) if show_negated_row?
+    rows = []
+
+    unique_ips_in_range = range_request[:unique_ips][0]
+
+    row = [@tags.join(" + ").truncate(20, omission: "…"), unique_ips_in_range.to_fs(:delimited)]
+    row << hourly_request[:unique_ips][0].to_fs(:delimited) if show_hourly_comparison?
+    rows << row
+
+    if negated_tags.present?
+      unique_ips_in_range = negated_range_request[:unique_ips][0]
+
+      row = [negated_tags.join(" + ").truncate(20, omission: "…"), unique_ips_in_range.to_fs(:delimited)]
+      row << negated_hourly_request[:unique_ips][0].to_fs(:delimited) if show_hourly_comparison?
+      rows << row
+    end
+
     rows
   end
 
-  def build_row(tags)
-    row = [tags.join(" + ").truncate(20, omission: "…"), client.unique_ips_in_range(tags, @range)]
-    row << client.unique_ips_in_range(tags, 1.hour) if show_hourly_comparison?
-    row
+  def range_request
+    @range_request ||= client.unique_ips_in_range([@tags].compact, @range)
+  end
+
+  def negated_range_request
+    @negated_range_request ||= client.unique_ips_in_range([negated_tags].compact, @range)
+  end
+
+  def hourly_request
+    @hourly_request ||= client.unique_ips_in_range([@tags].compact, 1.hour)
+  end
+
+  def negated_hourly_request
+    @negated_hourly_request ||= client.unique_ips_in_range([negated_tags].compact, 1.hour)
   end
 
   def show_hourly_comparison?
     @range > 1.hour && @range <= 1.day
-  end
-
-  def show_negated_row?
-    negated_tags.present? && @range <= 1.day
   end
 end

@@ -3,19 +3,20 @@ require "http"
 # Small wrapper around the `http` gem that centralizes request setup,
 # execution timing, and debug logging.
 class HTTPClient
+  attr_writer :client
+
+  delegate_missing_to :client
+
   # @param base [String] Base URL used by all requests.
   # @param user [String] Optional basic auth username.
   # @param pass [String] Optional basic auth password.
   # @param signoz_api_key [String, nil] Optional SigNoz API key header.
   # @param log [Logger] Logger instance for debug output.
-  def initialize(base:, user: "", pass: "", signoz_api_key: nil, log: Logger.new(nil))
+  def initialize(base:, user: "", pass: "", log: Logger.new(nil))
     @base = base.to_s.strip
     @user = user.to_s.strip
     @pass = pass.to_s.strip
-    @signoz_api_key = signoz_api_key
     @log = log
-
-    @connection = build_connection
   end
 
   %i[get put post delete].each do |method|
@@ -36,29 +37,29 @@ class HTTPClient
     response
   end
 
-  private
-
   # Builds the configured `HTTP::Client` instance.
   #
   # @return [HTTP::Client]
-  def build_connection
-    connection = HTTP::Client.new
-    connection = connection.basic_auth(user: @user, pass: @pass) unless @user.empty? || @pass.empty?
-    connection = connection.accept("application/json")
-    connection = connection.use(:auto_inflate).headers("Accept-Encoding": "gzip")
-    connection = connection.headers("SIGNOZ-API-KEY": @signoz_api_key) unless @signoz_api_key.to_s.empty?
-    connection = connection.follow
-    connection = connection.nodelay
-    connection = connection.persistent(@base)
-    connection
+  def client
+    @client ||= begin
+      http = HTTP.persistent(@base)
+      http = http.accept("application/json")
+      http = http.use(:auto_inflate).headers("Accept-Encoding": "gzip")
+      http = http.follow
+      http = http.nodelay
+      http = http.basic_auth(user: @user, pass: @pass) unless @user.empty? || @pass.empty?
+      http
+    end
   end
+
+  private
 
   # Sends one request and returns both response and wall-clock duration.
   #
   # @return [Array<(HTTP::Response, Float)>]
   def timed_request(method, path, **options)
     start = Time.now.to_f
-    response = @connection.request(method, path, **options).flush
+    response = @client.request(method, path, **options).flush
     duration = Time.now.to_f - start
     [response, duration]
   end
