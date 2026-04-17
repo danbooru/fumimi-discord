@@ -127,10 +127,10 @@ class PostEventTest < Minitest::Test
   end
 
   def test_post_link_deletes_original_embed
-    embeds = mock_event("https://danbooru.donmai.us/posts/3840621", nsfw_channel: true) => { embeds:, ** }
+    mock_event("https://danbooru.donmai.us/posts/3840621", nsfw_channel: true) => { embeds:, suppress_embeds_calls:, ** }
 
     assert_equal 1, embeds.length
-    assert_equal 1, result[:suppress_embeds_calls]
+    assert_equal 1, suppress_embeds_calls
   end
 
   def test_no_post
