@@ -1,12 +1,12 @@
 require "fumimi/slash_command"
 
-class Fumimi::SlashCommand::ApproversCommand < Fumimi::SlashCommand
+class Fumimi::SlashCommand::PostStatsCommand < Fumimi::SlashCommand
   def self.name
-    "approvers"
+    "post_stats"
   end
 
   def self.description
-    "Show a report for most active approvers."
+    "Show statistics about posts."
   end
 
   def self.options
@@ -20,7 +20,7 @@ class Fumimi::SlashCommand::ApproversCommand < Fumimi::SlashCommand
   end
 
   def report
-    Fumimi::Report::ApproverReport.new(booru: @booru, tags: tags)
+    Fumimi::PostStatsReport.new(booru: @booru, tags: tags)
   end
 
   def tags

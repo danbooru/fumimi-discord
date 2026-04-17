@@ -23,7 +23,7 @@ class Fumimi::RelatedReport
   def send_embed(embed)
     embed.title = title
     embed.url = url
-    embed.description = "-# Requested by <@#{@event.user.id}>\n#{description}"
+    embed.description = description
     embed
   end
 

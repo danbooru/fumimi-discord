@@ -1,4 +1,4 @@
-class Fumimi::PostReport::UploaderReport < Fumimi::PostReport
+class Fumimi::Report::UploaderReport < Fumimi::Report::PostTableReport
   def title
     "Uploader Report for: #{@tags.join(" ")}".gsub("_", "\\_")
   end
@@ -20,14 +20,14 @@ class Fumimi::PostReport::UploaderReport < Fumimi::PostReport
     @uploaders_for_search ||= report.sort_by { |u| u["posts"] / total_posts.to_f }.reverse
   end
 
-  def search_params
+  def report_search_params
     {
       id: "posts",
-      "search[from]": start_date,
-      "search[to]": end_date,
+      "search[from]": "2005-05-24",
+      "search[to]": (Time.now + 1.year).strftime("%Y-%m-%d"),
       "search[group]": "uploader",
       "search[group_limit]": 25,
-      "search[tags]": @tags.join(" "),
+      "search[tags]": tag_string,
     }
   end
 end

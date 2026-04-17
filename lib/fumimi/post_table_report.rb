@@ -50,7 +50,7 @@ module Fumimi::Report
     end
 
     def tag_string
-      @tags.join(" ")
+      @tags.join(" ").strip
     end
 
     def total_posts

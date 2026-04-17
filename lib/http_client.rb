@@ -59,7 +59,7 @@ class HTTPClient
   # @return [Array<(HTTP::Response, Float)>]
   def timed_request(method, path, **options)
     start = Time.now.to_f
-    response = @client.request(method, path, **options).flush
+    response = client.request(method, path, **options).flush
     duration = Time.now.to_f - start
     [response, duration]
   end

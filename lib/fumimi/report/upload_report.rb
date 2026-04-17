@@ -1,4 +1,4 @@
-class Fumimi::PostReport::UploadReport < Fumimi::PostReport
+class Fumimi::Report::UploadReport < Fumimi::Report::PostTableReport
   def title
     "Upload Report for: #{@tags.join(" ")}".gsub("_", "\\_")
   end
@@ -51,13 +51,13 @@ class Fumimi::PostReport::UploadReport < Fumimi::PostReport
     uploads_by_year.sort_by { |each_year| each_year["posts"] }.reverse.pluck("year").first(3)
   end
 
-  def search_params
+  def report_search_params
     {
       id: "posts",
-      "search[from]": start_date,
-      "search[to]": end_date,
+      "search[from]": "2005-05-24",
+      "search[to]": (Time.now + 1.year).strftime("%Y-%m-%d"),
       "search[period]": "year",
-      "search[tags]": @tags.join(" "),
+      "search[tags]": tag_string,
     }
   end
 end
