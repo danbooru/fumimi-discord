@@ -4,9 +4,9 @@ class IssueEventTest < Minitest::Test
   include TestMocks
 
   def test_issue_event
-    msgs = mock_event("issue #42") => { msgs:, ** }
+    messages = mock_event("issue #42") => { messages:, ** }
 
-    assert_equal 1, msgs.length
-    assert_equal "https://github.com/danbooru/danbooru/issues/42", msgs.first
+    assert_equal 1, messages.length
+    assert_equal "https://github.com/danbooru/danbooru/issues/42", messages.first
   end
 end

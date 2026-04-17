@@ -1,6 +1,6 @@
 class Fumimi::Report::UploadsByYearReport < Fumimi::Report::PostTableReport
   def embed_title
-    "Upload Report"
+    "Uploads by Year Report"
   end
 
   def total_posts

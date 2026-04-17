@@ -21,7 +21,7 @@ class CommentCommandTest < Minitest::Test
     mock_slash_command("/comments", args: { limit: 1, creator: "~~~" }) => { reply_embeds:, ** }
     assert_equal reply_embeds.length, 1
     error = reply_embeds.first
-    assert_equal error.title, "No results found."
+    assert_equal error.title, "No Results."
     assert_equal error.description, "Fumimi tried really hard, but there were no results..."
   end
 end

@@ -4,9 +4,9 @@ class PixivEventTest < Minitest::Test
   include TestMocks
 
   def test_pixiv_event
-    msgs = mock_event("pixiv #12345") => { msgs:, ** }
+    messages = mock_event("pixiv #12345") => { messages:, ** }
 
-    assert_equal 1, msgs.length
-    assert_equal "https://www.pixiv.net/artworks/12345", msgs.first
+    assert_equal 1, messages.length
+    assert_equal "https://www.pixiv.net/artworks/12345", messages.first
   end
 end

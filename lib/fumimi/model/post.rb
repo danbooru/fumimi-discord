@@ -3,7 +3,7 @@ require "fumimi/model"
 class Fumimi::Model::Post < Fumimi::Model
   CENSORED_TAGS = ENV["FUMIMI_CENSORED_TAGS"].to_s.split
 
-  delegate :file_info, :file_variant, :preview_variant, to: :media_asset
+  delegate :file_ext, :file_info, :file_variant, :preview_variant, to: :media_asset
 
   def embed_color
     if is_flagged

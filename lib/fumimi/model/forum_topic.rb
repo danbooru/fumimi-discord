@@ -2,7 +2,7 @@ require "fumimi/model"
 
 class Fumimi::Model::ForumTopic < Fumimi::Model
   def hidden?
-    topic.min_level != "None"
+    min_level != "None"
   end
 
   def shortlink

@@ -9,9 +9,8 @@ class PostAnalyticsCommandTest < Minitest::Test
     assert_equal 1, reply_embeds.length
     report = reply_embeds.first
 
-    assert_match(/Time range: 30mi/, report.description)
     assert_equal "Post Analytics Report", report.title
-    assert_match(/Unique users whose searches included `1girl`:/, report.description)
+    assert_match(/Unique users whose searches in the last 30 minutes included `1girl`:/, report.description)
 
     table_lines = table_lines_for(report)
     assert_equal ["Contains", "Users <30mi"], table_lines.first
@@ -85,15 +84,6 @@ class PostAnalyticsCommandTest < Minitest::Test
     end
   end
 
-  def test_description_includes_time_range
-    report = build_report(tags: ["no_humans"], range: 30.minutes)
-
-    with_stubbed_client(report, ["no_humans"] => { 30.minutes => 5 },
-                                ["-no_humans"] => { 30.minutes => 2 }) do
-      assert_match(/Time range: 30mi/, report.embed.description)
-    end
-  end
-
   private
 
   def build_report(tags:, range:)
@@ -102,8 +92,11 @@ class PostAnalyticsCommandTest < Minitest::Test
 
   def with_stubbed_client(report, data, &block)
     client = Object.new
-    client.define_singleton_method(:unique_ips_in_range) do |tags, range|
-      data.dig(tags, range) || 0
+    client.define_singleton_method(:unique_ips_in_range) do |sets_of_tags, range|
+      tag_set = sets_of_tags.first
+      tag_data = data.find { |k, _| k == tag_set }&.last || {}
+      count = tag_data.find { |k, _| k == range }&.last || 0
+      { unique_ips: [count], duration: 0 }
     end
     report.stub(:client, client, &block)
   end

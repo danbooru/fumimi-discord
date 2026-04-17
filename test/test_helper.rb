@@ -53,41 +53,13 @@ class CHANNEL_MOCK
 end
 
 class EVENT_MOCK
-  attr_reader :text, :user, :channel, :message
+  attr_reader :text, :user, :channel, :message, :options, :replies, :reply_embeds, :deferred
 
-  def initialize(text:, user:, channel:)
+  def initialize(user:, channel:, text: nil, options: {})
     @text = text
     @user = user
     @channel = channel
-    @message = MESSAGE_MOCK.new(text)
-  end
-
-  def captured
-    {
-      msgs: @channel.messages,
-      embeds: @channel.embeds,
-      suppress_embeds_calls: @message.suppress_embeds_calls,
-    }
-  end
-
-  def send_message(msg)
-    @channel.send_message(msg)
-    MESSAGE_MOCK.new(msg)
-  end
-
-  def drain
-    nil
-  end
-end
-
-class SLASH_EVENT_MOCK
-  attr_reader :user, :channel, :channels, :server, :options, :replies, :reply_embeds, :deferred
-
-  def initialize(user:, channel:, channels:, options: {})
-    @user = user
-    @channel = channel
-    @channels = channels
-    @server = Struct.new(:channels).new(channels.values)
+    @message = MESSAGE_MOCK.new(text) if text
     @options = options
     @replies = []
     @reply_embeds = []
@@ -96,6 +68,30 @@ class SLASH_EVENT_MOCK
 
   def is_a?(val)
     val == Discordrb::Events::ApplicationCommandEvent || super
+  end
+
+  def channels
+    { channel.name => channel }
+  end
+
+  def server
+    Struct.new(:channels).new(@channels.values)
+  end
+
+  def captured
+    {
+      messages: @channel.messages,
+      embeds: @channel.embeds,
+      replies: @replies,
+      reply_embeds: @reply_embeds,
+      suppress_embeds_calls: @message&.suppress_embeds_calls || 0,
+      deferred: @deferred,
+    }
+  end
+
+  def send_message(msg)
+    @channel.send_message(msg)
+    MESSAGE_MOCK.new(msg)
   end
 
   def defer(ephemeral: false)
@@ -115,15 +111,6 @@ class SLASH_EVENT_MOCK
   def sleep(_seconds = nil)
     nil
   end
-
-  def captured
-    {
-      replies: @replies,
-      messages: @channel.messages,
-      reply_embeds: @reply_embeds,
-      deferred: @deferred,
-    }
-  end
 end
 
 module TestMocks
@@ -140,22 +127,14 @@ module TestMocks
   end
 
   def log
-    Logger.new($stderr, level: Logger::DEBUG)
-  end
-
-  def slash_event_mock(nsfw_channel:, args:, user_id: 123)
-    channel = channel_mock(nsfw_channel:)
-    SLASH_EVENT_MOCK.new(user: user_mock(user_id:),
-                         channel: channel,
-                         channels: { channel.name => channel },
-                         options: args)
+    Logger.new($stderr, level: Logger::FATAL)
   end
 
   def default_booru
-    Danbooru.new
+    Danbooru.new(log: log)
   end
 
-  def mock_slash_command(name, args:, nsfw_channel: false, booru: default_booru, user_id: 123)
+  def mock_slash_command(name, args: {}, nsfw_channel: false, booru: default_booru, user_id: 123)
     command_name = name.to_s.delete_prefix("/")
     command_class = ObjectSpace.each_object(Class).find do |klass|
       klass < Fumimi::SlashCommand && klass.name == command_name
@@ -163,7 +142,9 @@ module TestMocks
 
     raise ArgumentError, "Unknown slash command: #{name}" unless command_class
 
-    event = slash_event_mock(nsfw_channel:, args:, user_id:)
+    event = EVENT_MOCK.new(user: user_mock(user_id:),
+                           channel: channel_mock(nsfw_channel:),
+                           options: args)
 
     command = command_class.new(event, log: log, booru: booru, cache: cache)
     command.safe_handle_event
@@ -175,7 +156,7 @@ module TestMocks
                            channel: channel_mock(nsfw_channel:),
                            user: user_mock)
 
-    Fumimi::Event.respond_to_all_matches(event_mock(nsfw_channel:), log: log, booru: default_booru)
+    Fumimi::Event.respond_to_all_matches(event, log: log, booru: default_booru)
     event.captured
   end
 

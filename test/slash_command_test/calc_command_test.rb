@@ -25,7 +25,7 @@ class CalcCommandTest < Minitest::Test
     mock_slash_command("/calc", args: { expression: "asd" }) => { reply_embeds:, ** }
 
     error = reply_embeds.first
-    assert_equal "Bad argument!", error.title
+    assert_equal "Bad Argument!", error.title
     assert_equal "`asd` is not a valid math expression.", error.description.to_s
   end
 end

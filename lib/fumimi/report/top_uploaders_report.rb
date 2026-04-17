@@ -1,6 +1,6 @@
 class Fumimi::Report::TopUploadersReport < Fumimi::Report::PostTableReport
   def embed_title
-    "Uploader Report"
+    "Top Uploaders Report"
   end
 
   def table_headers
