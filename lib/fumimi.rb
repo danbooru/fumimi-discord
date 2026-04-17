@@ -8,19 +8,18 @@ Dir[__dir__ + "/**/*.rb"].each { |file| require file }
 
 require "active_support"
 require "active_support/core_ext"
+require "addressable/uri"
 require "dentaku"
 require "discordrb"
 require "open-uri"
-require "addressable/uri"
-
 require "optparse"
 require "shellwords"
+require "zache"
 
 class Fumimi
   include Fumimi::ExceptionHandler
-  include Fumimi::Commands
 
-  attr_reader :server_id, :client_id, :token, :log, :bot, :server, :booru, :storage, :initiate_shutdown
+  attr_reader :server_id, :client_id, :token, :log, :bot, :server, :booru, :cache, :initiate_shutdown
 
   def initialize(server_id:, client_id:, token:, log: Logger.new($stderr))
     @server_id = server_id
@@ -29,7 +28,7 @@ class Fumimi
     @log = log
 
     @booru = Danbooru.new(log: log)
-    # @storage = Google::Cloud::Storage.new
+    @cache = Zache.new
   end
 
   def server
@@ -59,10 +58,6 @@ class Fumimi
     bot.command(:say, help_available: false, &method(:do_say))
   end
 
-  def cache
-    @cache ||= Zache.new
-  end
-
   def run_commands
     log.debug("Starting bot...")
 
@@ -73,8 +68,20 @@ class Fumimi
       prefix: "/"
     )
 
-    Fumimi::SlashCommand.register_all(bot: bot, server_id: server_id, log: log, booru: @booru, cache: cache)
-    Fumimi::Event.register_all(bot: bot, log: log, booru: @booru, cache: cache)
+    Fumimi::SlashCommand.register_all(
+      bot: bot,
+      server_id: server_id,
+      log: log,
+      booru: booru,
+      cache: cache
+    )
+    Fumimi::Event.register_all(
+      bot: bot,
+      log: log,
+      booru: booru,
+      cache: cache
+    )
+
     bot.run(:async)
 
     loop do

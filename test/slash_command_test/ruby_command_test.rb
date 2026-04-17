@@ -5,19 +5,6 @@ class RubyCommandTest < Minitest::Test
 
   OWNER_ID = 456
 
-  def with_mocked_owners(owner_ids)
-    command_class = Fumimi::SlashCommand::RubyCommand
-    original_owners = command_class::OWNERS
-
-    command_class.send(:remove_const, :OWNERS)
-    command_class.const_set(:OWNERS, owner_ids)
-
-    yield
-  ensure
-    command_class.send(:remove_const, :OWNERS)
-    command_class.const_set(:OWNERS, original_owners)
-  end
-
   def test_rejects_non_owner
     with_mocked_owners([OWNER_ID]) do
       mock_slash_command("/ruby", args: { code: "1 + 1" }, user_id: 123) => { reply_embeds:, ** }

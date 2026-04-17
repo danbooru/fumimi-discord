@@ -1,16 +1,13 @@
 require "fumimi/exceptions"
 
 module Fumimi::ExceptionHandler
-  def execute_and_rescue_errors(event, wait_message: true, &block)
-    thinking_message = create_thinking_message(event) if wait_message
+  def execute_and_rescue_errors(event, &block)
     response = block.call
   rescue StandardError, RestClient::Exception, NotImplementedError => e
     @log&.error e
     send_error(event, e)
   else
     response
-  ensure
-    thinking_message&.delete unless slash_command?(event)
   end
 
   def embed_for_exception(exception)
@@ -31,23 +28,6 @@ module Fumimi::ExceptionHandler
 
   def send_error(event, exception)
     embed = embed_for_exception(exception)
-    if slash_command?(event)
-      event.edit_response(embeds: [embed])
-    else
-      event.drain
-      event.channel.send_embed("", embed)
-    end
-  end
-
-  def create_thinking_message(event)
-    if slash_command?(event)
-      event.defer(ephemeral: false)
-    else
-      event.send_message "*Please wait warmly until Fumimi is ready. This may take up to 10 seconds.*"
-    end
-  end
-
-  def slash_command?(event)
-    event.is_a?(Discordrb::Events::ApplicationCommandEvent)
+    event.edit_response(embeds: [embed])
   end
 end

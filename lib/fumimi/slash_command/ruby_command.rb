@@ -1,8 +1,6 @@
 require "fumimi/slash_command"
 
 class Fumimi::SlashCommand::RubyCommand < Fumimi::SlashCommand
-  OWNERS = [310167383912349697, 1373735183425208331].freeze # rubocop:disable Style/NumericLiterals
-
   def self.name
     "ruby"
   end

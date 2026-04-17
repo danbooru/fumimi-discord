@@ -10,20 +10,20 @@ class Fumimi::SlashCommand::HiCommand < Fumimi::SlashCommand
   end
 
   def respond_to_event
-    reply_to_user "Command received. Deleting all animes."
+    @event.edit_response(content: "Command received. Deleting all animes.")
     sleep 1
 
-    send_to_channel "5..."
+    @event.channel.send_message "5..."
     sleep 1
-    send_to_channel "4..."
+    @event.channel.send_message "4..."
     sleep 1
-    send_to_channel "3..."
+    @event.channel.send_message "3..."
     sleep 1
-    send_to_channel "2..."
+    @event.channel.send_message "2..."
     sleep 1
-    send_to_channel "1..."
+    @event.channel.send_message "1..."
     sleep 1
 
-    send_to_channel "Done! Animes deleted."
+    @event.channel.send_message "Done! Animes deleted."
   end
 end

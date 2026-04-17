@@ -25,9 +25,10 @@ MESSAGE_MOCK = Struct.new(:content) do
 end
 
 class CHANNEL_MOCK
-  attr_reader :name, :messages, :embeds
+  attr_reader :id, :name, :messages, :embeds
 
-  def initialize(name:, is_nsfw: true)
+  def initialize(name:, id: 123, is_nsfw: true)
+    @id = id
     @name = name
     @is_nsfw = is_nsfw
     @messages = []
@@ -80,12 +81,13 @@ class EVENT_MOCK
 end
 
 class SLASH_EVENT_MOCK
-  attr_reader :user, :channel, :channels, :options, :replies, :reply_embeds, :deferred
+  attr_reader :user, :channel, :channels, :server, :options, :replies, :reply_embeds, :deferred
 
   def initialize(user:, channel:, channels:, options: {})
     @user = user
     @channel = channel
     @channels = channels
+    @server = Struct.new(:channels).new(channels.values)
     @options = options
     @replies = []
     @reply_embeds = []
@@ -181,5 +183,17 @@ module TestMocks
     embed.description.split("\n").filter_map do |l|
       l.split("│").map(&:strip).map(&:presence).compact if l.start_with?("│")
     end
+  end
+
+  def with_mocked_owners(owner_ids)
+    original_owners = Fumimi::SlashCommand::OWNERS
+
+    Fumimi::SlashCommand.send(:remove_const, :OWNERS)
+    Fumimi::SlashCommand.const_set(:OWNERS, owner_ids)
+
+    yield
+  ensure
+    Fumimi::SlashCommand.send(:remove_const, :OWNERS)
+    Fumimi::SlashCommand.const_set(:OWNERS, original_owners)
   end
 end

@@ -1,61 +1,24 @@
 require "fumimi/class_register"
 require "fumimi/exception_handler"
 
-# Abstract base class for message-triggered Discord events.
+# Base class for message-triggered Discord events.
 #
-# Events are triggered when a Discord message matches a subclass pattern.
-# Subclasses must implement {.pattern} and {#embeds_for} to define when they
-# trigger and what embeds to send in response. Subclasses may also opt into
-# automatic URL matching for a resource type via {.model_for_link_capture}.
-#
-# The event system automatically discovers and registers all subclasses via the
-# {Fumimi::ClassRegister} mixin, so no explicit registration is needed beyond
-# extending this class.
-#
-# Lifecycle:
-# 1. User sends a message in Discord
-# 2. {.respond_to_all_matches} strips code blocks and inline code from message text
-# 3. Each subclass scans the cleaned text with its {.total_pattern}
-# 4. Matching subclasses are instantiated and asked to {#respond_to_matches}
-# 5. {#respond_to_matches} runs {#messages_for} and {#embeds_for} inside exception handling
-# 6. If {.delete_link_embed?} is true, the original link embed is suppressed
-# 7. {.send_combined_message} sends one combined reply with up to 10 embeds
-#
-# Example:
-#   class MyEvent < Fumimi::Event
-#     def self.pattern
-#       /post #(\d+)/i
-#     end
-#
-#     def embeds_for(matches)
-#       matches.map { |post_id| create_embed_for_post(post_id) }
-#     end
-#   end
+# Subclasses are auto-registered and define matching behavior with {.pattern}.
+# They can return text and embeds for each match set.
 #
 class Fumimi::Event
   include Fumimi::ClassRegister
   include Fumimi::ExceptionHandler
 
-  # The regex pattern that will trigger a reply.
+  # Regex used to find matches in a message.
   #
-  # Messages are scanned for matches of this pattern. Code blocks and inline code
-  # are stripped before pattern matching to avoid false positives.
-  #
-  # @return [Regexp] the pattern to match in messages
-  # @raise [NotImplementedError] if not overridden by subclass
-  #
-  # @example
-  #   def self.pattern
-  #     /post #(\d+)/i
-  #   end
+  # @return [Regexp]
+  # @raise [NotImplementedError]
   def self.pattern
     raise NotImplementedError, "Must implement a pattern."
   end
 
-  # Returns the full regex used when scanning message text for this subclass.
-  #
-  # If {.model_for_link_capture} is set, this unions {.pattern} with a URL
-  # matcher for that model (for example, /posts/:id links).
+  # Full regex for this event, including optional model-link capture.
   #
   # @return [Regexp]
   def self.total_pattern
@@ -67,66 +30,40 @@ class Fumimi::Event
     Regexp.union(pattern, model_pattern)
   end
 
-  # Generates embeds to send in response to matched pattern.
+  # Embed responses for the matched values.
   #
-  # This method is called with all unique, flattened matches from the message.
-  # It should return an array of embeds or an empty array if no embeds should be sent.
-  #
-  # @param matches [Array<String>] the captured groups from {.pattern} matches
-  # @return [Array<Discordrb::Webhooks::Embed>] embeds to send, or empty array
-  #
-  # @example
-  #   def embeds_for(matches)
-  #     posts = @booru.posts.index(tags: "id:#{matches.join(",")} order:custom")
-  #     posts.map { |post| post.embed(nsfw_channel: @event.channel.nsfw?) }
-  #   end
+  # @param matches [Array<String>]
+  # @return [Array<Discordrb::Webhooks::Embed>]
   def embeds_for(matches)
   end
 
-  # Generates messages to send in response to matched pattern.
+  # Text responses for the matched values.
   #
-  # This method is called with all unique, flattened matches from the message.
-  # It should return an array of messages or an empty array if no messages should be sent.
-  #
-  # @param matches [Array<String>] the captured groups from {.pattern} matches
-  # @return [Array<String>] messages to send, or empty array
-  #
-  # @example
-  #   def messages_for(matches)
-  #     matches.map { |id| "You typed #{id}" }
-  #   end
+  # @param matches [Array<String>]
+  # @return [Array<String>]
   def messages_for(matches)
   end
 
-  # Opts into automatic URL matching for a given Danbooru resource.
-  #
-  # Return a path segment like "posts", "users", or "/posts".
-  # Default is nil, meaning only {.pattern} matching is used.
+  # Optional Danbooru model path used for auto URL capture.
   #
   # @return [String, nil]
   def self.model_for_link_capture
     nil
   end
 
-  # Whether matching this event should suppress embeds on the original message.
-  #
-  # This is primarily useful for link-based events where the bot posts a richer
-  # replacement embed and wants to hide Discord's automatic URL preview.
+  # Whether to suppress Discord's default link preview on the source message.
   #
   # @return [Boolean]
   def self.delete_link_embed?
     false
   end
 
-  # Executes this event instance for a precomputed set of regex matches.
+  # Executes this event for a set of already-found matches.
   #
-  # This method wraps execution in {Fumimi::ExceptionHandler}, logs context,
-  # and returns two arrays: plain messages and embed objects.
-  #
-  # @param matches [Array<String>] unique captures for this subclass pattern
+  # @param matches [Array<String>]
   # @return [Array<(Array<String>, Array<Discordrb::Webhooks::Embed>)>]
   def respond_to_matches(matches)
-    execute_and_rescue_errors(@event, wait_message: false) do
+    execute_and_rescue_errors(@event) do
       @log.info("command='#{self.class.name.demodulize}' args=`#{matches}` user_id=#{@event.user.id} username='#{@event.user.username}' channel='##{@event.channel.name}'") # rubocop:disable Layout/LineLength
 
       messages = messages_for(matches)
@@ -142,13 +79,11 @@ class Fumimi::Event
 
   ## Internal methods
 
-  # Initializes an event instance with message and configuration.
-  #
-  # @param event [Discordrb::Events::MessageEvent] the Discord message event
-  # @param cache [Zache] optional cache instance (defaults to new Zache)
-  # @param log [Logger] optional logger instance
-  # @param booru [Danbooru] optional Danbooru API client
-  # @param _opts [Hash] additional options (ignored)
+  # @param event [Discordrb::Events::MessageEvent]
+  # @param cache [Zache, nil]
+  # @param log [Logger, nil]
+  # @param booru [Danbooru, nil]
+  # @param _opts [Hash]
   def initialize(event, cache: nil, log: nil, booru: nil, **_opts)
     @event = event
     @cache = cache
@@ -156,12 +91,9 @@ class Fumimi::Event
     @log = log
   end
 
-  # Registers all tracked subclasses with the provided options.
+  # Installs one message listener that dispatches to all event subclasses.
   #
-  # This installs one Discord message listener that delegates to
-  # {.respond_to_all_matches}.
-  #
-  # @param opts [Hash] keyword arguments passed to subclass initializers
+  # @param opts [Hash]
   # @return [void]
   def self.register_all(**opts)
     bot = opts[:bot]
@@ -172,13 +104,10 @@ class Fumimi::Event
     end
   end
 
-  # Runs all registered event subclasses against one message event.
-  #
-  # The message text is sanitized by removing fenced and inline code first.
-  # Every subclass receives unique flattened captures from its own total pattern.
+  # Runs all event subclasses against one message.
   #
   # @param event [Discordrb::Events::MessageEvent]
-  # @param opts [Hash] keyword args forwarded to event subclass constructors
+  # @param opts [Hash]
   # @return [void]
   def self.respond_to_all_matches(event, **opts)
     text = event.text.gsub(/```.*?```/m, "").gsub(/`.*?`/m, "")
@@ -200,7 +129,7 @@ class Fumimi::Event
     send_combined_message(event, messages:, embeds:)
   end
 
-  # Sends a single combined Discord response for collected event outputs.
+  # Sends one combined response for all collected messages and embeds.
   #
   # @param event [Discordrb::Events::MessageEvent]
   # @param messages [Array<String>, nil]
