@@ -1,17 +1,17 @@
-class Fumimi::Report::UploadReport < Fumimi::Report::PostTableReport
-  def title
-    "Upload Report for: #{@tags.join(" ")}".gsub("_", "\\_")
+class Fumimi::Report::UploadsByYearReport < Fumimi::Report::PostTableReport
+  def embed_title
+    "Upload Report"
   end
 
   def total_posts
     uploads_by_year.pluck("posts").sum
   end
 
-  def headers
+  def table_headers
     %w[Year Uploads Rate]
   end
 
-  def rows
+  def table_rows # rubocop:disable Metrics/CyclomaticComplexity,Metrics/PerceivedComplexity
     relevant_years.each_with_index.map do |each_year, index|
       prev_posts = relevant_years.dig(index + 1, "posts") || 0
       if index == 0

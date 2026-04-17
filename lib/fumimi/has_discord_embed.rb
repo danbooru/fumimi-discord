@@ -36,7 +36,7 @@ module Fumimi::HasDiscordEmbed
   end
 
   def cache_message(range = 1.hour)
-    "-# Results are cached for #{range.inspect}."
+    "-# Results may be cached for #{range.inspect}."
   end
 
   def embed_title

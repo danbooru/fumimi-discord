@@ -28,7 +28,9 @@ module Fumimi::Report
     end
 
     def tag_description
-      "-# Tags: `%s`" % tag_string.strip if tag_string.strip
+      return "" if tag_string.blank?
+
+      "-# Tags: `%s`" % tag_string
     end
 
     def embed_url

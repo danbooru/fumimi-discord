@@ -1,13 +1,13 @@
-class Fumimi::Report::UploaderReport < Fumimi::Report::PostTableReport
-  def title
-    "Uploader Report for: #{@tags.join(" ")}".gsub("_", "\\_")
+class Fumimi::Report::TopUploadersReport < Fumimi::Report::PostTableReport
+  def embed_title
+    "Uploader Report"
   end
 
-  def headers
+  def table_headers
     ["Name", "Uploads", "%"]
   end
 
-  def rows
+  def table_rows
     uploaders_for_search.map do |each_uploader|
       uploads = each_uploader["posts"]
       percent = (uploads / total_posts.to_f) * 100

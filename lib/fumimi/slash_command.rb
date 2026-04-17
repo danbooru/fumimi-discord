@@ -136,23 +136,21 @@ class Fumimi::SlashCommand
   # @param log [Logger]
   # @param _args [Hash]
   # @return [Boolean]
-  def self.outdated_commands?(bot:, server_id:, log:, **_args) # rubocop:disable Metrics/CyclomaticComplexity
+  def self.outdated_commands?(bot:, server_id:, log:, **_args)
     response = Discordrb::API::Application.get_guild_commands(bot.token,
                                                               bot.profile.id,
                                                               server_id)
 
     existing_commands = JSON.parse(response.body, symbolize_names: true).index_by { |c| c[:name] }
+    subclasses.map do |subclass|
+      old_command = existing_commands[subclass.name] || {}
+      new_command = subclass.to_h
 
-    subclasses.map(&:to_h).any? do |new_command|
-      existing = existing_commands[new_command[:name]]
-      outdated = existing.nil?
-            || existing[:description] != new_command[:description]
-            || existing[:default_member_permissions] != new_command[:default_member_permissions]
-            || (existing[:options] || []) != new_command[:options]
+      next false if new_command.keys.none? { |key| old_command[key].presence != new_command[key].presence }
 
-      log.debug("Refreshing outdated slash command /#{new_command[:name]}.") if outdated
-      outdated
-    end
+      log.debug("Refreshing outdated slash command /#{new_command[:name]}.")
+      true
+    end.any?
   end
 
   # Bulk-updates all slash command definitions in one API call.
@@ -180,7 +178,7 @@ class Fumimi::SlashCommand
     command_options.each { |opt| opt.delete(:required) if opt[:required] == false }
 
     command_hash = { name: name, description: description, options: command_options }.symbolize_keys
-    command_hash[:default_member_permissions] = bits_to_view_command if bits_to_view_command
+    command_hash[:default_member_permissions] = bits_to_view_command.to_s if bits_to_view_command
 
     command_hash
   end
