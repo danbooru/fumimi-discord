@@ -8,8 +8,9 @@ permissions: read-all
 on:
   # https://docs.github.com/en/actions/reference/events-that-trigger-workflows#workflow_run
   workflow_run:
-    workflows: ["Docker Build"]
-    types: [completed]
+    workflows: [ "Docker Build" ]
+    branches: [ master ]
+    types: [ completed ]
 
   workflow_dispatch:
     inputs:
@@ -19,15 +20,17 @@ on:
         default: false
 
 defaults:
- run:
-   working-directory: /root
+  run:
+    working-directory: /root
 
 jobs:
   test:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
 
     # Don't run the test suite multiple times for the same commit.
-    concurrency: "test-${{ github.sha }}"
+    concurrency:
+      group: "test-${{ github.sha }}"
+      cancel-in-progress: true
 
     runs-on: ubuntu-latest
 
@@ -36,17 +39,17 @@ jobs:
       options: --user root
 
     steps:
-    - name: Setup tmate session
-      uses: mxschmitt/action-tmate@v3
-      timeout-minutes: 20
-      if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled }}
-      with:
-        limit-access-to-actor: true
-        sudo: false
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        timeout-minutes: 20
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}
+        with:
+          limit-access-to-actor: true
+          sudo: false
 
-    - name: Run tests
-      run: |
-        bundle exec rake test TESTOPTS="-v"
-      env:
-        BOORU_USER: ${{ secrets.BOORU_USER }}
-        BOORU_API_KEY: ${{ secrets.BOORU_API_KEY }}
+      - name: Run tests
+        run: |
+          bundle exec rake test TESTOPTS="-v"
+        env:
+          BOORU_USER: ${{ secrets.BOORU_USER }}
+          BOORU_API_KEY: ${{ secrets.BOORU_API_KEY }}
