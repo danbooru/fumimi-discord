@@ -1,36 +1,69 @@
-require "http"
 require "json"
 require "time"
+require_relative "http_client"
 
+# Client for querying SigNoz log analytics endpoints.
+#
+# Required signoz configuration:
+# attributes.url -> donmai\.\w+(?<danbooru_path>[\w\/]+) -> attributes (Regex parser)
+# attributes.url -> tags=(?P<query_string_tags>[^&]*) -> attributes (Regex parser)
 class SigNozClient
-  class SignozResponseChangedError < StandardError; end
-
-  def initialize(base, api_key, log, cache)
-    @base     = base
-    @api_key  = api_key
-    @log      = log
-    @cache    = cache
+  # @param base [String] SigNoz base URL.
+  # @param api_key [String] SigNoz API key header value.
+  # @param log [Logger] Logger instance.
+  # @param cache [Object] Cache object with `get` support.
+  def initialize(base, api_key, log:, cache:)
+    @base        = base
+    @api_key     = api_key
+    @log         = log
+    @cache       = cache
+    @http        = HTTPClient.new(base: @base, log: @log)
+                             .headers("SIGNOZ-API-KEY": api_key)
   end
 
-  def unique_ips_in_range(tags, range)
+  # Returns a data structure detailing unique IP counts for sets of tags over a given time range.
+  # { :duration => 1.second, :unique_ips => [10, 11]}
+  # @return [Hash]
+  def unique_ips_in_range(sets_of_tags, range)
     until_ms = (Time.now.to_f * 1000).to_i
     since_ms = until_ms - range.in_milliseconds
 
-    query_payload = create_payload(since_ms, until_ms, tags)
+    payload = base_payload(since_ms, until_ms)
+    sets_of_tags.each_with_index do |tags, index|
+      payload[:compositeQuery][:queries] << create_tag_payload(tags, index)
+    end
 
-    @cache.get(:"signoz_count_tags_#{tags.join("_")}_#{range.in_milliseconds}", lifetime: range.in_seconds) do
-      # cache queries about a tag for their selected timespan
-      @log.info("[Signoz] Fetching signoz query for #{tags} for the last #{range.inspect}...")
-      data = post_json("#{@base}/api/v5/query_range", query_payload)
-
-      data["data"]["data"]["results"][0]["data"][0][0]
+    @cache.get(cache_key(range, sets_of_tags), lifetime: cache_lifetime(range)) do
+      # cache queries about a set of tags for their selected timespan
+      @log.info("[Signoz] Fetching signoz query for #{sets_of_tags} for the last #{range.inspect}...")
+      parse_request(payload)
     end
   end
 
-  def post_json(url, payload)
-    response = HTTP.post(url,
-                         json: payload,
-                         headers: { Accept: "application/json", "SIGNOZ-API-KEY": @api_key })
+  # Converts the stupid graphql return format into something more easily accessible
+  def parse_request(payload)
+    data = post_json("/api/v5/query_range", payload)
+
+    {
+      duration: (data["data"]["meta"]["durationMs"] / 1000.to_f).seconds,
+      unique_ips: data["data"]["data"]["results"].sort_by { |q| q["queryName"] }.map { |q| q["data"] }.flatten,
+    }
+  end
+
+  def cache_key(range, tags)
+    :"signoz_count_tags_#{tags.flatten.sort.join("_")}_#{range.in_seconds}"
+  end
+
+  def cache_lifetime(range)
+    # cache queries for a minimum of one hour, to a maximum of one day
+    Fumimi::TimeRangeParser.clamp(range, min: 1.hour, max: 1.day).in_seconds
+  end
+
+  # Sends the query payload and returns parsed response JSON.
+  #
+  # @return [Hash]
+  def post_json(path, payload)
+    response = @http.timeout(50).post(path, json: payload)
 
     if response.code >= 400
       @log.info("[Signoz] Response: #{response.body}")
@@ -46,73 +79,74 @@ class SigNozClient
     parsed
   end
 
-  def create_payload(since_ms, until_ms, tags)
-    # creates a payload for a query that gets the amount of searches for a tag every hour for the past 24 days
-    expression = "(k8s.daemonset.name = 'nginx-ingress-controller'"
-    expression += " AND userAgent CONTAINS 'Mozilla/5.0' "
-    expression += " AND userAgent NOT CONTAINS 'compatible'" # googlebot, etc
-    expression += " AND url CONTAINS '/posts?'"
-    expression += " AND url CONTAINS 'tags='"
-
-    tags.each do |tag|
-      expression += " and url REGEXP '#{tag_regex(tag)}'"
-    end
-    expression += ")"
-
+  def base_payload(since_ms, until_ms)
     {
       schemaVersion: "v1",
       start: since_ms,
       end: until_ms,
       requestType: "scalar",
       compositeQuery: {
-        queries: [{
-          type: "builder_query",
-          spec: {
-            name: "Unique Ips",
-            signal: "logs",
-            stepInterval: 300, # every hour
-            disabled: false,
-            filter: {
-              expression: expression,
-            },
-            having: {
-              expression: "",
-            },
-            aggregations: [{
-              expression: "count_distinct(ip)",
-            }],
-          },
-        }],
+        queries: [],
       },
       formatOptions: {
         formatTableResultForUI: false,
         fillGaps: false,
       },
       variables: {},
-    }
-      .with_indifferent_access
+    }.with_indifferent_access
   end
 
-  def normalize_tag(tag)
-    # Normalize a tag so it can be properly interpolated in a regex query
+  def create_tag_payload(tags, query_n)
+    expressions = []
+    expressions << "k8s.daemonset.name = 'nginx-ingress-controller'"
+    expressions << "userAgent CONTAINS 'Mozilla/5.0' "
+    expressions << "userAgent NOT CONTAINS 'compatible'" # googlebot, etc
+    expressions << "url contains '/posts?'"
+    expressions << "url contains 'tags='"
 
-    tag = URI.encode_www_form_component(tag)
-    # escape regex
-    tag = Regexp.escape(tag)
+    tags.each do |tag|
+      expressions << "url REGEXP '#{tag_regex(tag)}'"
+    end
 
-    # Replace encoded asterisk back with a regex wildcard that stops at tag boundaries
-    tag = tag.gsub('\*', ".*")
-    tag
+    {
+      type: "builder_query",
+      spec: {
+        name: query_n.to_s,
+        signal: "logs",
+        filter: {
+          expression: expressions.join(" AND "),
+        },
+        having: {
+          expression: "",
+        },
+        aggregations: [{
+          expression: "count_distinct(ip)",
+        }],
+      },
+    }.with_indifferent_access
   end
 
   def tag_regex(tag)
-    tag = normalize_tag(tag)
+    tag = URI.encode_www_form_component(tag)
+    tag = Regexp.escape(tag)
+    # Replace encoded asterisk back with a regex wildcard that stops at tag boundaries
+    if tag.include? "\\*"
+      tag = tag.gsub('\*', ".*")
+      return tag
+    end
 
-    # tags=([^&]*\++\(?|[+(]*)    tags= can only be followed by:
-    #       [^&]*\++\(*            anything except &, followed by space(s), and optional brackets, ex: tags=1girl+(tag
-    #                   [+(]*      any amount of spaces and parentheses, ex: tags=++(tag
-    # #{tag}
-    # ([+&)]|$)                   a space, a &, an end bracket, or the end of line
-    /tags=(?i)(?:[^&]*\++\(?|[+(]*)(#{tag})([+&)]|$)/.source
+    self.class.old_tag_regex(tag).source
+  end
+
+  def self.positive_tag_regex(tag)
+    /(?i)(^|\+)(#{tag}(\+|$)|%28(.+\+)?#{tag}(\+|%29))/
+  end
+
+  def self.negative_tag_regex(tag)
+    /(?i)(^|\+)(-#{tag}(\+|$)|-%28(.+\+)?#{tag}(\+|%29))/
+  end
+
+  def self.old_tag_regex(tag)
+    /tags=(?i)(?:[^&]*\++\(?|[+(]*)(#{tag})([+&)]|$)/
   end
 end

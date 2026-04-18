@@ -1,0 +1,165 @@
+This page serves to describe the differences between the various user levels on Danbooru.
+
+
+h4. Browsing Differences
+
+[table]
+[thead]
+[tr]
+[th]Feature[/th]
+[th]No Account[/th]
+[th]Member[/th]
+[th]Gold[/th]
+[th]Platinum[/th]
+[th]Builder[/th]
+[/tr]
+[/thead]
+[tbody]
+[tr]
+[td]View [[help:censored tags|censored tags]][/td]
+[td]x[/td]
+[td]x[/td]
+[td]✓[/td]
+[td]✓[/td]
+[td]✓[/td]
+[/tr]
+[tr]
+[td]Max tags per search[/td]
+[td]2[/td]
+[td]2[/td]
+[td]6[/td]
+[td]No Limit[/td]
+[td]No Limit[/td]
+[/tr]
+[tr]
+[td]Max pages per search[/td]
+[td]1000[/td]
+[td]1000[/td]
+[td]5000[/td]
+[td]5000[/td]
+[td]5000[/td]
+[/tr]
+[tr]
+[td]Max search timeout[/td]
+[td]3s[/td]
+[td]3s[/td]
+[td]6s[/td]
+[td]9s[/td]
+[td]9s[/td]
+[/tr]
+[tr]
+[td]Max [[help:saved_searches|saved searches]][/td]
+[td]-[/td]
+[td]250[/td]
+[td]1,000[/td]
+[td]1,000[/td]
+[td]No Limit[/td]
+[/tr]
+[tr]
+[td]Max [[help:favorite_groups|favgroups]][/td]
+[td]-[/td]
+[td]10[/td]
+[td]No Limit[/td]
+[td]No Limit[/td]
+[td]No Limit[/td]
+[/tr]
+[tr]
+[td][[help:api|API regen rate]][/td]
+[td]-[/td]
+[td]1/s[/td]
+[td]4/s[/td]
+[td]4/s[/td]
+[td]4/s[/td]
+[/tr]
+[/tbody]
+[/table]
+
+h4. Permissions
+
+h6. Restricted users
+
+* Can't edit anything until they verify their email address. A user is restricted if they signup using a VPN or proxy.
+
+h6. Banned users
+
+* Can't edit anything until their bans are expired.
+
+h6. Members and above can:
+
+* Upload posts (subject to their [[about:upload limits|upload limit]]).
+* Favorite and vote on posts.
+* Edit posts and tags.
+* Flag posts (up to 5 per 3 days).
+* Appeal posts (each appeal costs 3 upload slots).
+* Create and edit pools.
+* Create, edit, and delete wiki pages and artist entries.
+* Create, edit, and delete their own comments and forum posts.
+* Change the category of tags with less than 50 posts.
+* Create, reject, and edit their own [[help:bulk_update_requests|Bulk Update Requests]].
+* Send and receive DMails.
+* Edit their user settings.
+* Change their username (at most once a week).
+* View username change history.
+
+h6. Gold and above can:
+
+* Create [[help:user records|feedbacks]] to other users
+* Use the "mode menu":[/wiki_pages/help:posts#dtext-mode-menu] in the sidebar for quicker tagging and favoriting.
+* Have private favorites, favgroups, and upvotes.
+* View the forum activity indicator. The "Forum" link in the navbar will become italicized when there are unread posts.
+
+h6. Builders and above can:
+
+* Lock and unlock wiki pages.
+* Delete and undelete pools.
+* Change the category of any tag with less than 1000 posts.
+* Approve alias and rename [[help:bulk update requests|bulk update requests]] for artist tags under 200 posts.
+
+h6. Contributors and above can:
+
+* Upload an unlimited amount of posts without being subject to the [[about:mod queue|moderation queue]] (their posts are automatically approved). Posts can still voluntarily be sent through the modqueue.
+
+h6. Approvers and above can:
+
+* Approve and undelete posts (excluding their own uploads and posts they previously approved).
+* Delete posts.
+* Move favorites from deleted posts to their parent post.
+* Ban and unban posts.
+* Flag posts without limit.
+
+h6. Moderators and above can:
+
+* Promote or demote users (up to Approver level).
+* View the IP and session history of other users.
+* Ban users, IP addresses, and IP ranges.
+* Change the name of other users (Builder and below).
+* Edit or delete user feedbacks (except ones given to them).
+* View who voted on comments.
+* View or search who flagged a post (except on their own uploads).
+* Replace the image on a post with a different file.
+* Edit, delete, or sticky (prevent hiding due to downvotes) comments.
+* Edit or delete forum posts.
+* Delete, pin, or lock/unlock forum threads.
+
+h6. Admins can:
+
+* Promote or demote users (up to Moderator level).
+* Approve, edit, or reject bulk update requests.
+* Expunge (permanently delete from the site) posts.
+* Change the category of any tag.
+* View who voted on posts.
+* Ban or unban artist tags.
+* Approve any post any number of times.
+* Create site news banners.
+
+h4#getting-promoted. Getting promoted
+
+* [b]Member[/b] - Anyone can "sign up":/users/new for a free member account.
+* [b]Gold[/b] - [s]"Buy an account upgrade for $20":[/user_upgrades/new] (one-time fee)[/s] | Currently unavailable. See topic #21157.
+* [b]Platinum[/b] - [s]"Buy an account upgrade for $40":[/user_upgrades/new][/s] | Win a Platinum upgrade raffle. Raffles occur every few months on the forums.
+
+To advance to a higher user level, you must be promoted by a Moderator or Admin. The following are general guidelines on how to get promoted:
+
+* [b]Builder[/b] - Make a large number of improvements to the site, such as by uploading, translating, tagging, contributing to forum discussions or anything else that is helpful to other users.
+* [b]Contributor[/b] - Contribute a large number of high-quality uploads. It is important to have few deleted uploads (the usual case is under 5% of the total uploads submitted in the last few months).
+* [b]Approver[/b] - Have an excellent record of high quality uploads, with very few deleted. Approver promotions typically happen a few times a year, depending on the overall size of the [[about:mod_queue|modqueue]] and the number of currently active approvers, and only a handful of users are picked each time.

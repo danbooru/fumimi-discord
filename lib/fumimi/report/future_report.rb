@@ -4,58 +4,77 @@ require "active_support/all"
 require "prophet-rb"
 
 class Fumimi::FutureReport
-  include ActiveSupport::NumberHelper
+  include Fumimi::HasDiscordEmbed
 
-  def initialize(event, booru)
-    @event = event
+  MAX_GETS = 10
+
+  def initialize(booru:, cache:)
     @booru = booru
+    @cache = cache
   end
 
-  def send_embed(embed)
-    embed.title = title
-    embed.description = "-# Requested by <@#{@event.user.id}>\n#{description}"
-    embed
-  end
-
-  def title
+  def embed_title
     "Future GETs"
   end
 
-  def description
-    final_dates = []
-
-    current_post = last_post_id
-    get_index = 0
-
-    short_term_forecast_data.map do |date, post_count|
-      current_post += post_count.to_i
-      target_post = future_gets[get_index]
-      break if target_post.blank?
-
-      if target_post < current_post
-        get_index += 1
-        final_dates << [target_post, "<t:#{date.to_time.to_i}:D>, <t:#{date.to_time.to_i}:R>"]
-      end
+  def embed_description
+    description = @cache.get(:future_report, lifetime: 60 * 60 * 24) do
+      forecasted_milestones.map do |target_post, date_label|
+        human_number = ActiveSupport::NumberHelper.number_to_human(target_post, units: { million: "M" }, format: "%n%u")
+        "* post #{human_number} - #{date_label}"
+      end.join("\n")
     end
 
-    long_term_forecast_data.to_a[12..].map do |date, post_count|
-      current_post += post_count.to_i
-      target_post = future_gets[get_index]
-      break if target_post.blank?
-
-      if target_post < current_post
-        get_index += 1
-        final_dates << [target_post, "#{Date::MONTHNAMES[date.month]} #{date.year}, <t:#{date.to_time.to_i}:R>"]
-      end
-    end
-
-    final_dates.map do |target_post, date_string|
-      "* post #{n_to_h(target_post)} - #{date_string}"
-    end.join("\n")
+    description + "\n\n#{cache_message(1.day)}"
   end
 
-  def n_to_h(number)
-    number_to_human(number, units: { million: "M" }, format: "%n%u")
+  def forecasted_milestones
+    milestones = []
+    current_post = last_post_id
+    target_index = 0
+
+    current_post, target_index = consume_forecast_points(
+      short_term_forecast_data,
+      current_post:,
+      target_index:,
+      milestones:,
+      formatter: method(:short_date_label)
+    )
+
+    consume_forecast_points(
+      # Skip the first year of long-term forecast because short-term data already
+      # covers near dates with better day-level precision.
+      long_term_forecast_data.to_a[12..],
+      current_post:,
+      target_index:,
+      milestones:,
+      formatter: method(:long_date_label)
+    )
+
+    milestones
+  end
+
+  # Walk through projected post counts and note when we cross each 1M milestone.
+  def consume_forecast_points(points, current_post:, target_index:, milestones:, formatter:)
+    points.each do |date, post_count|
+      current_post += post_count.to_i
+      target_post = future_gets[target_index]
+      break if target_post.blank?
+      next unless target_post < current_post
+
+      target_index += 1
+      milestones << [target_post, formatter.call(date)]
+    end
+
+    [current_post, target_index]
+  end
+
+  def short_date_label(date)
+    "<t:#{date.to_time.to_i}:D>, <t:#{date.to_time.to_i}:R>"
+  end
+
+  def long_date_label(date)
+    "#{Date::MONTHNAMES[date.month]} #{date.year}, <t:#{date.to_time.to_i}:R>"
   end
 
   def last_post_id
@@ -63,26 +82,26 @@ class Fumimi::FutureReport
   end
 
   def future_gets
-    current_million, _current_submil = last_post_id.divmod(1_000_000)
-
+    current_million, = last_post_id.divmod(1_000_000)
     current_million *= 1_000_000
-    (1..10).map do |n|
+
+    (1..MAX_GETS).map do |n|
       current_million + (n * 1_000_000)
     end
   end
 
   def short_term_forecast_data
-    dates = short_term_report.to_h do |each_month|
-      [Date.parse(each_month["date"]), each_month["posts"]]
-    end
-    Prophet.forecast(dates, count: 365)
+    Prophet.forecast(series_for(short_term_report), count: 365)
   end
 
   def long_term_forecast_data
-    dates = long_term_report.to_h do |each_month|
-      [Date.parse(each_month["date"]), each_month["posts"]]
+    Prophet.forecast(series_for(long_term_report), count: 24)
+  end
+
+  def series_for(report)
+    report.to_h do |row|
+      [Date.parse(row["date"]), row["posts"]]
     end
-    Prophet.forecast(dates, count: 24)
   end
 
   def short_term_report

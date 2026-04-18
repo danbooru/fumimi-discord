@@ -1,21 +1,17 @@
 require "fumimi/model"
 
 class Fumimi::Model::Comment < Fumimi::Model
-  include Fumimi::HasDTextFields
+  delegate :embed_thumbnail, to: :post
 
-  def embed(embed, channel)
-    embed.title = shortlink
-    embed.url = url
+  def embed_author
+    { name: creator.at_name, url: creator.url }
+  end
 
-    embed.author = Discordrb::Webhooks::EmbedAuthor.new(
-      name: creator.at_name,
-      url: creator.url
-    )
+  def embed_description
+    Fumimi::DText.dtext_to_markdown(body)
+  end
 
-    embed.description = pretty_body
-    embed.thumbnail = post.embed_thumbnail(channel.nsfw?)
-    embed.footer = embed_footer
-
-    embed
+  def embed_footer
+    "Score: #{score}"
   end
 end

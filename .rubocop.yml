@@ -34,6 +34,9 @@ Style/ConditionalAssignment:
 Style/Documentation:
   Enabled: false
 
+Style/EmptyMethod:
+  Enabled: false
+
 Style/FormatString:
   Enabled: false
 
@@ -56,6 +59,9 @@ Style/RedundantAssignment:
   Enabled: false
 
 Style/RescueModifier:
+  Enabled: false
+
+Style/StringConcatenation:
   Enabled: false
 
 Style/StringLiterals:

@@ -8,7 +8,12 @@ class Fumimi::DiscordTable
 
   def initialize(headers:, rows:)
     @headers = headers
-    @rows = rows
+    @rows = rows.map do |row|
+      row.map do |cell|
+        # limit the max length of usernames etc
+        cell.to_s.truncate(20, omission: "…")
+      end
+    end
   end
 
   def to_s
@@ -43,7 +48,7 @@ class Fumimi::DiscordTable
   end
 
   def rendered_header
-    @headers.each_with_index.map do |header, index| # rubocop:disable Style/StringConcatenation
+    @headers.each_with_index.map do |header, index|
       column_width = column_widths[index]
       "│ #{ljust(header, column_width)} "
     end.join + "│\n"
@@ -51,7 +56,7 @@ class Fumimi::DiscordTable
 
   def rendered_rows
     @rows.map do |row|
-      row.each_with_index.map do |value, index| # rubocop:disable Style/StringConcatenation
+      row.each_with_index.map do |value, index|
         column_width = column_widths[index]
         "│ #{ljust(value, column_width)} "
       end.join + "│\n"
@@ -95,7 +100,7 @@ class Fumimi::DiscordTable
   end
 
   def separator
-    @headers.each_with_index.map do |_header, index| # rubocop:disable Style/StringConcatenation
+    @headers.each_with_index.map do |_header, index|
       column_width = column_widths[index]
       "┼─#{"─" * column_width}─"
     end.join + "┼\n"

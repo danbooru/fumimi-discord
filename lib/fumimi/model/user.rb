@@ -2,38 +2,71 @@ require "fumimi/model"
 require "active_support/core_ext"
 
 class Fumimi::Model::User < Fumimi::Model
-  def embed(embed, channel) # rubocop:disable Lint/UnusedMethodArgument
-    embed.title = styled_at_name
-    embed.url = url
-    embed.color = discord_color
+  module Levels
+    ANONYMOUS = 0
+    RESTRICTED = 10
+    MEMBER = 20
+    GOLD = 30
+    PLATINUM = 31
+    BUILDER = 32
+    CONTRIBUTOR = 35
+    APPROVER = 37
+    MODERATOR = 40
+    ADMIN = 50
+    OWNER = 60
+  end
 
-    embed.fields << embed_field_for("Level", is_banned ? "Banned" : level_string)
-    embed.fields << embed_field_for("Created", "<t:#{created_at.to_time.to_i}:R>")
-    embed.fields << embed_field_for("", "")
+  LEVEL_MAP = Levels.constants.to_h do |c|
+    [c, Levels.const_get(c)]
+  end
 
-    embed.fields << embed_field_for("Uploads", upload_string)
-    embed.fields << embed_field_for("Edits", edit_string)
-    embed.fields << embed_field_for("Notes", note_string)
+  def embed_fields
+    embed_fields = []
+    embed_fields << { name: "Level", value: level_string, inline: true }
+    embed_fields << { name: "Created", value: "<t:#{created_at.to_time.to_i}:R>", inline: true }
+    embed_fields << { name: "Feedbacks", value: feedback_string, inline: true }
 
-    embed.fields << embed_field_for("Forum posts", forum_string)
-    embed.fields << embed_field_for("Comments", comment_string)
-    embed.fields << embed_field_for("Wikis", wiki_string)
+    embed_fields << { name: "Uploads", value: upload_string, inline: true }
+    embed_fields << { name: "Edits", value: edit_string, inline: true }
+    embed_fields << { name: "Notes", value: note_string, inline: true }
 
-    embed
+    embed_fields << { name: "Forum posts", value: forum_string, inline: true }
+    embed_fields << { name: "Comments", value: comment_string, inline: true }
+    embed_fields << { name: "Wikis", value: wiki_string, inline: true }
+
+    embed_fields
+  end
+
+  def embed_timestamp
+  end
+
+  def embed_title
+    is_banned ? "~~#{at_name}~~" : at_name
+  end
+
+  def embed_color # rubocop:disable Metrics/CyclomaticComplexity
+    return "0x000000" if is_banned
+
+    case level_string
+    in "Member" | "Restricted"
+      Fumimi::Colors::BLUE
+    in "Gold"
+      Fumimi::Colors::YELLOW
+    in "Platinum"
+      Fumimi::Colors::GREY
+    in "Builder" | "Contributor" | "Approver"
+      Fumimi::Colors::PURPLE
+    in "Moderator"
+      Fumimi::Colors::GREEN
+    in "Admin" | "Owner"
+      Fumimi::Colors::RED
+    else
+      nil
+    end
   end
 
   def at_name
     "@#{name}"
-  end
-
-  def styled_at_name
-    is_banned ? "~~#{at_name}~~" : at_name
-  end
-
-  def feedback_string
-    string = "#{positive_feedback_count}⇧ | #{neutral_feedback_count} | #{negative_feedback_count}⇩"
-    link = "#{api.booru.url}/user_feedbacks?search[user_id]=#{id}"
-    "[#{string}](#{link})"
   end
 
   def upload_string
@@ -54,30 +87,6 @@ class Fumimi::Model::User < Fumimi::Model
     "[#{string}](#{link})"
   end
 
-  def appeal_string
-    string = appeal_count.to_fs(:delimited)
-    link = "#{api.booru.url}/post_appeals?search[creator_name]=#{CGI.escape(name)}"
-    "[#{string}](#{link})"
-  end
-
-  def flag_string
-    string = flag_count.to_fs(:delimited)
-    link = "#{api.booru.url}/post_flags?search[creator_name]=#{CGI.escape(name)}"
-    "[#{string}](#{link})"
-  end
-
-  def wiki_string
-    string = wiki_page_version_count.to_fs(:delimited)
-    link = "#{api.booru.url}/wiki_page_versions?search[updater_name]=#{CGI.escape(name)}"
-    "[#{string}](#{link})"
-  end
-
-  def artist_string
-    string = artist_version_count.to_fs(:delimited)
-    link = "#{api.booru.url}/artist_versions?search[updater_name]=#{CGI.escape(name)}"
-    "[#{string}](#{link})"
-  end
-
   def forum_string
     string = forum_post_count.to_fs(:delimited)
     link = "#{api.booru.url}/forum_posts?search[creator_name]=#{CGI.escape(name)}"
@@ -90,24 +99,27 @@ class Fumimi::Model::User < Fumimi::Model
     "[#{string}](#{link})"
   end
 
-  def discord_color # rubocop:disable Metrics/CyclomaticComplexity
-    return "0x000000" if is_banned
+  def wiki_string
+    string = wiki_page_version_count.to_fs(:delimited)
+    link = "#{api.booru.url}/wiki_page_versions?search[updater_name]=#{CGI.escape(name)}"
+    "[#{string}](#{link})"
+  end
 
-    case level_string
-    in "Member" | "Restricted"
-      Fumimi::Colors::BLUE
-    in "Gold"
-      Fumimi::Colors::YELLOW
-    in "Platinum"
-      Fumimi::Colors::GREY
-    in "Builder" | "Contributor" | "Approver"
-      Fumimi::Colors::PURPLE
-    in "Moderator"
-      Fumimi::Colors::GREEN
-    in "Admin" | "Owner"
-      Fumimi::Colors::RED
-    else
-      nil
-    end
+  def appeal_string
+    string = appeal_count.to_fs(:delimited)
+    link = "#{api.booru.url}/post_appeals?search[creator_name]=#{CGI.escape(name)}"
+    "[#{string}](#{link})"
+  end
+
+  def artist_string
+    string = artist_version_count.to_fs(:delimited)
+    link = "#{api.booru.url}/artist_versions?search[updater_name]=#{CGI.escape(name)}"
+    "[#{string}](#{link})"
+  end
+
+  def feedback_string
+    string = "#{positive_feedback_count} | #{neutral_feedback_count} | #{negative_feedback_count * -1}"
+    link = "#{api.booru.url}/user_feedbacks?search[user_id]=#{id}"
+    "[#{string}](#{link})"
   end
 end
