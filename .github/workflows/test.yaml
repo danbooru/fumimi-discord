@@ -15,7 +15,8 @@ on:
   workflow_dispatch:
     inputs:
       debug_enabled:
-        description: "Run the workflow with remote debugging enabled (https://github.com/marketplace/actions/debugging-with-tmate)"
+        description: "Run the workflow with remote debugging enabled
+          (https://github.com/marketplace/actions/debugging-with-tmate)"
         required: false
         default: false
 
@@ -25,7 +26,8 @@ defaults:
 
 jobs:
   test:
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success' }}
 
     # Don't run the test suite multiple times for the same commit.
     concurrency:
@@ -53,3 +55,4 @@ jobs:
         env:
           BOORU_USER: ${{ secrets.BOORU_USER }}
           BOORU_API_KEY: ${{ secrets.BOORU_API_KEY }}
+          SIGNOZ_API_KEY: ${{ secrets.SIGNOZ_API_KEY }}
