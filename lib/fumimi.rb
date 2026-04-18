@@ -9,11 +9,7 @@ Dir[__dir__ + "/**/*.rb"].each { |file| require file }
 require "active_support"
 require "active_support/core_ext"
 require "addressable/uri"
-require "dentaku"
 require "discordrb"
-require "open-uri"
-require "optparse"
-require "shellwords"
 require "zache"
 
 class Fumimi
@@ -43,19 +39,6 @@ class Fumimi
     log.info("Shutting down...")
     bot.stop
     exit(0)
-  end
-
-  def register_commands
-    bot.command(:related, description: "List related tags: `/related <category> <search>`", &method(:do_related_tags))
-    bot.command(:uploads, description: "List posts by year: `/uploads <search>`", &method(:do_upload_stats))
-    bot.command(:uploaders, description: "List posts by uploader: `/uploaders <search>`", &method(:do_uploader_stats))
-    bot.command(:stats, description: "Show various stats about a search: `/stats <search>`",
-                &method(:do_post_search_stats))
-    bot.command(:searches, description: "Check unique IPs for a tag search: `/searches cat_ears [hour|day]",
-                &method(:do_searches))
-    bot.command(:allsearches, help_available: false, &method(:do_allsearches)) # only for admins
-    bot.command(:ruby, description: "Evaluate a ruby expression", &method(:do_ruby))
-    bot.command(:say, help_available: false, &method(:do_say))
   end
 
   def run_commands

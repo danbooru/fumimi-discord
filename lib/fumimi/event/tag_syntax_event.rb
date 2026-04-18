@@ -1,8 +1,9 @@
 require "fumimi/event"
 
 class Fumimi::Event::TagSyntaxEvent < Fumimi::Event
+  # Matches [[tag]], [[pool:name]], and [[pool:name with spaces]].
   def self.pattern
-    /\[\[ ([^\]]+) \]\]/x
+    /\[\[\s*([^\]]+?)\s*\]\]/
   end
 
   def embeds_for(matches)

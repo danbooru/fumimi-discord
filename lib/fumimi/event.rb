@@ -63,18 +63,16 @@ class Fumimi::Event
   # @param matches [Array<String>]
   # @return [Array<(Array<String>, Array<Discordrb::Webhooks::Embed>)>]
   def respond_to_matches(matches)
-    execute_and_rescue_errors(@event) do
-      @log.info("command='#{self.class.name.demodulize}' args=`#{matches}` user_id=#{@event.user.id} username='#{@event.user.username}' channel='##{@event.channel.name}'") # rubocop:disable Layout/LineLength
+    @log.info("command='#{self.class.name.demodulize}' args=`#{matches}` user_id=#{@event.user.id} username='#{@event.user.username}' channel='##{@event.channel.name}'") # rubocop:disable Layout/LineLength
 
-      messages = messages_for(matches)
-      begin
-        embeds = embeds_for(matches)
-      rescue Danbooru::Exceptions::BadRequestError
-        embeds = []
-      end
-
-      [messages.to_a, embeds.to_a]
+    messages = messages_for(matches)
+    begin
+      embeds = embeds_for(matches)
+    rescue Danbooru::Exceptions::BadRequestError
+      embeds = []
     end
+
+    [messages.to_a, embeds.to_a]
   end
 
   ## Internal methods
@@ -121,9 +119,11 @@ class Fumimi::Event
       event.message.suppress_embeds if subclass.delete_link_embed?
 
       kommand = subclass.new(event, **opts)
-      submessages, subembeds = kommand.respond_to_matches(matches)
-      messages.concat(submessages)
-      embeds.concat(subembeds)
+      kommand.execute_and_rescue_errors(event) do
+        submessages, subembeds = kommand.respond_to_matches(matches)
+        messages.concat(submessages)
+        embeds.concat(subembeds)
+      end
     end
 
     send_combined_message(event, messages:, embeds:)

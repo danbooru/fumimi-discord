@@ -9,66 +9,25 @@ class Danbooru; end
 Dir[__dir__ + "/danbooru/**/*.rb"].each { |file| require file }
 
 class Danbooru
-  attr_reader :url, :user, :api_key, :log, :http, :resources
+  attr_reader :url, :http
 
-  RESOURCES = {
-    "AdminUsers" => { url: "admin/users" },
-    "ExplorePosts" => { url: "explore/posts" },
-    "ArtistCommentaries" => {},
-    "ArtistCommentaryVersions" => {},
-    "Artists" => {},
-    "ArtistVersions" => {},
-    "Bans" => {},
+  # Resource-specific overrides. Any resource not listed here still works with
+  # default URL and default query params via dynamic lookup.
+  RESOURCE_OVERRIDES = {
     "BulkUpdateRequests" => { default_params: { only: "id,script,user,forum_topic,forum_post,created_at,status,tags" } },
     "Comments" => { default_params: { group_by: "comment", only: "id,body,created_at,creator,post,score" } },
-    "CommentVotes" => {},
     "Counts" => { url: "counts/posts", default_params: { limit: nil } },
-    "DelayedJobs" => {},
-    "Dmails" => {},
-    "DtextPreviews" => {},
-    "FavoriteGroups" => {},
-    "Favorites" => {},
     "ForumPosts" => { default_params: { only: "id,body,created_at,creator,topic,bulk_update_request,votes" } },
-    "ForumTopics" => {},
-    "IpBans" => {},
-    "IqdbQueries" => {},
-    "MediaAssets" => {},
-    "ModActions" => {},
-    "Modqueue" => {},
-    "NewsUpdates" => {},
-    "Notes" => {},
-    "NotePreviews" => {},
-    "NoteVersions" => {},
-    "Pools" => {},
-    "PoolElements" => {},
-    "PoolVersions" => {},
     "Posts" => { default_params: { limit: 200,
                                    only: "id,uploader,created_at,score,fav_count," \
                                          "tag_string,source,rating,parent_id,has_active_children," \
                                          "is_flagged,is_pending,is_deleted," \
                                          "media_asset", } },
-    "PostAppeals" => {},
-    "PostApprovals" => {},
-    "PostDisapprovals" => {},
-    "PostEvents" => {},
-    "PostFlags" => {},
-    "PostReplacements" => {},
-    "PostVersions" => {},
-    "PostVotes" => {},
     "RelatedTags" => { url: "related_tag" },
-    "SavedSearches" => {},
-    "Source" => {},
-    "TagAliases" => {},
-    "TagImplications" => {},
     "Tags" => { default_params: { "search[hide_empty]": "no",
                                   only: "id,name,is_deprecated,category,post_count,antecedent_alias,wiki_page,artist", } },
-    "Uploads" => {},
-    "Users" => {},
     "UserFeedback" => { url: "user_feedbacks" },
-    "UserNameChangeRequests" => {},
-    "UserRevert" => {},
     "WikiPages" => { default_params: { only: "id,title,body,tag" } },
-    "WikiPageVersions" => {},
 
     "PostReports" => { url: "reports/posts" },
   }.freeze
@@ -95,54 +54,31 @@ class Danbooru
     @resources = {}
   end
 
-  # Simple health check against the posts endpoint.
-  #
-  # @return [Danbooru::Response]
-  def ping(params = {})
-    posts.ping(params)
-  end
-
-  # Checks if configured credentials can authenticate successfully.
-  #
-  # @return [Boolean]
-  def logged_in?
-    return false unless user.present? && api_key.present?
-
-    users.index(name: user).succeeded?
-  end
-
   # Returns a resource by name.
   #
   # @param name [String, Symbol]
   # @return [Danbooru::Resource]
   def [](name)
-    name = name.to_s.camelize
+    class_name = name.to_s.camelize
+    overrides = RESOURCE_OVERRIDES.fetch(class_name, {})
 
-    raise ArgumentError, "invalid resource name '#{name}'" unless RESOURCES.has_key?(name)
-
-    resources[name] ||= build_resource(name)
+    @resources[class_name] ||= Resource.new(class_name.underscore, self, **overrides)
   end
 
-  RESOURCES.keys.each do |name|
-    Resource.const_set(name, Class.new(Resource)) unless Resource.const_defined?(name)
+  # Dynamically resolves booru.posts, booru.tags, booru.artist_commentary_versions, etc.
+  def method_missing(method_name, *args, &block)
+    return super unless args.empty? && block.nil? && method_name.to_s.match?(/\A[a-z_]+\z/)
 
-    define_method(name.underscore) do
-      self[name]
-    end
+    self[method_name]
+  end
+
+  # Marks snake_case resource names as supported dynamic methods.
+  def respond_to_missing?(method_name, include_private = false)
+    method_name.to_s.match?(/\A[a-z_]+\z/) || super
   end
 
   # Maps embedded response attributes to resource names.
   def self.map_attribute(attribute)
     INCLUDE_MAP[attribute]
-  end
-
-  private
-
-  # Instantiates a resource object for a given entry in `RESOURCES`.
-  #
-  # @param class_name [String]
-  # @return [Danbooru::Resource]
-  def build_resource(class_name)
-    Resource.const_get(class_name).new(class_name.underscore, self, **RESOURCES[class_name])
   end
 end

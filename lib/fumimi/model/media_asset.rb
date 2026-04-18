@@ -12,10 +12,10 @@ class Fumimi::Model::MediaAsset < Fumimi::Model
   end
 
   def file_variant
-    variants.detect { |v| v["type"] == "original" }
+    try(:variants).to_a.detect { |v| v["type"] == "original" }
   end
 
   def preview_variant
-    variants.detect { |v| v["type"] == "360x360" }
+    try(:variants).to_a.detect { |v| v["type"] == "360x360" }
   end
 end

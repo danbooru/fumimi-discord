@@ -28,6 +28,10 @@ module Fumimi::ExceptionHandler
 
   def send_error(event, exception)
     embed = embed_for_exception(exception)
-    event.edit_response(embeds: [embed])
+    if event.respond_to?(:edit_response)
+      event.edit_response(embeds: [embed])
+    else
+      event.channel.send_message("", false, [embed], nil, { replied_user: false }, event.message)
+    end
   end
 end

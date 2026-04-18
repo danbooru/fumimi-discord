@@ -2,12 +2,11 @@ require "active_support"
 require "active_support/core_ext/module/delegation"
 require "active_support/core_ext/object/json"
 require "ostruct"
-require "pp"
 
 class Fumimi::Model
   include Fumimi::HasDiscordEmbed
 
-  attr_reader :api, :attributes, :resource_name, :url
+  attr_reader :url, :attributes, :parent, :api, :resource_name
 
   delegate_missing_to :attributes
 
@@ -53,12 +52,7 @@ class Fumimi::Model
   end
 
   def booru
-    api.booru
-  end
-
-  alias_method :inspect, :pretty_inspect
-  def pretty_print(printer)
-    printer.pp("#<#{self.class.name}:0x#{object_id.to_s(16)}>" => attributes.to_h)
+    @api.booru
   end
 
   protected

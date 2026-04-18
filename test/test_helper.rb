@@ -9,6 +9,7 @@ USER_MOCK = Struct.new(:id, :username) do
     []
   end
 end
+
 MESSAGE_MOCK = Struct.new(:content) do
   def delete
     nil
@@ -60,14 +61,22 @@ class EVENT_MOCK
     @user = user
     @channel = channel
     @message = MESSAGE_MOCK.new(text) if text
+    @application_command_event = text.nil?
     @options = options
     @replies = []
     @reply_embeds = []
     @deferred = false
+    @channels = { channel.id => channel }
   end
 
   def is_a?(val)
-    val == Discordrb::Events::ApplicationCommandEvent || super
+    (@application_command_event && val == Discordrb::Events::ApplicationCommandEvent) || super
+  end
+
+  def respond_to?(method_name, include_private = false)
+    return false if method_name.to_sym == :edit_response && !@application_command_event
+
+    super
   end
 
   def channels
