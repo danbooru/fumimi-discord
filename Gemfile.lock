@@ -24,7 +24,7 @@ GIT
 PATH
   remote: .
   specs:
-    fumimi-discord (1.0.0)
+    fumimi-discord (0.1.0)
 
 GEM
   remote: https://rubygems.org/

@@ -1,10 +1,14 @@
-class Fumimi::Report::ModQueueReport < Fumimi::Report::PostTableReport
-  def tag_string
-    tags = @tags + ["is:modqueue"]
-    tags.join(" ")
+class Fumimi::PostReport::ModqueueReport < Fumimi::PostReport
+  def initialize(event, booru, tags)
+    super
+    @tags = ["is:modqueue"]
   end
 
-  def embed_description
+  def title
+    "Modqueue Report"
+  end
+
+  def description
     <<~EOS
       ### Total pending posts: [#{total_posts}](#{modqueue_link_for("")})
       ### New: [#{total_posts - appealed_posts - flagged_posts}](#{modqueue_link_for("is:modqueue -is:flagged -is:appealed")}), Appealed: [#{appealed_posts}](#{modqueue_link_for("is:appealed")}), Flagged: [#{flagged_posts}](#{modqueue_link_for("is:flagged")})
@@ -44,14 +48,14 @@ class Fumimi::Report::ModQueueReport < Fumimi::Report::PostTableReport
     @uploaders ||= report.sort_by { |u| u["posts"] / total_posts.to_f }.reverse
   end
 
-  def report_search_params
+  def search_params
     {
       id: "posts",
-      "search[from]": "2005-05-24",
-      "search[to]": (Time.now + 1.year).strftime("%Y-%m-%d"),
+      "search[from]": start_date,
+      "search[to]": end_date,
       "search[group]": "uploader",
       "search[group_limit]": 25,
-      "search[tags]": tag_string,
+      "search[tags]": @tags.join(" "),
       "search[uploader][level]": @level.presence,
     }
   end

@@ -1,34 +1,34 @@
-class Fumimi::Report::RatingReport < Fumimi::Report::PostTableReport
-  def embed_title
-    "Rating Report"
-  end
-
-  def table_headers
-    %w[Rating Posts %]
-  end
-
-  def table_rows
-    report.sort_by { |r| sort_order.index(r["rating"]) }.map do |each_rating|
-      percent = (each_rating["posts"] / total_posts.to_f) * 100
-      [each_rating["rating"].upcase, each_rating["posts"].to_fs(:delimited), "%.2f" % percent]
-    end
+class Fumimi::PostReport::RatingReport < Fumimi::PostReport
+  def title
+    "Rating Report for: #{@tags.join(" ")}".gsub("_", "\\_")
   end
 
   def total_posts
     report.pluck("posts").sum
   end
 
+  def headers
+    %w[Rating Posts %]
+  end
+
+  def rows
+    report.sort_by { |r| sort_order.index(r["rating"]) }.map do |each_rating|
+      percent = (each_rating["posts"] / total_posts.to_f) * 100
+      [each_rating["rating"].upcase, each_rating["posts"].to_fs(:delimited), "%.2f" % percent]
+    end
+  end
+
   def sort_order
     %w[g s q e]
   end
 
-  def report_search_params
+  def search_params
     {
       id: "posts",
-      "search[from]": "2005-05-24",
-      "search[to]": (Time.now + 1.year).strftime("%Y-%m-%d"),
+      "search[from]": start_date,
+      "search[to]": end_date,
       "search[group]": "rating",
-      "search[tags]": tag_string,
+      "search[tags]": @tags.join(" "),
     }
   end
 end

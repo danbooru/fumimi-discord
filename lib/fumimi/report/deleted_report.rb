@@ -1,13 +1,17 @@
-class Fumimi::Report::DeletedReport < Fumimi::Report::PostTableReport
-  def embed_title
-    "Status Report"
+class Fumimi::PostReport::DeletedReport < Fumimi::PostReport
+  def title
+    "Status Report for: #{@tags.join(" ")}".gsub("_", "\\_")
   end
 
-  def table_headers
+  def total_posts
+    report.pluck("posts").sum
+  end
+
+  def headers
     %w[Deleted Posts %]
   end
 
-  def table_rows
+  def rows
     report.map do |each_status|
       percent = (each_status["posts"] / total_posts.to_f) * 100
 
@@ -15,17 +19,13 @@ class Fumimi::Report::DeletedReport < Fumimi::Report::PostTableReport
     end
   end
 
-  def total_posts
-    report.pluck("posts").sum
-  end
-
-  def report_search_params
+  def search_params
     {
       id: "posts",
-      "search[from]": "2005-05-24",
-      "search[to]": (Time.now + 1.year).strftime("%Y-%m-%d"),
+      "search[from]": start_date,
+      "search[to]": end_date,
       "search[group]": "is_deleted",
-      "search[tags]": tag_string,
+      "search[tags]": @tags.join(" "),
     }
   end
 end

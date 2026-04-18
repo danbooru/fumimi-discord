@@ -1,13 +1,13 @@
-class Fumimi::Report::UploaderLevelReport < Fumimi::Report::PostTableReport
-  def embed_title
-    "Uploader Report by Level"
+class Fumimi::PostReport::UploaderLevelReport < Fumimi::PostReport
+  def title
+    "Uploader Report by Level for: #{@tags.join(" ")}".gsub("_", "\\_")
   end
 
-  def table_headers
+  def headers
     ["Level", "Uploads", "%"]
   end
 
-  def table_rows
+  def rows
     levels_for_search.map do |each_level|
       uploads = each_level["posts"]
       percent = (uploads / total_posts.to_f) * 100
@@ -17,17 +17,17 @@ class Fumimi::Report::UploaderLevelReport < Fumimi::Report::PostTableReport
   end
 
   def levels_for_search
-    @levels_for_search ||= report.sort_by { |u| Fumimi::Model::User::Levels.const_get(u["level"].upcase.to_sym) }
+    @levels_for_search ||= report.sort_by { |u| Fumimi::Model::Post::Levels.const_get(u["level"].upcase.to_sym) }
   end
 
-  def report_search_params
+  def search_params
     {
       id: "posts",
-      "search[from]": "2005-05-24",
-      "search[to]": (Time.now + 1.year).strftime("%Y-%m-%d"),
+      "search[from]": start_date,
+      "search[to]": end_date,
       "search[group]": "uploader.level",
       "search[group_limit]": 25,
-      "search[tags]": tag_string,
+      "search[tags]": @tags.join(" "),
     }
   end
 end

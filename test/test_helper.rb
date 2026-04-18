@@ -4,186 +4,82 @@ require "fumimi"
 require "minitest/autorun"
 require "minitest/mock"
 
-USER_MOCK = Struct.new(:id, :username) do
-  def roles
-    []
-  end
-end
+USER_MOCK = Struct.new(:id, :username)
+CHANNEL_MOCK = Struct.new(:name, :is_nsfw) do
+  attr_writer :send_embed_proc, :send_msg_proc
 
-MESSAGE_MOCK = Struct.new(:content) do
-  def delete
-    nil
-  end
-
-  def suppress_embeds
-    @suppress_embeds_calls = suppress_embeds_calls + 1
-    nil
-  end
-
-  def suppress_embeds_calls
-    @suppress_embeds_calls ||= 0
-  end
-end
-
-class CHANNEL_MOCK
-  attr_reader :id, :name, :messages, :embeds
-
-  def initialize(name:, id: 123, is_nsfw: true)
-    @id = id
-    @name = name
-    @is_nsfw = is_nsfw
-    @messages = []
-    @embeds = []
-  end
-
-  def send_embed(msg = nil, embeds = nil, *_rest)
-    @messages << msg unless msg.nil?
-    @embeds.concat(Array(embeds)) if embeds
-    true
-  end
-
-  def send_message(msg = nil, _tts = false, embeds = nil, *_rest)
-    @messages << msg
-    @embeds.concat(Array(embeds)) if embeds
-    true
-  end
-
-  def nsfw?
-    @is_nsfw
-  end
-end
-
-class EVENT_MOCK
-  attr_reader :text, :user, :channel, :message, :options, :replies, :reply_embeds, :deferred
-
-  def initialize(user:, channel:, text: nil, options: {})
-    @text = text
-    @user = user
-    @channel = channel
-    @message = MESSAGE_MOCK.new(text) if text
-    @application_command_event = text.nil?
-    @options = options
-    @replies = []
-    @reply_embeds = []
-    @deferred = false
-    @channels = { channel.id => channel }
-  end
-
-  def is_a?(val)
-    (@application_command_event && val == Discordrb::Events::ApplicationCommandEvent) || super
-  end
-
-  def respond_to?(method_name, include_private = false)
-    return false if method_name.to_sym == :edit_response && !@application_command_event
-
-    super
-  end
-
-  def channels
-    { channel.name => channel }
-  end
-
-  def server
-    Struct.new(:channels).new(@channels.values)
-  end
-
-  def captured
-    {
-      messages: @channel.messages,
-      embeds: @channel.embeds,
-      replies: @replies,
-      reply_embeds: @reply_embeds,
-      suppress_embeds_calls: @message&.suppress_embeds_calls || 0,
-      deferred: @deferred,
-    }
+  def send_embed(msg, embeds)
+    @send_embed_proc.call(msg, embeds)
   end
 
   def send_message(msg)
-    @channel.send_message(msg)
-    MESSAGE_MOCK.new(msg)
+    @send_msg_proc.call(msg)
   end
 
-  def defer(ephemeral: false)
-    @deferred = true
-    ephemeral
+  def nsfw?
+    is_nsfw
   end
 
-  def edit_response(content: nil, embeds: nil)
-    @replies << content if content
-    @reply_embeds.concat(Array(embeds)) if embeds
-  end
-
-  def drain
-    nil
-  end
-
-  def sleep(_seconds = nil)
+  def start_typing
     nil
   end
 end
 
+EVENT_MOCK = Struct.new(:text, :user, :channel)
+
+FUMIMI_MOCK = Class.new do
+  include Fumimi::Events
+
+  define_method(:log) { Logger.new(File::NULL) }
+  define_method(:booru) { Danbooru.new(log: Logger.new(File::NULL)) }
+end
+
 module TestMocks
-  def cache
-    Zache.new
+  def event_mock(text, &block)
+    user_mock = USER_MOCK.new(123, "tester")
+    channel_mock = CHANNEL_MOCK.new("#test", true)
+    channel_mock.send_embed_proc = lambda { |msg, embeds|
+      block&.call(msg, embeds)
+      true
+    }
+    channel_mock.send_msg_proc = lambda { |msg|
+      block&.call(msg)
+      true
+    }
+    event_mock = EVENT_MOCK.new(text, user_mock, channel_mock)
+    event_mock
   end
 
-  def user_mock(user_id: 123)
-    USER_MOCK.new(user_id, "tester")
+  def fumimi
+    @fumimi ||= FUMIMI_MOCK.new
   end
 
-  def channel_mock(nsfw_channel:)
-    CHANNEL_MOCK.new(name: "#test", is_nsfw: nsfw_channel)
-  end
-
-  def log
-    Logger.new($stderr, level: Logger::FATAL)
-  end
-
-  def default_booru
-    Danbooru.new(log: log)
-  end
-
-  def mock_slash_command(name, args: {}, nsfw_channel: false, booru: default_booru, user_id: 123)
-    command_name = name.to_s.delete_prefix("/")
-    command_class = ObjectSpace.each_object(Class).find do |klass|
-      klass < Fumimi::SlashCommand && klass.name == command_name
+  def mock_event(mocked_text)
+    captured = {
+      msgs: [],
+      embeds: [],
+    }
+    event = event_mock(mocked_text) do |msg, embeds|
+      captured[:msgs] << msg
+      captured[:embeds] << embeds
     end
 
-    raise ArgumentError, "Unknown slash command: #{name}" unless command_class
-
-    event = EVENT_MOCK.new(user: user_mock(user_id:),
-                           channel: channel_mock(nsfw_channel:),
-                           options: args)
-
-    command = command_class.new(event, log: log, booru: booru, cache: cache)
-    command.safe_handle_event
-    event.captured
+    fumimi.respond_to_embeds(event)
+    captured[:msgs].flatten!
+    captured[:embeds].flatten!
+    captured
   end
 
-  def mock_event(text, nsfw_channel: false)
-    event = EVENT_MOCK.new(text: text,
-                           channel: channel_mock(nsfw_channel:),
-                           user: user_mock)
+  def setup_booru
+    factory = {
+      posts: Fumimi::Model::Post,
+      tags: Fumimi::Model::Tag,
+      comments: Fumimi::Model::Comment,
+      forum_posts: Fumimi::Model::ForumPost,
+      users: Fumimi::Model::User,
+      wiki_pages: Fumimi::Model::WikiPage,
+    }.with_indifferent_access
 
-    Fumimi::Event.respond_to_all_matches(event, log: log, booru: default_booru)
-    event.captured
-  end
-
-  def table_lines_for(embed)
-    embed.description.split("\n").filter_map do |l|
-      l.split("│").map(&:strip).map(&:presence).compact if l.start_with?("│")
-    end
-  end
-
-  def with_mocked_owners(owner_ids)
-    original_owners = Fumimi::SlashCommand::OWNERS
-
-    Fumimi::SlashCommand.send(:remove_const, :OWNERS)
-    Fumimi::SlashCommand.const_set(:OWNERS, owner_ids)
-
-    yield
-  ensure
-    Fumimi::SlashCommand.send(:remove_const, :OWNERS)
-    Fumimi::SlashCommand.const_set(:OWNERS, original_owners)
+    Danbooru.new(factory: factory)
   end
 end

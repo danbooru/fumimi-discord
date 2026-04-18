@@ -3,7 +3,7 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 
 Gem::Specification.new do |spec|
   spec.name          = "fumimi-discord"
-  spec.version       = "1.0.0"
+  spec.version       = "0.1.0"
   spec.authors       = %w[evazion nonamethanks]
   spec.email         = ["noizave@gmail.com", "hellafrickingepic@gmail.com"]
 

@@ -1,14 +1,18 @@
-class Fumimi::Report::ApproverReport < Fumimi::Report::PostTableReport
-  def tag_string
-    tags = @tags + ["approver:any"]
-    tags.join(" ")
+class Fumimi::PostReport::ApproverReport < Fumimi::PostReport
+  def title
+    "Approver Report for: #{@tags.join(" ")}".gsub("_", "\\_")
   end
 
-  def table_headers
+  def total_posts
+    tags = @tags + ["approver:any"]
+    @total_posts ||= @booru.counts.index(tags: tags.join(" ")).counts.posts
+  end
+
+  def headers
     ["Name", "Approvals", "%"]
   end
 
-  def table_rows
+  def rows
     approvers_for_search.map do |each_approver|
       percent = (each_approver["posts"] / total_posts.to_f) * 100
 
@@ -20,14 +24,14 @@ class Fumimi::Report::ApproverReport < Fumimi::Report::PostTableReport
     @approvers_for_search ||= report.sort_by { |u| u["posts"] / total_posts.to_f }.reverse
   end
 
-  def report_search_params
+  def search_params
     {
       id: "posts",
-      "search[from]": "2005-05-24",
-      "search[to]": (Time.now + 1.year).strftime("%Y-%m-%d"),
+      "search[from]": start_date,
+      "search[to]": end_date,
       "search[group]": "approver",
       "search[group_limit]": 25,
-      "search[tags]": tag_string,
+      "search[tags]": @tags.join(" "),
     }
   end
 end
