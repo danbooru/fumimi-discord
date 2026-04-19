@@ -23,7 +23,7 @@ class Fumimi::Model::Post < Fumimi::Model
     return nil if censored?
     return nil unless nsfw_channel? || !nsfw?
 
-    return file_variant.url if file_ext.match?(/jpe?g|png|gif/i)
+    return file_variant&.url if file_ext.match?(/jpe?g|png|gif/i)
 
     preview_variant&.url
   end

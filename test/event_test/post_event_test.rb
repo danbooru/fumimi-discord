@@ -113,6 +113,18 @@ class PostEventTest < Minitest::Test
     assert post.timestamp
   end
 
+  def test_banned_post
+    embeds = mock_event("post #3238625") => { embeds:, ** }
+    assert_equal 1, embeds.length
+    post = embeds.first
+
+    assert_equal "post #3238625", post.title
+    assert_equal "https://danbooru.donmai.us/posts/3238625", post.url
+    assert_nil post.image
+    assert_match POST_FOOTER_PATTERN, post.footer.text
+    assert post.timestamp
+  end
+
   def test_post_event
     embeds = mock_event("https://danbooru.donmai.us/posts/3840621 https://danbooru.donmai.us/posts/1722315", nsfw_channel: true) => { embeds:, ** }
     assert_equal 2, embeds.length
