@@ -30,7 +30,7 @@ module Fumimi::Report
     def tag_description
       return "" if tag_string.blank?
 
-      "-# Tags: `%s`" % tag_string
+      "Report for tags: `%s`." % tag_string
     end
 
     def embed_url

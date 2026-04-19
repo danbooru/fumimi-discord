@@ -24,7 +24,9 @@ class Fumimi::RelatedReport
   end
 
   def tag_description
-    "-# Tags: `%s`" % tag_string if tag_string
+    return "" if tag_string.blank?
+
+    "Report for tags: `%s`." % tag_string if tag_string
   end
 
   def table
