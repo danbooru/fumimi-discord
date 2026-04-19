@@ -116,7 +116,7 @@ class Fumimi::Event
 
       next if embeds.length > 10
 
-      event.message.suppress_embeds if subclass.delete_link_embed?
+      event.message.suppress_embeds if subclass.delete_link_embed? && !event.channel.pm?
 
       kommand = subclass.new(event, **opts)
       kommand.execute_and_rescue_errors(event) do
