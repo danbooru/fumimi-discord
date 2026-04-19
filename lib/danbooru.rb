@@ -13,6 +13,8 @@ class Danbooru
 
   # Resource-specific overrides. Any resource not listed here still works with
   # default URL and default query params via dynamic lookup.
+
+  # rubocop:disable Layout/LineLength
   RESOURCE_OVERRIDES = {
     "BulkUpdateRequests" => { default_params: { only: "id,script,user,forum_topic,forum_post,created_at,status,tags" } },
     "Comments" => { default_params: { group_by: "comment", only: "id,body,created_at,creator,post,score" } },
@@ -31,7 +33,9 @@ class Danbooru
 
     "PostReports" => { url: "reports/posts" },
     "PostCounts" => { url: "counts/posts" },
+    "ModerationReports" => { default_params: { only: "id,created_at,model[creator],model_type,model_id,creator,reason" } },
   }.freeze
+  # rubocop:enable Layout/LineLength
 
   INCLUDE_MAP = {
     creator: "users",

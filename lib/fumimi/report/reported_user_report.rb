@@ -8,7 +8,7 @@ class Fumimi::Report::ReportedUserReport
   end
 
   def embed_title
-    "New user report"
+    "Discord User Report"
   end
 
   def embed_color

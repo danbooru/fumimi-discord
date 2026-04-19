@@ -51,7 +51,7 @@ def main(options)
   if options[:console]
     fumimi.pry
   else
-    fumimi.run_commands
+    fumimi.run
   end
 end
 

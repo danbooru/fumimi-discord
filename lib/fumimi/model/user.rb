@@ -23,7 +23,7 @@ class Fumimi::Model::User < Fumimi::Model
   def embed_fields
     embed_fields = []
     embed_fields << { name: "Level", value: level_string, inline: true }
-    embed_fields << { name: "Created", value: "<t:#{created_at.to_time.to_i}:R>", inline: true }
+    embed_fields << { name: "Created", value: created_at_relative, inline: true }
     embed_fields << { name: "Feedbacks", value: feedback_string, inline: true }
 
     embed_fields << { name: "Uploads", value: upload_string, inline: true }

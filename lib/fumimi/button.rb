@@ -1,6 +1,6 @@
 class Fumimi::Button
   def self.mark_handled(event)
-    return unless event.interaction.button.custom_id == "fumimi_user_report"
+    return unless %w[fumimi_user_report fumimi_moderation_report].include? event.interaction.button.custom_id
 
     new(event).mark_handled
   end
@@ -52,7 +52,7 @@ class Fumimi::Button
         row.button(
           label: button_label,
           style: button_style,
-          custom_id: "user_report"
+          custom_id: @button.custom_id
         )
       end
     end

@@ -57,6 +57,14 @@ class CHANNEL_MOCK
   end
 end
 
+class SERVER_MOCK
+  attr_reader :channels
+
+  def initialize(channels)
+    @channels = channels
+  end
+end
+
 class EVENT_MOCK
   attr_reader :text, :user, :channel, :message, :options, :replies, :reply_embeds, :deferred
 
@@ -88,7 +96,7 @@ class EVENT_MOCK
   end
 
   def server
-    Struct.new(:channels).new(@channels.values)
+    SERVER_MOCK.new(@channels.values)
   end
 
   def captured

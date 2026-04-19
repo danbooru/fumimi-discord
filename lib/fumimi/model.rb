@@ -33,6 +33,14 @@ class Fumimi::Model
     "#{resource_name.singularize.tr("_", " ")} ##{id}"
   end
 
+  def clickable_shortlink
+    "[#{shortlink}](#{url})"
+  end
+
+  def created_at_relative
+    "<t:#{created_at.to_time.to_i}:R>"
+  end
+
   def as_json(options = {})
     attributes.to_h.transform_values do |value|
       serialize_attribute(value, options)
