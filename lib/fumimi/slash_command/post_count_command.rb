@@ -16,8 +16,8 @@ class Fumimi::SlashCommand::PostCountCommand < Fumimi::SlashCommand
   end
 
   def message
-    counts = @booru.post_counts.index(tags: "#{tags} -id:#{(0...9).map {rand(1..9)}.join}") # avoid cache
-    "Post count#{pretty_tags}: #{counts.counts.posts.to_fs(:delimited)}."
+    counts = @booru.post_counts.index(tags: "#{tags} -id:#{(0...9).map { rand(1..9) }.join}") # avoid cache
+    "Post count#{pretty_tags}: #{counts.pretty}."
   end
 
   def tags
@@ -26,6 +26,7 @@ class Fumimi::SlashCommand::PostCountCommand < Fumimi::SlashCommand
 
   def pretty_tags
     return unless tags
+
     " for `#{tags}`"
   end
 end
