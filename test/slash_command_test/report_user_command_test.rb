@@ -17,7 +17,7 @@ class ReportUserCommandTest < Minitest::Test
 
       fields = report.fields.index_by(&:name)
       assert_equal "<@123>", fields.fetch("Reporter").value
-      assert_equal "https://danbooru.donmai.us/users/42", fields.fetch("Reported user").value
+      assert_equal "[User #42](https://danbooru.donmai.us/users/42)", fields.fetch("Reported User").value
       assert_equal "spam links", fields.fetch("Reason").value
     end
   end

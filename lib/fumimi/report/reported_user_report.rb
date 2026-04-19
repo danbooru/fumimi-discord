@@ -17,11 +17,20 @@ class Fumimi::Report::ReportedUserReport
 
   def embed_fields
     [
-      { name: "Reporter", value: "<@#{@reporter_id}>" },
-      { name: "Reported user", value: "https://danbooru.donmai.us/users/#{@reported_id}" },
-      { name: "Submitted at", value: "<t:#{Time.now.to_i}:R>" },
+      { name: "Submitted at", value: "<t:#{Time.now.to_i}:R>", inline: true },
+      { name: "", value: "", inline: false },
+
+      { name: "Reported User", value: reported_user_shortlink, inline: true },
+      { name: "Reporter", value: "<@#{@reporter_id}>", inline: true },
+
+      { name: "", value: "", inline: false },
+
       { name: "Reason", value: @report_reason },
     ]
+  end
+
+  def reported_user_shortlink
+    "[User ##{@reported_id}](https://danbooru.donmai.us/users/#{@reported_id})"
   end
 
   def buttons
