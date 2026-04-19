@@ -13,7 +13,7 @@ class ReportUserCommandTest < Minitest::Test
 
       assert_equal 1, embeds.length
       report = embeds.first
-      assert_equal "New user report", report.title
+      assert_equal "Discord User Report", report.title
 
       fields = report.fields.index_by(&:name)
       assert_equal "<@123>", fields.fetch("Reporter").value
