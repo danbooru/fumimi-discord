@@ -41,6 +41,11 @@ class Fumimi
     exit(0)
   end
 
+  def pry
+    require "pry"
+    binding.pry
+  end
+
   def run_commands
     log.debug("Starting bot...")
 
