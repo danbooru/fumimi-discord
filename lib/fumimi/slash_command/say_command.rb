@@ -25,8 +25,6 @@ class Fumimi::SlashCommand::SayCommand < Fumimi::SlashCommand
   end
 
   def respond_to_event
-    raise Fumimi::Exceptions::PermissionError unless OWNERS.include?(@event.user.id)
-
     channel = arguments[:channel].to_i
     message = arguments[:message]
 
