@@ -62,8 +62,9 @@ class Fumimi::SlashCommand
     false
   end
 
-  # Bits that decide whether a user can see this command.
+  # Default bits that decide whether a user can see this command.
   # https://docs.discord.com/developers/topics/permissions
+  # Can be overriden in server settings > integration > fumimi > /<command name>
   def self.bits_to_view_command
     # Ex: Discordrb::Permissions.new([:administrator]).bits
   end
