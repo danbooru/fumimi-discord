@@ -15,7 +15,7 @@ require "zache"
 class Fumimi
   include Fumimi::ExceptionHandler
 
-  attr_reader :server_id, :client_id, :token, :log, :bot, :server, :booru, :cache, :initiate_shutdown
+  attr_reader :server_id, :client_id, :token, :log, :bot, :booru, :cache, :initiate_shutdown
 
   def initialize(server_id:, client_id:, token:, log: Logger.new($stderr))
     @server_id = server_id
@@ -43,7 +43,7 @@ class Fumimi
 
   def pry
     require "pry"
-    binding.pry
+    binding.pry # rubocop:disable Lint/Debugger
   end
 
   def run_commands
@@ -69,6 +69,8 @@ class Fumimi
       booru: booru,
       cache: cache
     )
+
+    bot.button { |event| Fumimi::Button.mark_handled(event) }
 
     bot.run(:async)
 

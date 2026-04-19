@@ -2,12 +2,10 @@ require "fumimi/exceptions"
 
 module Fumimi::ExceptionHandler
   def execute_and_rescue_errors(event, &block)
-    response = block.call
+    block.call
   rescue StandardError, RestClient::Exception, NotImplementedError => e
     @log&.error e
     send_error(event, e)
-  else
-    response
   end
 
   def embed_for_exception(exception)

@@ -1,0 +1,47 @@
+require "test_helper"
+
+class ReportUserCommandTest < Minitest::Test
+  include TestMocks
+
+  def test_submits_report_to_mod_channel
+    with_report_channel_name("#test") do
+      mock_slash_command("/report", args: { user_id: 42, reason: "spam links" },
+                                    user_id: 123) => { replies:, messages:, embeds:, ** }
+
+      assert_equal ["Your report has been submitted."], replies
+      assert_equal [""], messages
+
+      assert_equal 1, embeds.length
+      report = embeds.first
+      assert_equal "New user report", report.title
+
+      fields = report.fields.index_by(&:name)
+      assert_equal "<@123>", fields.fetch("Reporter").value
+      assert_equal "https://danbooru.donmai.us/users/42", fields.fetch("Reported user").value
+      assert_equal "spam links", fields.fetch("Reason").value
+    end
+  end
+
+  def test_rejects_reason_over_1000_characters
+    with_report_channel_name("#test") do
+      mock_slash_command("/report", args: { user_id: 42, reason: "a" * 1001 }) => { reply_embeds:, messages:, ** }
+
+      assert_equal [], messages
+      assert_equal 1, reply_embeds.length
+
+      error = reply_embeds.first
+      assert_equal "Bad Argument!", error.title
+      assert_equal "Reason must be below 1000 characters.", error.description.to_s
+    end
+  end
+
+  private
+
+  def with_report_channel_name(value)
+    previous = ENV.fetch("DISCORD_REPORT_CHANNEL_NAME", nil)
+    ENV["DISCORD_REPORT_CHANNEL_NAME"] = value
+    yield
+  ensure
+    ENV["DISCORD_REPORT_CHANNEL_NAME"] = previous
+  end
+end
