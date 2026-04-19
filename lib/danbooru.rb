@@ -30,6 +30,7 @@ class Danbooru
     "WikiPages" => { default_params: { only: "id,title,body,tag" } },
 
     "PostReports" => { url: "reports/posts" },
+    "PostCounts" => { url: "counts/posts" },
   }.freeze
 
   INCLUDE_MAP = {
