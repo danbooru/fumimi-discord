@@ -113,7 +113,85 @@ class ReportMonitorTest < Minitest::Test
     logger.verify
   end
 
+  def test_send_report_includes_reporter_and_reported_user_links
+    report_channel = CHANNEL_MOCK.new(name: current_report_channel_name)
+    logger = Minitest::Mock.new
+    logger.expect(:info, nil, ["New danbooru report: 88. Sending it to ##{current_report_channel_name}..."])
+
+    monitor = Fumimi::ReportMonitor.new(bot: bot_with_channels(report_channel), booru: Object.new, log: logger)
+
+    report = moderation_report(
+      id: 88,
+      model_type: "Comment",
+      model_id: 999,
+      creator_id: 10,
+      creator_name: "reporter_name",
+      reported_user_id: 20,
+      reported_user_name: "reported_name"
+    )
+
+    monitor.send(:send_report, report)
+
+    reported_user_field = report_channel.embeds.first.fields.find { |field| field.name == "Reported user" }
+    reporter_field = report_channel.embeds.first.fields.find { |field| field.name == "Reporter" }
+
+    assert_equal "[@reported_name](https://danbooru.donmai.us/users/20)", reported_user_field.value
+    assert_equal "[@reporter_name](https://danbooru.donmai.us/users/10)", reporter_field.value
+    logger.verify
+  end
+
+  def test_send_report_includes_reported_content_link_for_forum_posts
+    report_channel = CHANNEL_MOCK.new(name: current_report_channel_name)
+    logger = Minitest::Mock.new
+    logger.expect(:info, nil, ["New danbooru report: 99. Sending it to ##{current_report_channel_name}..."])
+
+    monitor = Fumimi::ReportMonitor.new(bot: bot_with_channels(report_channel), booru: Object.new, log: logger)
+
+    report = moderation_report(id: 99, model_type: "ForumPost", model_id: 123)
+
+    monitor.send(:send_report, report)
+
+    reported_content_field = report_channel.embeds.first.fields.find { |field| field.name == "Reported Content" }
+
+    assert_equal "[forum #123](https://danbooru.donmai.us/forum_posts/123)", reported_content_field.value
+    logger.verify
+  end
+
+  def test_send_report_includes_reported_content_link_for_comments
+    report_channel = CHANNEL_MOCK.new(name: current_report_channel_name)
+    logger = Minitest::Mock.new
+    logger.expect(:info, nil, ["New danbooru report: 100. Sending it to ##{current_report_channel_name}..."])
+
+    monitor = Fumimi::ReportMonitor.new(bot: bot_with_channels(report_channel), booru: Object.new, log: logger)
+
+    report = moderation_report(id: 100, model_type: "Comment", model_id: 456)
+
+    monitor.send(:send_report, report)
+
+    reported_content_field = report_channel.embeds.first.fields.find { |field| field.name == "Reported Content" }
+
+    assert_equal "[comment #456](https://danbooru.donmai.us/comments/456)", reported_content_field.value
+    logger.verify
+  end
+
   private
+
+  def moderation_report(id:, model_type:, model_id:, reason: "ok", creator_id: 1, creator_name: "reporter", reported_user_id: 2,
+                        reported_user_name: "reported_user")
+    Fumimi::Model::ModerationReport.new(
+      {
+        "id" => id,
+        "created_at" => "2026-04-20T00:00:00Z",
+        "model_type" => model_type,
+        "model_id" => model_id,
+        "reason" => reason,
+        "creator" => { "id" => creator_id, "name" => creator_name },
+        "model" => { "creator" => { "id" => reported_user_id, "name" => reported_user_name } },
+      },
+      "moderation_report",
+      Struct.new(:booru).new(Danbooru.new(log: log))
+    )
+  end
 
   def bot_with_channels(*channels)
     Bot.new({ 1 => SERVER_MOCK.new(channels) })

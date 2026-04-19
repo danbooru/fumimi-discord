@@ -17,7 +17,7 @@ class Fumimi::Model::ModerationReport < Fumimi::Model
 
       { name: "", value: "", inline: false },
 
-      { name: "Reported user", value: "[#{model.creator.at_name}](#{creator.url})", inline: true },
+      { name: "Reported user", value: "[#{model.creator.at_name}](#{model.creator.url})", inline: true },
       { name: "Reporter", value: "[#{creator.at_name}](#{creator.url})", inline: true },
 
       { name: "", value: "", inline: false },
@@ -39,7 +39,7 @@ class Fumimi::Model::ModerationReport < Fumimi::Model
   end
 
   def reported_content_url
-    "#{api.booru.url}/#{resource_name.pluralize}/#{id}"
+    "#{api.booru.url}/#{model_type.underscore.pluralize}/#{model_id}"
   end
 
   def embed_timestamp
