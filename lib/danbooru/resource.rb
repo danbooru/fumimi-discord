@@ -25,8 +25,8 @@ class Danbooru
       retry_options = RETRY_OPTIONS.merge(options)
       response = nil
 
-      Retriable.retriable(on: Danbooru::Exceptions::TemporaryError, **retry_options) do
-        raw_response = booru.http.request(method, @url + path, **params)
+      Retriable.retriable(on: [Danbooru::Exceptions::TemporaryError, HTTP::SocketReadError, HTTP::ConnectionError], **retry_options) do
+        raw_response = booru.http.timeout(20).request(method, @url + path, **params)
         response = Danbooru::Response.new(raw_response, resource_name: @name, api: self)
         response.raise_for_errors!
       end
@@ -34,6 +34,8 @@ class Danbooru
       response
     rescue Danbooru::Exceptions::TemporaryError
       response
+    rescue HTTP::TimeoutError
+      raise Danbooru::Exceptions::TimeoutError
     end
 
     # Fetches a collection from GET /resource.
