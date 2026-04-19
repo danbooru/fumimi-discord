@@ -28,7 +28,7 @@ end
 class CHANNEL_MOCK
   attr_reader :id, :name, :messages, :embeds
 
-  def initialize(name:, id: 123, is_nsfw: true)
+  def initialize(name:, id: 123, is_nsfw: true, pm: false)
     @id = id
     @name = name
     @is_nsfw = is_nsfw
@@ -50,6 +50,10 @@ class CHANNEL_MOCK
 
   def nsfw?
     @is_nsfw
+  end
+
+  def pm?
+    @pm
   end
 end
 
