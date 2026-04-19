@@ -22,11 +22,12 @@ class ApproversCommandTest < Minitest::Test
     report = reply_embeds.first
 
     assert_equal "Approver Report", report.title
-    assert_equal report.description, <<~EOF.chomp
-      -# Tags: `) approver:any`
+    expected = <<~EOF.chomp
+      Report for tags: `) approver:any`.
 
       No posts under that search!
     EOF
+    assert_equal expected, report.description
 
     assert_equal [], table_lines_for(report)
   end
