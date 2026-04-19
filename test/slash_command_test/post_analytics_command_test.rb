@@ -4,13 +4,14 @@ class PostAnalyticsCommandTest < Minitest::Test
   include TestMocks
 
   def test_api_call
+    skip unless ENV.fetch("SIGNOZ_API_KEY", nil)
     mock_slash_command("/searches", args: { tags: "1girl", time_range: "30mi" }) => { reply_embeds:, ** }
 
     assert_equal 1, reply_embeds.length
     report = reply_embeds.first
 
-    assert_equal "Post Analytics Report", report.title
     assert_match(/Unique users whose searches in the last 30 minutes included `1girl`:/, report.description)
+    assert_equal "Post Analytics Report", report.title
 
     table_lines = table_lines_for(report)
     assert_equal ["Contains", "Users <30mi"], table_lines.first
