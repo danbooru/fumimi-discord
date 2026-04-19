@@ -12,14 +12,15 @@ class Fumimi::Model::ModerationReport < Fumimi::Model
 
   def embed_fields
     [
-      { name: "Reported Content", value: model_clickable_shortlink, inline: true },
       { name: "Submitted at", value: created_at_relative, inline: true },
+      { name: "Reported Content", value: model_clickable_shortlink, inline: true },
 
       { name: "", value: "", inline: false },
 
       { name: "Reported user", value: "[#{model.creator.at_name}](#{creator.url})", inline: true },
       { name: "Reporter", value: "[#{creator.at_name}](#{creator.url})", inline: true },
 
+      { name: "", value: "", inline: false },
       { name: "Reason", value: reason.truncate(1000, omission: "[…]") },
     ]
   end
