@@ -2,15 +2,17 @@ require "active_support"
 require "active_support/core_ext/module/delegation"
 require "active_support/core_ext/object/json"
 require "ostruct"
-require "pp"
 
 class Fumimi::Model
-  attr_reader :api, :attributes, :resource_name, :url
+  include Fumimi::HasDiscordEmbed
+
+  attr_reader :url, :attributes, :parent, :api, :resource_name
 
   delegate_missing_to :attributes
 
-  def initialize(attributes, resource_name, api = nil)
+  def initialize(attributes, resource_name, api = nil, parent = nil)
     @api = api
+    @parent = parent
     @resource_name = resource_name
 
     attr_url = attributes.delete("url")
@@ -37,37 +39,20 @@ class Fumimi::Model
     end
   end
 
-  def create_embed(channel, **options)
-    e = Discordrb::Webhooks::Embed.new
-    embed(e, channel, **options)
-    e
+  def embed_url
+    url
   end
 
-  def embed_field_for(name, value, inline: true)
-    Discordrb::Webhooks::EmbedField.new(inline: inline, name: name, value: value)
+  def embed_title
+    shortlink
   end
 
-  def embed_footer
-    timestamp = "#{created_at.strftime("%F")} at #{created_at.strftime("%l:%M %p")}".gsub(/ +/, " ")
-    Discordrb::Webhooks::EmbedFooter.new(text: timestamp)
+  def embed_timestamp
+    try(:created_at)
   end
 
   def booru
-    api.booru
-  end
-
-  alias_method :inspect, :pretty_inspect
-  def pretty_print(printer)
-    printer.pp("#<#{self.class.name}:0x#{object_id.to_s(16)}>" => attributes.to_h)
-  end
-
-  def self.embed_length(embed)
-    length = embed.title.length
-    length += embed.author&.name&.length || 0
-    length += embed.footer&.text || 0
-    length += embed.description.length
-    length += embed.fields.sum { |e| e.name.length + e.value.length }
-    length
+    @api.booru
   end
 
   protected
@@ -85,8 +70,8 @@ class Fumimi::Model
       Addressable::URI.parse(value) rescue value
     elsif value.is_a?(Hash)
       name = Danbooru.map_attribute(name) || name
-      model = api.booru.factory[name.pluralize] || "Fumimi::Model::#{name.singularize.camelize}".safe_constantize || Fumimi::Model
-      model.new(value, name, api)
+      model = "Fumimi::Model::#{name.singularize.camelize}".safe_constantize || Fumimi::Model
+      model.new(value, name, api, self)
     elsif value.is_a?(Array)
       value.map { |item| cast_attribute(name, item) }
     else
@@ -107,5 +92,9 @@ class Fumimi::Model
     else
       value.as_json(options)
     end
+  end
+
+  def nsfw_channel?
+    @parent&.nsfw_channel? || @nsfw_channel
   end
 end
