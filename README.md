@@ -12,18 +12,23 @@ Fumimi is a Danbooru Discord bot. It can be seen at work in the [official Danboo
 4. Note your client ID and client secret.
 5. Add a bot user.
 6. Save your bot token.
-7. Invite bot to server.
+7. Enable the "Message Content Intent" under Overview > Bot > Privileged Gateway Intents.
+8. Invite bot to server.
 
 ### 2. Configure Your Credentials
 
 1. Clone this repository: `git clone https://github.com/danbooru/fumimi-discord.git`
-2. Configure `.env` from `.env.example`
+2. Configure `.env` from `.env.example`:
+    - a. Set `DISCORD_SERVER_ID` to your Discord server's ID.
+    - b. Set `DISCORD_CLIENT_ID` to your bot's application ID.
+    - c. Set `DISCORD_TOKEN` to your bot's API token.
 
 ### 3a. Run with Docker
 
 1. Run `docker compose up`.
 
 ### 3b. Run manually
+
 1. Run `bundle install`
 2. Run `bin/fumimi`
 
