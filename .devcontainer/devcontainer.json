@@ -1,0 +1,16 @@
+{
+  "name": "fumimi-discord",
+  "dockerComposeFile": "../docker-compose.yml",
+  "service": "fumimi",
+  "overrideCommand": true,
+  "workspaceFolder": "/app",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "KoichiSasada.vscode-rdbg",
+        "shopify.ruby-lsp"
+      ]
+    }
+  },
+  "forwardPorts": []
+}

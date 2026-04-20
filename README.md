@@ -20,7 +20,8 @@ Fumimi is a Danbooru Discord bot. It can be seen at work in the [official Danboo
 2. Configure `.env` from `.env.example`
 
 ### 3a. Run with Docker
-1. Run `docker run --rm --env-file=.env ghcr.io/danbooru/fumimi-discord`
+
+1. Run `docker compose up`.
 
 ### 3b. Run manually
 1. Run `bundle install`

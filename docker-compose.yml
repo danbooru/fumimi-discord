@@ -1,0 +1,7 @@
+services:
+  fumimi:
+    image: fumimi-discord:latest
+    build: .
+    restart: unless-stopped
+    volumes:
+      - .:/app
