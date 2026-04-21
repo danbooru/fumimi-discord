@@ -50,4 +50,14 @@ module Danbooru::Exceptions
       "The site is down for maintenance!"
     end
   end
+
+  class AccessDeniedError < DanbooruError
+    def embed_title
+      "Access Denied"
+    end
+
+    def embed_description
+      "This may be due to an invalid API key or insufficient permissions."
+    end
+  end
 end

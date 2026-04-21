@@ -47,6 +47,7 @@ class Danbooru
       raise Danbooru::Exceptions::MaintenanceError if maintenance?
       raise Danbooru::Exceptions::DownbooruError if downbooru?
       raise Danbooru::Exceptions::TemporaryError if retry?
+      raise Danbooru::Exceptions::AccessDeniedError if access_denied?
     end
 
     # Delegates unknown methods to the parsed model payload.
@@ -128,6 +129,11 @@ class Danbooru
     # @return [Boolean]
     def downbooru?
       @response.code >= 500
+    end
+
+    # @return [Boolean] True if the API key is missing or invalid, or if the user lacks permissions for the endpoint.
+    def access_denied?
+      @response.code.in?([401, 403])
     end
 
     # Returns true for HTTP statuses considered retriable.
