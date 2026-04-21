@@ -29,6 +29,7 @@ class Fumimi::DText # rubocop:disable Metrics/ClassLength
   # @return [String]
   def self.normalize_markdown(text)
     text = text.gsub(/[ \t]+\n/, "\n")
+    text = text.gsub(/([^\n])\n\n(`![^`]+`)/, "\\1\n\\2")
     text = text.gsub(/\n{3,}/, "\n\n")
     text.strip
   end
@@ -67,37 +68,30 @@ class Fumimi::DText # rubocop:disable Metrics/ClassLength
   #
   # @param text [String]
   # @return [String]
-  def self.collapse_for_wiki_page(text)
-    text = text.gsub(/^\[Expand .*?\]$/, "")
+  def self.collapse_for_wiki_page(text) # rubocop:disable Metrics/CyclomaticComplexity,Metrics/PerceivedComplexity
+    source_lines = text.split("\n").grep_v(/^\[Expand .*?\]$/)
     lines = []
-    in_list = false
-    list_ended_without_blank = false
+    index = 0
 
-    text.split("\n").each do |line|
-      if line.match?(/^\s*\*\s/)
-        unless in_list
-          append_collapsed_list_suffix!(lines)
-          in_list = true
-          list_ended_without_blank = false
+    while index < source_lines.length
+      current_line = source_lines[index]
+
+      if current_line.match?(/^\s*\*\s/)
+        list_lines = []
+        while index < source_lines.length && source_lines[index].match?(/^\s*\*\s/)
+          list_lines << source_lines[index]
+          index += 1
         end
-        next
+
+        append_result = append_collapsed_list_summary!(lines, collapsed_list_summary(list_lines))
+        next_line = source_lines[index]
+        if append_result == :attached_to_heading && next_line&.strip&.present? && !next_line.match?(/^\*\*.*\*\*$/)
+          lines << ""
+        end
+      else
+        lines << current_line
+        index += 1
       end
-
-      # We're transitioning from list to non-list
-      if in_list
-        list_ended_without_blank = lines.last && lines.last.strip.empty? ? false : true
-      end
-
-      in_list = false
-
-      # If the last line isn't empty and we just ended a list without a blank line,
-      # and the current line is not a heading, add a blank line
-      if list_ended_without_blank && line.strip.present? && !line.match?(/^\*\*/)
-        lines << ""
-        list_ended_without_blank = false
-      end
-
-      lines << line
     end
 
     lines.join("\n").gsub(/\n{3,}/, "\n\n").strip
@@ -107,83 +101,89 @@ class Fumimi::DText # rubocop:disable Metrics/ClassLength
   #
   # @param html [Nokogiri::XML::Node]
   # @return [String]
-  def self.html_to_markdown(html) # rubocop:disable Metrics/CyclomaticComplexity,Metrics/PerceivedComplexity
-    html.children.map do |node| # rubocop:disable Metrics/BlockLength
-      case node.name
-      when "h1", "h2", "h3", "h4", "h5", "h6"
-        "**#{sanitize_text(node.text)}**\n"
-
-      when "b", "strong"
-        "**#{html_to_markdown(node).strip}**"
-
-      when "i", "em"
-        "*#{html_to_markdown(node).strip}*"
-
-      when "s"
-        "~~#{html_to_markdown(node).strip}~~"
-
-      when "u"
-        "__#{html_to_markdown(node).strip}__"
-
-      when "code"
-        "`#{node.text}`"
-
-      when "p"
-        if node.attr("class") == "tn"
-          "-# #{sanitize_text(node.text)}\n\n"
-        else
-          "#{html_to_markdown(node).strip}\n\n"
-        end
-
-      when "blockquote"
-        "`<quote>`\n\n"
-
-      when "br"
-        "\n"
-
-      when "span"
-        if node.attr("class") == "spoiler"
-          "||#{html_to_markdown(node)}||"
-        else
-          html_to_markdown(node)
-        end
-
-      when "details"
-        summary = node.css("summary").first
-        "[Expand \"#{sanitize_text(summary&.text.to_s)}\"]\n\n"
-
-      when "media-embed"
-        "`!#{node.attr("data-type")} ##{node.attr("data-id")}`\n"
-
-      when "media-gallery"
-        transform_media_gallery(node)
-
-      when "pre"
-        "\n`<code>`\n\n"
-
-      when "table"
-        "`<table>`\n\n"
-
-      when "ul"
-        transform_list(node)
-
-      when "a", "text"
-        sanitize_text(node.text)
-
-      else
-        html_to_markdown(node)
-      end
+  def self.html_to_markdown(html)
+    children = html.children
+    children.each_with_index.map do |node, index|
+      node_to_markdown(node, next_node: children[index + 1])
     end.join
+  end
+
+  # Converts a single parsed HTML node into markdown text.
+  #
+  # @param node [Nokogiri::XML::Node]
+  # @param next_node [Nokogiri::XML::Node, nil]
+  # @return [String]
+  def self.node_to_markdown(node, next_node: nil) # rubocop:disable Metrics/CyclomaticComplexity,Metrics/PerceivedComplexity
+    case node.name
+    when "h1", "h2", "h3", "h4", "h5", "h6"
+      "**#{sanitize_text(node.text)}**\n"
+
+    when "b", "strong"
+      "**#{html_to_markdown(node).strip}**"
+
+    when "i", "em"
+      "*#{html_to_markdown(node).strip}*"
+
+    when "s"
+      "~~#{html_to_markdown(node).strip}~~"
+
+    when "u"
+      "__#{html_to_markdown(node).strip}__"
+
+    when "code"
+      "`#{node.text}`"
+
+    when "p"
+      if node.attr("class") == "tn"
+        "-# #{sanitize_text(node.text)}\n\n"
+      else
+        "#{html_to_markdown(node).strip}\n\n"
+      end
+
+    when "blockquote"
+      "`<quote>`\n\n"
+
+    when "br"
+      "\n"
+
+    when "span"
+      node.attr("class") == "spoiler" ? "||#{html_to_markdown(node)}||" : html_to_markdown(node)
+
+    when "details"
+      summary = node.css("summary").first
+      "[Expand \"#{sanitize_text(summary&.text.to_s)}\"]\n\n"
+
+    when "media-embed"
+      "`!#{node.attr("data-type")} ##{node.attr("data-id")}`\n"
+
+    when "media-gallery"
+      gallery = transform_media_gallery(node)
+      next_node&.name == "p" ? "#{gallery}\n" : gallery
+
+    when "pre"
+      "\n`<code>`\n\n"
+
+    when "table"
+      "`<table>`\n\n"
+
+    when "ul"
+      transform_list(node)
+
+    when "a", "text"
+      sanitize_text(node.text)
+
+    else
+      html_to_markdown(node)
+    end
   end
 
   # Renders a media gallery as a bullet list of embed items.
   #
   # @param node [Nokogiri::XML::Node]
-  # @param opts [Hash]
   # @return [String]
-  def self.transform_media_gallery(node, **opts)
+  def self.transform_media_gallery(node)
     node.element_children.map do |entry|
-      label = render_children_text(entry.children, **opts).join.strip
+      label = render_children_text(entry.children).join.strip
       "* `!#{entry.attr("data-type")} ##{entry.attr("data-id")}`#{": #{label}" unless label.empty?}"
     end.join("\n") + "\n"
   end
@@ -193,19 +193,18 @@ class Fumimi::DText # rubocop:disable Metrics/ClassLength
   #
   # @param node [Nokogiri::XML::Node]
   # @param indent [Integer]
-  # @param opts [Hash]
   # @return [String]
-  def self.transform_list(node, indent: 0, **opts)
+  def self.transform_list(node, indent: 0)
     lines = node.element_children.flat_map do |child|
       case child.name
       when "li"
         li_text = child.children
                        .reject { |c| c.name == "ul" }
-                       .then { |children| render_children_text(children, **opts) }
+                       .then { |children| render_children_text(children) }
                        .join.strip
         ["#{'  ' * indent}* #{li_text}"]
       when "ul"
-        [transform_list(child, indent: indent + 1, **opts).rstrip]
+        [transform_list(child, indent: indent + 1).rstrip]
       else
         []
       end
@@ -214,11 +213,13 @@ class Fumimi::DText # rubocop:disable Metrics/ClassLength
     "#{lines.join("\n")}\n"
   end
 
-  # Appends " (collapsed list)" to the closest previous heading line, or as a new line if no heading found.
+  # Appends a collapsed list summary to the closest previous heading line, or as a
+  # new line if no heading is available.
   #
   # @param lines [Array<String>]
-  # @return [void]
-  def self.append_collapsed_list_suffix!(lines)
+  # @param summary [String]
+  # @return [Symbol] append result (:attached_to_heading, :appended_as_line, :no_target)
+  def self.append_collapsed_list_summary!(lines, summary)
     i = lines.size - 1
     blank_count = 0
     while i >= 0 && lines[i].strip.empty?
@@ -226,25 +227,49 @@ class Fumimi::DText # rubocop:disable Metrics/ClassLength
       i -= 1
     end
 
-    # If we found a heading, mark it
     if i >= 0 && lines[i].match?(/^\*\*.*\*\*$/)
-      return if lines[i].end_with?(" (collapsed list)")
-
-      lines[i] += " (collapsed list)"
+      lines[i] += " (#{summary})"
+      :attached_to_heading
     elsif i >= 0
-      # No heading found. Remove trailing blank lines and append (collapsed list) as new line
       blank_count.times { lines.pop }
-      lines << "(collapsed list)"
+      lines << "(#{summary})"
+      :appended_as_line
+    else
+      :no_target
     end
+  end
+
+  # Builds a compact summary string for a list block based on plain lines and
+  # embedded media markers.
+  #
+  # @param list_lines [Array<String>]
+  # @return [String]
+  def self.collapsed_list_summary(list_lines) # rubocop:disable Metrics/CyclomaticComplexity
+    media_counts = Hash.new(0)
+    media_line_count = 0
+
+    list_lines.each do |line|
+      media_types = line.scan(/`!([a-z_]+) #\d+`/).flatten
+      media_line_count += 1 unless media_types.empty?
+      media_types.each { |type| media_counts[type] += 1 }
+    end
+
+    plain_line_count = list_lines.length - media_line_count
+    parts = []
+    parts << "#{plain_line_count} #{plain_line_count == 1 ? 'line' : 'lines'}" if plain_line_count.positive?
+    media_counts.each do |type, count|
+      label = count == 1 ? type : "#{type}s"
+      parts << "#{count} #{label}"
+    end
+    "#{parts.join(', ')} collapsed"
   end
 
   # Renders mixed text/element child nodes into plain markdown fragments.
   #
   # @param children [Array<Nokogiri::XML::Node>]
-  # @param opts [Hash]
   # @return [Array<String>]
-  def self.render_children_text(children, **opts)
-    children.map { |child| child.text? ? sanitize_text(child.text) : html_to_markdown(child, **opts) }
+  def self.render_children_text(children)
+    children.map { |child| child.text? ? sanitize_text(child.text) : html_to_markdown(child) }
   end
 
   # Normalizes plain text and escapes markdown-sensitive characters.

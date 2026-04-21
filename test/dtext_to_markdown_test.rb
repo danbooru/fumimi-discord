@@ -81,6 +81,7 @@ class DtextToMarkdownTest < Minitest::Test
     * list4
     * list5
     * list6
+    * list7
   EOF
 
   LIST_WITH_HEADERS_MARKDOWN = <<~EOF.chomp
@@ -96,13 +97,14 @@ class DtextToMarkdownTest < Minitest::Test
     * list4
     * list5
     * list6
+    * list7
   EOF
 
   LIST_WITH_HEADERS_MARKDOWN_COLLAPSED = <<~EOF.chomp
     **Header**
-    **Header1** (collapsed list)
-    **Header1.2** (collapsed list)
-    **Header2** (collapsed list)
+    **Header1** (3 lines collapsed)
+    **Header1.2** (2 lines collapsed)
+    **Header2** (4 lines collapsed)
   EOF
 
   CODE_BLOCK_DTEXT = <<~EOF.chomp
@@ -129,28 +131,65 @@ class DtextToMarkdownTest < Minitest::Test
     h4. Appearance
     * !post #2647501: Default
     * !post #2168021: [[no armor|Without Armor]]
-    * !post #2132774: With Crown and Cape
+    * !asset #2132774: With Crown and Cape
   EOF
 
   MEDIA_EMBED_MARKDOWN = <<~EOF.chomp
     Consider this:
-
     `!post #2647501`
     This post is an embed.
 
     **Appearance**
     * `!post #2647501`: Default
     * `!post #2168021`: Without Armor
-    * `!post #2132774`: With Crown and Cape
+    * `!asset #2132774`: With Crown and Cape
   EOF
 
   MEDIA_EMBED_MARKDOWN_COLLAPSED = <<~EOF.chomp
     Consider this:
-
     `!post #2647501`
     This post is an embed.
 
-    **Appearance** (collapsed list)
+    **Appearance** (2 posts, 1 asset collapsed)
+  EOF
+
+  MULTIPLE_LISTS_DTEXT = <<~EOF.chomp
+    Consider this:
+    !post #2647501
+    This post is an embed.
+
+    h4. Appearance
+    * !post #2647501: Default
+    * !post #2168021: [[no armor|Without Armor]]
+    * !asset #2132774: With Crown and Cape
+    h4. Another List
+    * one thing
+    * !post #123
+    * another thing
+  EOF
+
+  MULTIPLE_LISTS_MARKDOWN = <<~EOF.chomp
+    Consider this:
+    `!post #2647501`
+    This post is an embed.
+
+    **Appearance**
+    * `!post #2647501`: Default
+    * `!post #2168021`: Without Armor
+    * `!asset #2132774`: With Crown and Cape
+    **Another List**
+    * one thing
+    * `!post #123`
+    * another thing
+  EOF
+
+  MULTIPLE_LISTS_MARKDOWN_COLLAPSED = <<~EOF.chomp
+    Consider this:
+    `!post #2647501`
+    This post is an embed.
+
+    **Appearance** (2 posts, 1 asset collapsed)
+    **Another List** (2 lines, 1 post collapsed)
   EOF
 
   DTEXT_STRING = <<~EOF.chomp
@@ -169,6 +208,8 @@ class DtextToMarkdownTest < Minitest::Test
     #{TRANSLATION_NOTE_DTEXT}
 
     #{MEDIA_EMBED_DTEXT}
+
+    #{MULTIPLE_LISTS_DTEXT}
   EOF
 
   MARKDOWN_STRING = <<~EOF.chomp
@@ -187,6 +228,8 @@ class DtextToMarkdownTest < Minitest::Test
     #{TRANSLATION_NOTE_MARKDOWN}
 
     #{MEDIA_EMBED_MARKDOWN}
+
+    #{MULTIPLE_LISTS_MARKDOWN}
   EOF
 
   MARKDOWN_STRING_FOR_WIKI = <<~EOF.chomp
@@ -203,6 +246,8 @@ class DtextToMarkdownTest < Minitest::Test
     #{TRANSLATION_NOTE_MARKDOWN}
 
     #{MEDIA_EMBED_MARKDOWN_COLLAPSED}
+
+    #{MULTIPLE_LISTS_MARKDOWN_COLLAPSED}
   EOF
 
   def test_markdown_conversion_paragraph
@@ -245,6 +290,11 @@ class DtextToMarkdownTest < Minitest::Test
     assert_equal MEDIA_EMBED_MARKDOWN, markdown
   end
 
+  def test_markdown_conversion_multiple_lists
+    markdown = Fumimi::DText.dtext_to_markdown(MULTIPLE_LISTS_DTEXT, max_lines: 1000, max_characters: 10_000)
+    assert_equal MULTIPLE_LISTS_MARKDOWN, markdown
+  end
+
   def test_markdown_conversion_full_string_for_wiki
     markdown = Fumimi::DText.dtext_to_markdown(
       DTEXT_STRING,
@@ -282,7 +332,7 @@ class DtextToMarkdownTest < Minitest::Test
     assert_operator markdown.length, :>, 1_000
   end
 
-  def test_help_users_wiki_not_collapsed_too_early
+  def test_help_users_wiki
     dtext = File.read(File.expand_path("files/help_users_text.dtext", __dir__)).strip
     expected_markdown = File.read(File.expand_path("files/help_users_text.md", __dir__)).strip
 
