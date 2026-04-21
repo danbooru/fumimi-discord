@@ -18,11 +18,11 @@ gem "rdoc"
 gem "retriable"
 gem "zache"
 
-group :development do
+group :development, :test do
   gem "bundler"
+  gem "debug"
   gem "prophet-rb"
   gem "pry"
-  gem "pry-byebug"
   gem "rake"
   gem "rubocop"
 end

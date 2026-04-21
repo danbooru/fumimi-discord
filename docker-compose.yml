@@ -3,5 +3,10 @@ services:
     image: fumimi-discord:latest
     build: .
     restart: unless-stopped
+
+    environment:
+      RUBY_DEBUG_OPEN: "true"
+      RUBY_DEBUG_NONSTOP: "true"
+
     volumes:
       - .:/app

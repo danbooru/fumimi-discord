@@ -1,0 +1,11 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "rdbg",
+      "name": "Debug Fumimi",
+      "request": "attach",
+      "localfs": true,
+    }
+  ]
+}
