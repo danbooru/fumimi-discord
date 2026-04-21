@@ -16,8 +16,7 @@ class Fumimi::Model::ModerationReport < Fumimi::Model
       { name: "Reported Content", value: model_clickable_shortlink, inline: true },
 
       { name: "", value: "", inline: false },
-
-      { name: "Reported user", value: "[#{model.creator.at_name}](#{model.creator.url})", inline: true },
+      { name: "Reported user", value: reported_user_clickable_shortlink, inline: true },
       { name: "Reporter", value: "[#{creator.at_name}](#{creator.url})", inline: true },
 
       { name: "", value: "", inline: false },
@@ -26,7 +25,19 @@ class Fumimi::Model::ModerationReport < Fumimi::Model
   end
 
   def model_clickable_shortlink
-    "[#{reported_content_shortlink}](#{reported_content_url})"
+    if model_type == "Dmail"
+      "Dmail"
+    else
+      "[#{reported_content_shortlink}](#{reported_content_url})"
+    end
+  end
+
+  def reported_user_clickable_shortlink
+    if model.try(:creator).present? # missing for dmails
+      "[#{model.creator.at_name}](#{model.creator.url})"
+    else
+      "Unknown"
+    end
   end
 
   def reported_content_shortlink

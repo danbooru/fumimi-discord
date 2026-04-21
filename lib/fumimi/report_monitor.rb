@@ -32,7 +32,7 @@ class Fumimi::ReportMonitor
         begin
           monitor_reports
         rescue StandardError => e
-          log.error("ReportMonitor error: #{e.message}")
+          log.error(e)
         end
         sleep 30
       end
