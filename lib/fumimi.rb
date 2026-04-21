@@ -15,15 +15,16 @@ require "zache"
 class Fumimi
   include Fumimi::ExceptionHandler
 
-  attr_reader :server_id, :client_id, :token, :log, :booru, :cache, :initiate_shutdown
+  attr_reader :server_id, :client_id, :token, :log, :booru, :cache, :initiate_shutdown, :censored_tags
 
-  def initialize(server_id:, client_id:, token:, log: Logger.new($stderr))
+  def initialize(server_id:, client_id:, token:, censored_tags: [], log: Logger.new($stderr))
     @server_id = server_id
     @client_id = client_id
     @token = token
     @log = log
+    @censored_tags = censored_tags
 
-    @booru = Danbooru.new(log: log)
+    @booru = Danbooru.new(log: log, model_builder: method(:build_model))
     @cache = Zache.new
   end
 
@@ -79,14 +80,28 @@ class Fumimi
 
     return unless [reports_user, reports_api_key].all?
 
-    report_booru = Danbooru.new(log: log,
-                                user: reports_user,
-                                api_key: reports_api_key)
+    report_booru = Danbooru.new(
+      log: log,
+      user: reports_user,
+      api_key: reports_api_key,
+      model_builder: ->(booru: nil, **kwargs) { build_model(booru: report_booru, **kwargs) }
+    )
 
     report_monitor = Fumimi::ReportMonitor.new(booru: report_booru,
                                                log: log,
                                                bot: bot)
     report_monitor.start
+  end
+
+  # Used by the Danbooru API client to build Fumimi::Model instances.
+  #
+  # @param resource_name [String] The model name (e.g. "post", "user", "comment", "wiki_page", etc).
+  # @param attributes [Hash] The attributes for the model.
+  # @param booru [Danbooru] The Danbooru API client.
+  # @return [Fumimi::Model] The constructed model instance
+  def build_model(resource_name:, attributes:, booru: self.booru)
+    klass = "Fumimi::Model::#{resource_name.singularize.camelize}".safe_constantize || Fumimi::Model
+    klass.new(resource_name:, attributes:, booru:, fumimi: self)
   end
 
   def run

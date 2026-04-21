@@ -71,55 +71,55 @@ class Fumimi::Model::User < Fumimi::Model
 
   def upload_string
     string = post_upload_count.to_fs(:delimited)
-    link = "#{api.booru.url}/posts?tags=user:#{CGI.escape(name)}"
+    link = "#{base_url}/posts?tags=user:#{CGI.escape(name)}"
     "[#{string}](#{link})"
   end
 
   def edit_string
     string = post_update_count.to_fs(:delimited)
-    link = "#{api.booru.url}/post_versions?search[updater_name]=#{CGI.escape(name)}"
+    link = "#{base_url}/post_versions?search[updater_name]=#{CGI.escape(name)}"
     "[#{string}](#{link})"
   end
 
   def note_string
     string = note_update_count.to_fs(:delimited)
-    link = "#{api.booru.url}/note_versions?search[updater_name]=#{CGI.escape(name)}"
+    link = "#{base_url}/note_versions?search[updater_name]=#{CGI.escape(name)}"
     "[#{string}](#{link})"
   end
 
   def forum_string
     string = forum_post_count.to_fs(:delimited)
-    link = "#{api.booru.url}/forum_posts?search[creator_name]=#{CGI.escape(name)}"
+    link = "#{base_url}/forum_posts?search[creator_name]=#{CGI.escape(name)}"
     "[#{string}](#{link})"
   end
 
   def comment_string
     string = comment_count.to_fs(:delimited)
-    link = "#{api.booru.url}/comments?group_by=comment&search[creator_name]=#{CGI.escape(name)}"
+    link = "#{base_url}/comments?group_by=comment&search[creator_name]=#{CGI.escape(name)}"
     "[#{string}](#{link})"
   end
 
   def wiki_string
     string = wiki_page_version_count.to_fs(:delimited)
-    link = "#{api.booru.url}/wiki_page_versions?search[updater_name]=#{CGI.escape(name)}"
+    link = "#{base_url}/wiki_page_versions?search[updater_name]=#{CGI.escape(name)}"
     "[#{string}](#{link})"
   end
 
   def appeal_string
     string = appeal_count.to_fs(:delimited)
-    link = "#{api.booru.url}/post_appeals?search[creator_name]=#{CGI.escape(name)}"
+    link = "#{base_url}/post_appeals?search[creator_name]=#{CGI.escape(name)}"
     "[#{string}](#{link})"
   end
 
   def artist_string
     string = artist_version_count.to_fs(:delimited)
-    link = "#{api.booru.url}/artist_versions?search[updater_name]=#{CGI.escape(name)}"
+    link = "#{base_url}/artist_versions?search[updater_name]=#{CGI.escape(name)}"
     "[#{string}](#{link})"
   end
 
   def feedback_string
     string = "#{positive_feedback_count} | #{neutral_feedback_count} | #{negative_feedback_count * -1}"
-    link = "#{api.booru.url}/user_feedbacks?search[user_id]=#{id}"
+    link = "#{base_url}/user_feedbacks?search[user_id]=#{id}"
     "[#{string}](#{link})"
   end
 end

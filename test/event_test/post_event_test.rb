@@ -56,33 +56,29 @@ class PostEventTest < ApplicationTest
   end
 
   def test_censored_post_on_sfw_channel
-    with_mocked_censored_tags(["1girl"]) do
-      embeds = mock_event("post #12", nsfw_channel: false) => { embeds:, ** }
-      assert_equal 1, embeds.length
-      post = embeds.first
+    embeds = mock_event("post #12", nsfw_channel: false, censored_tags: ["1girl"]) => { embeds:, ** }
+    assert_equal 1, embeds.length
+    post = embeds.first
 
-      assert_equal "post #12", post.title
-      assert_nil post.color
-      assert_equal "https://danbooru.donmai.us/posts/12", post.url
-      assert_nil post.image
-      assert_match POST_FOOTER_PATTERN, post.footer.text
-      assert post.timestamp
-    end
+    assert_equal "post #12", post.title
+    assert_nil post.color
+    assert_equal "https://danbooru.donmai.us/posts/12", post.url
+    assert_nil post.image
+    assert_match POST_FOOTER_PATTERN, post.footer.text
+    assert post.timestamp
   end
 
   def test_censored_post_on_nsfw_channel
-    with_mocked_censored_tags(["1girl"]) do
-      embeds = mock_event("post #12", nsfw_channel: true) => { embeds:, ** }
-      assert_equal 1, embeds.length
-      post = embeds.first
+    embeds = mock_event("post #12", nsfw_channel: true, censored_tags: ["1girl"]) => { embeds:, ** }
+    assert_equal 1, embeds.length
+    post = embeds.first
 
-      assert_equal "post #12", post.title
-      assert_nil post.color
-      assert_equal "https://danbooru.donmai.us/posts/12", post.url
-      assert_nil post.image
-      assert_match POST_FOOTER_PATTERN, post.footer.text
-      assert post.timestamp
-    end
+    assert_equal "post #12", post.title
+    assert_nil post.color
+    assert_equal "https://danbooru.donmai.us/posts/12", post.url
+    assert_nil post.image
+    assert_match POST_FOOTER_PATTERN, post.footer.text
+    assert post.timestamp
   end
 
   def test_video_post
@@ -146,17 +142,5 @@ class PostEventTest < ApplicationTest
   def test_no_post
     embeds = mock_event("post #6") => { embeds:, ** }
     assert_equal 0, embeds.length
-  end
-
-  private
-
-  def with_mocked_censored_tags(tags)
-    original_tags = Fumimi::Model::Post::CENSORED_TAGS
-    Fumimi::Model::Post.send(:remove_const, :CENSORED_TAGS)
-    Fumimi::Model::Post.const_set(:CENSORED_TAGS, tags)
-    yield
-  ensure
-    Fumimi::Model::Post.send(:remove_const, :CENSORED_TAGS)
-    Fumimi::Model::Post.const_set(:CENSORED_TAGS, original_tags)
   end
 end

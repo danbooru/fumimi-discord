@@ -1,8 +1,6 @@
 require "fumimi/model"
 
 class Fumimi::Model::Post < Fumimi::Model
-  CENSORED_TAGS = ENV["FUMIMI_CENSORED_TAGS"].to_s.split
-
   delegate :file_ext, :file_info, :file_variant, :preview_variant, to: :media_asset
 
   def embed_color
@@ -40,7 +38,7 @@ class Fumimi::Model::Post < Fumimi::Model
   end
 
   def censored?
-    tags.grep(/^(#{CENSORED_TAGS.join("|")})$/).any?
+    tags.intersect?(fumimi&.censored_tags.to_a)
   end
 
   def embed_footer

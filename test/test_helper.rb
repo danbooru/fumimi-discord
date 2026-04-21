@@ -155,8 +155,8 @@ class ApplicationTest < ActiveSupport::TestCase
     Logger.new($stderr, level: Logger::FATAL)
   end
 
-  def default_booru
-    Danbooru.new(log: log)
+  def default_booru(censored_tags: [])
+    Fumimi.new(server_id: nil, client_id: nil, token: nil, censored_tags:, log:).booru
   end
 
   def mock_slash_command(name, args: {}, nsfw_channel: false, booru: default_booru, user_id: 123)
@@ -176,12 +176,14 @@ class ApplicationTest < ActiveSupport::TestCase
     event.captured
   end
 
-  def mock_event(text, nsfw_channel: false)
+  def mock_event(text, nsfw_channel: false, censored_tags: [])
+    booru = default_booru(censored_tags:)
+
     event = EVENT_MOCK.new(text: text,
                            channel: channel_mock(nsfw_channel:),
                            user: user_mock)
 
-    Fumimi::Event.respond_to_all_matches(event, log: log, booru: default_booru)
+    Fumimi::Event.respond_to_all_matches(event, log: log, booru: booru)
     event.captured
   end
 

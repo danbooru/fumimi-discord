@@ -145,7 +145,7 @@ class ReportMonitorTest < ApplicationTest
                         reported_user_id: 2,
                         reported_user_name: "reported_user")
     Fumimi::Model::ModerationReport.new(
-      {
+      attributes: {
         "id" => id,
         "created_at" => "2026-04-20T00:00:00Z",
         "model_type" => model_type,
@@ -154,8 +154,8 @@ class ReportMonitorTest < ApplicationTest
         "creator" => { "id" => creator_id, "name" => creator_name },
         "model" => { "creator" => { "id" => reported_user_id, "name" => reported_user_name } },
       },
-      "moderation_report",
-      Struct.new(:booru).new(Danbooru.new(log: log))
+      resource_name: "moderation_report",
+      fumimi: Fumimi.new(server_id: nil, client_id: nil, token: nil, log:)
     )
   end
 

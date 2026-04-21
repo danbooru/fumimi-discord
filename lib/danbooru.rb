@@ -46,10 +46,12 @@ class Danbooru
   # @param user [String, nil] Danbooru login.
   # @param api_key [String, nil] Danbooru API key.
   # @param log [Logger] Logger instance.
+  # @param model_builder [#call] Callable used to construct model objects from API responses.
   def initialize(url: ENV["BOORU_URL"], # rubocop:disable Style/FetchEnvVar
                  user: ENV["BOORU_USER"], # rubocop:disable Style/FetchEnvVar
                  api_key: ENV["BOORU_API_KEY"], # rubocop:disable Style/FetchEnvVar
-                 log: Logger.new($stderr))
+                 log: Logger.new($stderr),
+                 model_builder: nil)
     url ||= "https://danbooru.donmai.us"
 
     log.info("Running on instance: #{url}, with user: '#{user}'")
@@ -57,6 +59,12 @@ class Danbooru
     @url, @user, @api_key, @log = Addressable::URI.parse(url), user, api_key, log
     @http = HTTPClient.new(base: url, user: user, pass: api_key, log: log)
     @resources = {}
+    @model_builder = model_builder || ->(**kwargs) { OpenStruct.new(**kwargs) }
+  end
+
+  # Construct a model instance (a post, user, comment, etc) from an API response.
+  def build_model(resource_name:, attributes:, booru: self)
+    @model_builder.call(resource_name:, attributes:, booru:)
   end
 
   # Returns a resource by name.

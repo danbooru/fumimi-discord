@@ -1,40 +1,36 @@
 require "active_support"
 require "active_support/core_ext/module/delegation"
 require "active_support/core_ext/object/json"
+require "active_support/core_ext/string/inflections"
+require "addressable/uri"
 require "ostruct"
+require "time"
 
 class Fumimi::Model
   include Fumimi::HasDiscordEmbed
 
-  attr_reader :url, :attributes, :parent, :api, :resource_name
+  attr_reader :url, :attributes, :resource_name, :base_url, :fumimi, :booru
 
   delegate_missing_to :attributes
 
-  def initialize(attributes, resource_name, api = nil, parent = nil)
-    @api = api
-    @parent = parent
+  def initialize(attributes:, resource_name:, fumimi:, booru: fumimi.booru)
+    @fumimi = fumimi
+    @booru = booru
     @resource_name = resource_name
+    @base_url = booru.url.to_s
 
     attr_url = attributes.delete("url")
-    self.attributes = attributes
+    @attributes = OpenStruct.new(attributes.to_h { |name, value| [name, cast_attribute(name, value)] })
 
     if attr_url.presence
       @url = attr_url
-    elsif try(:id)
-      @url = "#{api.booru.url}/#{resource_name.pluralize}/#{id}"
+    elsif try(:id) && @base_url.present?
+      @url = "#{@base_url}/#{resource_name.pluralize}/#{id}"
     end
-  end
-
-  def attributes=(attributes)
-    @attributes = cast_attributes(attributes)
   end
 
   def shortlink
     "#{resource_name.singularize.tr("_", " ")} ##{id}"
-  end
-
-  def clickable_shortlink
-    "[#{shortlink}](#{url})"
   end
 
   def created_at_relative
@@ -59,18 +55,6 @@ class Fumimi::Model
     try(:created_at)
   end
 
-  def booru
-    @api.booru
-  end
-
-  protected
-
-  def cast_attributes(attributes)
-    OpenStruct.new(attributes.map do |name, value|
-      [name, cast_attribute(name, value)]
-    end.to_h)
-  end
-
   def cast_attribute(name, value)
     if name =~ /_at$/
       Time.parse(value) rescue nil
@@ -78,8 +62,7 @@ class Fumimi::Model
       Addressable::URI.parse(value) rescue value
     elsif value.is_a?(Hash)
       name = Danbooru.map_attribute(name) || name
-      model = "Fumimi::Model::#{name.singularize.camelize}".safe_constantize || Fumimi::Model
-      model.new(value, name, api, self)
+      booru.build_model(attributes: value, resource_name: name, booru: booru)
     elsif value.is_a?(Array)
       value.map { |item| cast_attribute(name, item) }
     else
@@ -100,9 +83,5 @@ class Fumimi::Model
     else
       value.as_json(options)
     end
-  end
-
-  def nsfw_channel?
-    @parent&.nsfw_channel? || @nsfw_channel
   end
 end

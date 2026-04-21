@@ -50,7 +50,7 @@ class Fumimi::Model::ModerationReport < Fumimi::Model
   end
 
   def reported_content_url
-    "#{api.booru.url}/#{model_type.underscore.pluralize}/#{model_id}"
+    "#{base_url}/#{model_type.underscore.pluralize}/#{model_id}"
   end
 
   def embed_timestamp

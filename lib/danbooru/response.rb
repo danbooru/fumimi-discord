@@ -1,18 +1,19 @@
 require "active_support"
 require "active_support/core_ext/object/try"
-require "active_support/core_ext/string/inflections"
 require "json"
 
 class Danbooru
   # Wraps one API response and exposes parsed data + status helpers.
   class Response
+    attr_reader :data
+
     # @param response [HTTP::Response] Low-level HTTP response object.
     # @param resource_name [String] API resource name for model resolution.
-    # @param api [Danbooru::Resource] Resource used to build model URLs.
-    def initialize(response, resource_name:, api:)
+    # @param booru [Danbooru] API client used to build model URLs.
+    def initialize(response, resource_name:, booru:)
       @response = response
       @resource_name = resource_name
-      @api = api
+      @booru = booru
       @json = parse_json
       @data = build_data
     end
@@ -79,11 +80,11 @@ class Danbooru
       }
     end
 
-    # Builds Fumimi model objects from parsed JSON.
+    # Builds model objects from parsed JSON.
     #
     # @return [Fumimi::Model, Array<Fumimi::Model>]
     def build_data
-      return Fumimi::Model.new(@json, @resource_name, @api) if failed?
+      return @booru.build_model(attributes: @json, resource_name: @resource_name) if failed?
 
       if @json.is_a?(Array)
         @json.map { |item| build_item(item) }
@@ -99,8 +100,7 @@ class Danbooru
     # @param item [Hash]
     # @return [Fumimi::Model]
     def build_item(item)
-      model_class = "Fumimi::Model::#{@resource_name.singularize.camelize}".safe_constantize || Fumimi::Model
-      model_class.new(item, @resource_name, @api)
+      @booru.build_model(attributes: item, resource_name: @resource_name)
     end
 
     # Returns true for the known timeout response payload.

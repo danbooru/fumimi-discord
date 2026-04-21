@@ -41,7 +41,7 @@ class Fumimi::Model::Tag < Fumimi::Model
   end
 
   def embed_url
-    wiki_page&.url || "#{api.booru.url}/posts?tags=#{CGI.escape(name.tr(" ", "_"))}"
+    wiki_page&.url || "#{base_url}/posts?tags=#{CGI.escape(name.tr(" ", "_"))}"
   end
 
   def wiki_preview

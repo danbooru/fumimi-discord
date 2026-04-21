@@ -27,7 +27,7 @@ class Danbooru
 
       Retriable.retriable(on: [Danbooru::Exceptions::TemporaryError, HTTP::SocketReadError, HTTP::ConnectionError], **retry_options) do
         raw_response = booru.http.timeout(20).request(method, @url + path, **params)
-        response = Danbooru::Response.new(raw_response, resource_name: @name, api: self)
+        response = Danbooru::Response.new(raw_response, resource_name: @name, booru: @booru)
         response.raise_for_errors!
       end
 

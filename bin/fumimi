@@ -33,11 +33,13 @@ def main(options)
 
   server_id = ENV["DISCORD_SERVER_ID"].presence || raise("No DISCORD_SERVER_ID env var provided.")
   token = ENV["DISCORD_TOKEN"].presence || raise("No DISCORD_TOKEN env var provided.")
+  censored_tags = ENV["FUMIMI_CENSORED_TAGS"].to_s.split
 
   fumimi = Fumimi.new(
     server_id: server_id.to_i,
     client_id: ENV.fetch("DISCORD_CLIENT_ID", nil),
     token: token,
+    censored_tags: censored_tags,
     log: log
   )
 
