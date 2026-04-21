@@ -51,8 +51,7 @@ class Fumimi
       name: "Robot Maid Fumimi",
       client_id: client_id,
       token: token,
-      prefix: "/",
-      intents: [:server_messages]
+      prefix: "/"
     )
   end
 
