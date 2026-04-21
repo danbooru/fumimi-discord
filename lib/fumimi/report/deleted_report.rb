@@ -4,14 +4,14 @@ class Fumimi::Report::DeletedReport < Fumimi::Report::PostTableReport
   end
 
   def table_headers
-    %w[Deleted Posts %]
+    %w[Status Posts %]
   end
 
   def table_rows
     report.map do |each_status|
       percent = (each_status["posts"] / total_posts.to_f) * 100
 
-      [each_status["is_deleted"].to_s, each_status["posts"].to_fs(:delimited), "%.2f" % percent]
+      [each_status["is_deleted"] ? "deleted" : "active", each_status["posts"].to_fs(:delimited), "%.2f" % percent]
     end
   end
 
