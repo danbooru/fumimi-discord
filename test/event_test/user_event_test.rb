@@ -1,8 +1,6 @@
 require "test_helper"
 
-class UserEventTest < Minitest::Test
-  include TestMocks
-
+class UserEventTest < ApplicationTest
   def test_user_event
     embeds = mock_event("user #1") => { embeds:, ** }
     assert_equal 1, embeds.length

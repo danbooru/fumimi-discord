@@ -1,8 +1,6 @@
 require "test_helper"
 
-class HiCommandTest < Minitest::Test
-  include TestMocks
-
+class HiCommandTest < ApplicationTest
   def test_responds_to_command
     mock_slash_command("/hi") => { replies:, messages:, ** }
 

@@ -1,8 +1,6 @@
 require "test_helper"
 
-class PostEventTest < Minitest::Test
-  include TestMocks
-
+class PostEventTest < ApplicationTest
   ASSET_FOOTER_PATTERN = /^\d+x\d+ \(\d+\.\d+ \w+ \w+\)$/
 
   def test_asset

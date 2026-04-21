@@ -4,6 +4,7 @@ require "fumimi"
 require "debug"
 require "minitest/autorun"
 require "minitest/mock"
+require "active_support/test_case"
 
 USER_MOCK = Struct.new(:id, :username) do
   def roles
@@ -135,7 +136,9 @@ class EVENT_MOCK
   end
 end
 
-module TestMocks
+class ApplicationTest < ActiveSupport::TestCase
+  parallelize(workers: :number_of_processors, with: :threads)
+
   def cache
     Zache.new
   end

@@ -1,8 +1,6 @@
 require "test_helper"
 
-class DownbooruCommandTest < Minitest::Test
-  include TestMocks
-
+class DownbooruCommandTest < ApplicationTest
   def test_responds_to_command
     mock_slash_command("/downbooru") => { reply_embeds:, ** }
 

@@ -1,8 +1,6 @@
 require "test_helper"
 
-class PixivEventTest < Minitest::Test
-  include TestMocks
-
+class PixivEventTest < ApplicationTest
   def test_pixiv_event
     messages = mock_event("pixiv #12345") => { messages:, ** }
 

@@ -1,6 +1,6 @@
 require "test_helper"
 
-class ResponseTest < Minitest::Test
+class ResponseTest < ApplicationTest
   def test_invalid_api_key_raises_access_denied
     booru = Danbooru.new(user: "invalid-user", api_key: "invalid-api-key", log: Logger.new(nil))
 

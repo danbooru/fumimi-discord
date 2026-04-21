@@ -1,8 +1,6 @@
 require "test_helper"
 
-class ForumEventTest < Minitest::Test
-  include TestMocks
-
+class ForumEventTest < ApplicationTest
   def test_forum_event
     embeds = mock_event("forum #123") => { embeds:, ** }
     assert_equal 1, embeds.length

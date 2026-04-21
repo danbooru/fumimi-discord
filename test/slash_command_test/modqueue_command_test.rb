@@ -1,8 +1,6 @@
 require "test_helper"
 
-class ModQueueCommandTest < Minitest::Test
-  include TestMocks
-
+class ModQueueCommandTest < ApplicationTest
   def test_responds_to_command
     mock_slash_command("/modqueue") => { reply_embeds:, ** }
 

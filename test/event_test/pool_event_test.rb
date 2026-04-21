@@ -1,8 +1,6 @@
 require "test_helper"
 
-class PoolEventTest < Minitest::Test
-  include TestMocks
-
+class PoolEventTest < ApplicationTest
   def test_series_pool_event
     embeds = mock_event("pool #8948") => { embeds:, ** }
 

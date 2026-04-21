@@ -1,8 +1,6 @@
 require "test_helper"
 
-class BursCommandTest < Minitest::Test
-  include TestMocks
-
+class BursCommandTest < ApplicationTest
   def test_responds_to_command
     mock_slash_command("/burs") => { reply_embeds:, ** }
 

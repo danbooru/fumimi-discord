@@ -1,8 +1,6 @@
 require "test_helper"
 
-class FutureCommandTest < Minitest::Test
-  include TestMocks
-
+class FutureCommandTest < ApplicationTest
   def test_responds_to_command
     mock_slash_command("/future") => { reply_embeds:, ** }
 

@@ -1,8 +1,6 @@
 require "test_helper"
 
-class CalcCommandTest < Minitest::Test
-  include TestMocks
-
+class CalcCommandTest < ApplicationTest
   def test_responds_to_command
     mock_slash_command("/calc", args: { expression: "100*100" }) => { replies:, ** }
 

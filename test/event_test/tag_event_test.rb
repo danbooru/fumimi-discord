@@ -1,8 +1,6 @@
 require "test_helper"
 
-class TagEventTest < Minitest::Test
-  include TestMocks
-
+class TagEventTest < ApplicationTest
   def test_tag
     embeds = mock_event("[[academic_test]]", nsfw_channel: false) => { embeds:, ** }
 

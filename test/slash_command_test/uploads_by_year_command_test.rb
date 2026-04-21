@@ -1,8 +1,6 @@
 require "test_helper"
 
-class UploadsByYearCommandTest < Minitest::Test
-  include TestMocks
-
+class UploadsByYearCommandTest < ApplicationTest
   def test_responds_to_command
     mock_slash_command("/uploads_by_year", args: { tags: "touhou" }) => { reply_embeds:, ** }
 

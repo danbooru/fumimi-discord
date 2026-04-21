@@ -1,8 +1,6 @@
 require "test_helper"
 
-class PostAnalyticsCommandTest < Minitest::Test
-  include TestMocks
-
+class PostAnalyticsCommandTest < ApplicationTest
   def test_api_call
     skip unless ENV.fetch("SIGNOZ_API_KEY", nil)
     mock_slash_command("/searches", args: { tags: "1girl", time_range: "30mi" }) => { reply_embeds:, ** }

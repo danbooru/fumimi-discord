@@ -1,8 +1,6 @@
 require "test_helper"
 
-class BurEventTest < Minitest::Test
-  include TestMocks
-
+class BurEventTest < ApplicationTest
   def test_bur_event
     embeds = mock_event("bur #50001, bur #50000") => { embeds:, ** }
     assert_equal 2, embeds.length

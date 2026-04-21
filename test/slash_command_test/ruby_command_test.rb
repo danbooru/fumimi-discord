@@ -1,8 +1,6 @@
 require "test_helper"
 
-class RubyCommandTest < Minitest::Test
-  include TestMocks
-
+class RubyCommandTest < ApplicationTest
   OWNER_ID = 456
 
   def test_rejects_non_owner

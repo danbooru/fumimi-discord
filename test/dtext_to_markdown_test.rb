@@ -2,9 +2,7 @@
 
 require "test_helper"
 
-class DtextToMarkdownTest < Minitest::Test
-  include TestMocks
-
+class DtextToMarkdownTest < ApplicationTest
   PARAGRAPH_DTEXT = <<~EOF.chomp
     "Lorem ipsum dolor sit amet":https://danbooru.donmai/forum_posts/123,
     [[consectetur_adipiscing]] elit,

@@ -1,8 +1,6 @@
 require "test_helper"
 
-class ApproversCommandTest < Minitest::Test
-  include TestMocks
-
+class ApproversCommandTest < ApplicationTest
   def test_responds_to_command
     mock_slash_command("/approvers", args: { tags: "1girl age:<1d" }) => { reply_embeds:, ** }
 

@@ -1,8 +1,6 @@
 require "test_helper"
 
-class IssueEventTest < Minitest::Test
-  include TestMocks
-
+class IssueEventTest < ApplicationTest
   def test_issue_event
     messages = mock_event("issue #42") => { messages:, ** }
 

@@ -1,6 +1,6 @@
 require "test_helper"
 
-class TimeRangeParserTest < Minitest::Test
+class TimeRangeParserTest < ApplicationTest
   def test_parses_seconds
     assert_equal 30.seconds, Fumimi::TimeRangeParser.string_to_range("30s")
   end

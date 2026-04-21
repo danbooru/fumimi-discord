@@ -1,8 +1,6 @@
 require "test_helper"
 
-class PostEventTest < Minitest::Test
-  include TestMocks
-
+class PostEventTest < ApplicationTest
   POST_FOOTER_PATTERN = /^-?\d+⇧ \d+♥  •  Rating: [GSQE]  •  \d+x\d+ \(\d+\.\d+ \w+ \w+\)$/
 
   def test_sfw_post_on_sfw_channel

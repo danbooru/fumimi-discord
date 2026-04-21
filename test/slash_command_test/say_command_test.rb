@@ -1,8 +1,6 @@
 require "test_helper"
 
-class SayCommandTest < Minitest::Test
-  include TestMocks
-
+class SayCommandTest < ApplicationTest
   def test_say
     mock_slash_command("/say", args: { message: "hello", channel: "123" }) => { replies:, messages:, ** }
 

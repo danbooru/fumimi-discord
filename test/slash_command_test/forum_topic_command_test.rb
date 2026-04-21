@@ -1,8 +1,6 @@
 require "test_helper"
 
-class ForumTopicCommandTest < Minitest::Test
-  include TestMocks
-
+class ForumTopicCommandTest < ApplicationTest
   FORUM_POST_FOOTER_PATTERN = /^\d{4}-\d{2}-\d{2} at \d{1,2}:\d{2} (?:AM|PM)$/
 
   def test_find_results

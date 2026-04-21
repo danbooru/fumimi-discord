@@ -1,8 +1,6 @@
 require "test_helper"
 
-class CommentCommandTest < Minitest::Test
-  include TestMocks
-
+class CommentCommandTest < ApplicationTest
   def test_find_results
     mock_slash_command("/comments", args: { limit: 1, creator: "nonamethanks" }) => { reply_embeds:, ** }
     assert_equal 1, reply_embeds.length

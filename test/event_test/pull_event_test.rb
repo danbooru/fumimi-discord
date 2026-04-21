@@ -1,8 +1,6 @@
 require "test_helper"
 
-class PullEventTest < Minitest::Test
-  include TestMocks
-
+class PullEventTest < ApplicationTest
   def test_pull_event
     messages = mock_event("pull #77") => { messages:, ** }
 

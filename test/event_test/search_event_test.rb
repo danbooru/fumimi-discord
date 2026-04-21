@@ -1,8 +1,6 @@
 require "test_helper"
 
-class SearchEventTest < Minitest::Test
-  include TestMocks
-
+class SearchEventTest < ApplicationTest
   POST_FOOTER_PATTERN = /^-?\d+⇧ \d+♥  •  Rating: [GSQE]  •  \d+x\d+ \(\d+\.\d+ \w+ \w+\)$/
 
   def test_search

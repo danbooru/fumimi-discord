@@ -1,8 +1,6 @@
 require "test_helper"
 
-class ReportMonitorTest < Minitest::Test
-  include TestMocks
-
+class ReportMonitorTest < ApplicationTest
   Report = Struct.new(:id, :embed, :buttons)
   Bot = Struct.new(:servers)
 

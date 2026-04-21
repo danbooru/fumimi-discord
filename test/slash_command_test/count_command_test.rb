@@ -1,8 +1,6 @@
 require "test_helper"
 
-class CountCommandTest < Minitest::Test
-  include TestMocks
-
+class CountCommandTest < ApplicationTest
   def test_find_results
     mock_slash_command("/count", args: {tags: "age:<1d"}) => { replies:, messages:, ** }
 

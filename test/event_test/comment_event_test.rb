@@ -1,8 +1,6 @@
 require "test_helper"
 
-class CommentEventTest < Minitest::Test
-  include TestMocks
-
+class CommentEventTest < ApplicationTest
   def test_comment_event
     embeds = mock_event("comment #123") => { embeds:, ** }
     assert_equal 1, embeds.length

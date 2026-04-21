@@ -1,8 +1,6 @@
 require "test_helper"
 
-class ReportUserCommandTest < Minitest::Test
-  include TestMocks
-
+class ReportUserCommandTest < ApplicationTest
   def test_submits_report_to_mod_channel
     with_report_channel_name("#test") do
       mock_slash_command("/report", args: { user_id: 42, reason: "spam links" },

@@ -1,8 +1,6 @@
 require "test_helper"
 
-class ArtistEventTest < Minitest::Test
-  include TestMocks
-
+class ArtistEventTest < ApplicationTest
   def test_artist_event
     messages = mock_event("artist #99999, artist #99991") => { messages:, ** }
     assert_equal 1, messages.length
