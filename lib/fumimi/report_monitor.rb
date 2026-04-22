@@ -43,9 +43,7 @@ class Fumimi::ReportMonitor
 
   def monitor_reports
     new_reports = booru.moderation_reports.index(limit: 20, "search[id]": ">#{last_report_id}")
-    if new_reports.empty?
-      return
-    end
+    return if new_reports.empty?
 
     new_reports.sort_by(&:id).each { |report| send_report(report) }
     self.last_report_id = new_reports.map(&:id).max
