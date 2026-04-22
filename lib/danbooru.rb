@@ -47,13 +47,7 @@ class Danbooru
   # @param api_key [String, nil] Danbooru API key.
   # @param log [Logger] Logger instance.
   # @param model_builder [#call] Callable used to construct model objects from API responses.
-  def initialize(url: ENV["BOORU_URL"], # rubocop:disable Style/FetchEnvVar
-                 user: ENV["BOORU_USER"], # rubocop:disable Style/FetchEnvVar
-                 api_key: ENV["BOORU_API_KEY"], # rubocop:disable Style/FetchEnvVar
-                 log: Logger.new($stderr),
-                 model_builder: nil)
-    url ||= "https://danbooru.donmai.us"
-
+  def initialize(url: "https://danbooru.donmai.us", user: nil, api_key: nil, log: Logger.new($stderr), model_builder: nil)
     log.info("Running on instance: #{url}, with user: '#{user}'")
 
     @url, @user, @api_key, @log = Addressable::URI.parse(url), user, api_key, log

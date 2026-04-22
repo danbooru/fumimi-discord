@@ -85,35 +85,33 @@ class Fumimi::SlashCommand
   ## Internal methods
 
   # @param event [Discordrb::Events::InteractionCreateEvent]
-  # @param cache [Zache, nil]
-  # @param log [Logger, nil]
-  # @param booru [Danbooru, nil]
-  # @param _args [Hash]
-  def initialize(event, cache: nil, log: nil, booru: nil, **_args)
+  # @param fumimi [Fumimi]
+  def initialize(event, fumimi:)
     @event = event
-    @cache = cache
-    @booru = booru
-    @log = log
+    @fumimi = fumimi
+    @booru = fumimi.booru
+    @log = fumimi.log
+    @cache = fumimi.cache
+    @report_channel_name = fumimi.report_channel_name
   end
 
   # Registers all commands, refreshing Discord definitions only when needed.
   #
-  # @param opts [Hash]
+  # @param fumimi [Fumimi]
   # @return [void]
-  def self.register_all(**opts)
-    register_slash_commands(**opts) if outdated_commands?(**opts)
+  def self.register_all(fumimi:)
+    register_slash_commands(fumimi:) if outdated_commands?(fumimi:)
     super
   end
 
   # Registers one slash command subclass with the bot.
   #
   # @param command [Class]
-  # @param bot [Discordrb::Bot]
-  # @param opts [Hash]
+  # @param fumimi [Fumimi]
   # @return [Proc]
-  def self.register(command, bot:, **opts)
-    bot.application_command(command.name) do |event|
-      kommand = command.new(event, **opts)
+  def self.register(command, fumimi:)
+    fumimi.bot.application_command(command.name) do |event|
+      kommand = command.new(event, fumimi:)
       kommand.safe_handle_event
     end
   end
@@ -132,15 +130,10 @@ class Fumimi::SlashCommand
 
   # Returns true when local command definitions differ from Discord's.
   #
-  # @param bot [Discordrb::Bot]
-  # @param server_id [String]
-  # @param log [Logger]
-  # @param _args [Hash]
+  # @param fumimi [Fumimi]
   # @return [Boolean]
-  def self.outdated_commands?(bot:, server_id:, log:, **_args)
-    response = Discordrb::API::Application.get_guild_commands(bot.token,
-                                                              bot.profile.id,
-                                                              server_id)
+  def self.outdated_commands?(fumimi:)
+    response = Discordrb::API::Application.get_guild_commands(fumimi.bot.token, fumimi.bot.profile.id, fumimi.server_id)
 
     existing_commands = JSON.parse(response.body, symbolize_names: true).index_by { |c| c[:name] }
     subclasses.map do |subclass|
@@ -149,24 +142,20 @@ class Fumimi::SlashCommand
 
       next false if new_command.keys.none? { |key| old_command[key].presence != new_command[key].presence }
 
-      log.debug("Refreshing outdated slash command /#{new_command[:name]}.")
+      @log.debug("Refreshing outdated slash command /#{new_command[:name]}.")
       true
     end.any?
   end
 
   # Bulk-updates all slash command definitions in one API call.
   #
-  # @param bot [Discordrb::Bot]
-  # @param server_id [String]
-  # @param _args [Hash]
+  # @param fumimi [Fumimi]
   # @return [Object]
-  def self.register_slash_commands(bot:, server_id:, **_args)
-    # register the commands in bulk to avoid ratelimiting, and to make sure they're all refreshed
-
+  def self.register_slash_commands(fumimi:)
     Discordrb::API::Application.bulk_overwrite_guild_commands(
-      bot.token,
-      bot.profile.id,
-      server_id,
+      fumimi.bot.token,
+      fumimi.bot.profile.id,
+      fumimi.server_id,
       subclasses.map(&:to_h)
     )
   end

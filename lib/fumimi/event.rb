@@ -78,36 +78,33 @@ class Fumimi::Event
   ## Internal methods
 
   # @param event [Discordrb::Events::MessageEvent]
-  # @param cache [Zache, nil]
-  # @param log [Logger, nil]
-  # @param booru [Danbooru, nil]
-  # @param _opts [Hash]
-  def initialize(event, cache: nil, log: nil, booru: nil, **_opts)
+  # @param fumimi [Fumimi]
+  def initialize(event, fumimi:)
     @event = event
-    @cache = cache
-    @booru = booru
-    @log = log
+    @fumimi = fumimi
+    @booru = fumimi.booru
+    @log = fumimi.log
+    @cache = fumimi.cache
   end
 
   # Installs one message listener that dispatches to all event subclasses.
   #
-  # @param opts [Hash]
+  # @param fumimi [Fumimi]
   # @return [void]
-  def self.register_all(**opts)
-    bot = opts[:bot]
+  def self.register_all(fumimi:)
     total_regex = Regexp.union(subclasses.map(&:total_pattern))
 
-    bot.message(contains: total_regex) do |event|
-      respond_to_all_matches(event, **opts)
+    fumimi.bot.message(contains: total_regex) do |event|
+      respond_to_all_matches(event, fumimi:)
     end
   end
 
   # Runs all event subclasses against one message.
   #
   # @param event [Discordrb::Events::MessageEvent]
-  # @param opts [Hash]
+  # @param fumimi [Fumimi]
   # @return [void]
-  def self.respond_to_all_matches(event, **opts)
+  def self.respond_to_all_matches(event, fumimi:)
     text = event.text.gsub(/```.*?```/m, "").gsub(/`.*?`/m, "")
 
     messages, embeds = subclasses.each_with_object([[], []]) do |subclass, (messages, embeds)|
@@ -118,7 +115,7 @@ class Fumimi::Event
 
       event.message.suppress_embeds if subclass.delete_link_embed? && !event.channel.pm?
 
-      kommand = subclass.new(event, **opts)
+      kommand = subclass.new(event, fumimi:)
       kommand.execute_and_rescue_errors(event) do
         submessages, subembeds = kommand.respond_to_matches(matches)
         messages.concat(submessages)

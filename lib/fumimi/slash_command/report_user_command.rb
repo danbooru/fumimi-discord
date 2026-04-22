@@ -33,7 +33,7 @@ class Fumimi::SlashCommand::ReportUserCommand < Fumimi::SlashCommand
                                                     report_reason: report_reason)
 
     mod_channel = @event.server.channels.detect do |c|
-      c.name == ENV.fetch("DISCORD_REPORT_CHANNEL_NAME", "user-reports")
+      c.name == @report_channel_name
     end
     mod_channel.send_message(
       "",

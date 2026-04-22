@@ -2,7 +2,7 @@ require "test_helper"
 
 class PostAnalyticsCommandTest < ApplicationTest
   def test_api_call
-    skip unless ENV.fetch("SIGNOZ_API_KEY", nil)
+    skip unless default_fumimi.signoz_api_key.present?
     mock_slash_command("/searches", args: { tags: "1girl", time_range: "30mi" }) => { reply_embeds:, ** }
 
     assert_equal 1, reply_embeds.length

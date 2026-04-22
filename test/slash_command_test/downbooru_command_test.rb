@@ -14,10 +14,10 @@ class DownbooruCommandTest < ApplicationTest
       raise Timeout::Error
     end
 
-    booru = Object.new
-    booru.define_singleton_method(:posts) { posts }
+    fumimi = default_fumimi
+    fumimi.booru.define_singleton_method(:posts) { posts }
 
-    mock_slash_command("/downbooru", booru: booru) => { reply_embeds:, ** }
+    mock_slash_command("/downbooru", fumimi:) => { reply_embeds:, ** }
 
     assert_equal 1, reply_embeds.length
     assert_equal "Downbooru", reply_embeds.first.title
@@ -30,10 +30,10 @@ class DownbooruCommandTest < ApplicationTest
       raise Danbooru::Exceptions::MaintenanceError
     end
 
-    booru = Object.new
-    booru.define_singleton_method(:posts) { posts }
+    fumimi = default_fumimi
+    fumimi.booru.define_singleton_method(:posts) { posts }
 
-    mock_slash_command("/downbooru", booru: booru) => { reply_embeds:, ** }
+    mock_slash_command("/downbooru", fumimi:) => { reply_embeds:, ** }
 
     assert_equal 1, reply_embeds.length
     assert_equal "Downbooru", reply_embeds.first.title

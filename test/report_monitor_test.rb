@@ -45,15 +45,13 @@ class ReportMonitorTest < ApplicationTest
     assert_equal %i[embed12 embed15], channel.embeds
   end
 
-  def test_start_sets_last_report_id_and_logs_startup_message
+  def test_start_sets_last_report_id
+    report_channel = CHANNEL_MOCK.new(name: "user-reports")
     initial_report = Report.new(42, nil, nil)
     moderation_reports = FakeModerationReports.new(initial_reports: [initial_report], new_reports: [])
     booru = Struct.new(:moderation_reports).new(moderation_reports)
-    report_channel = CHANNEL_MOCK.new(name: "user-reports")
-    logger = Minitest::Mock.new
-    logger.expect(:info, nil, ["Starting to monitor for new user reports..."])
 
-    monitor = Fumimi::ReportMonitor.new(bot: bot_with_channels(report_channel), booru:, log: logger)
+    monitor = Fumimi::ReportMonitor.new(bot: bot_with_channels(report_channel), booru:)
 
     Thread.stub(:new, ->(*_args, &_block) { :thread }) do
       monitor.start
@@ -61,7 +59,6 @@ class ReportMonitorTest < ApplicationTest
 
     assert_equal 42, monitor.last_report_id
     assert_equal({ limit: 1, params: {} }, moderation_reports.calls.first)
-    logger.verify
   end
 
   def test_send_report_truncates_overlong_reason_field
@@ -109,6 +106,7 @@ class ReportMonitorTest < ApplicationTest
     reported_content_field = monitor.instance_variable_get(:@report_channel).embeds.first.fields.find do |field|
       field.name == "Reported Content"
     end
+
     assert_equal "[forum #123](https://danbooru.donmai.us/forum_posts/123)", reported_content_field.value
   end
 
@@ -121,17 +119,17 @@ class ReportMonitorTest < ApplicationTest
     reported_content_field = monitor.instance_variable_get(:@report_channel).embeds.first.fields.find do |field|
       field.name == "Reported Content"
     end
+
     assert_equal "[comment #456](https://danbooru.donmai.us/comments/456)", reported_content_field.value
   end
 
   private
 
   def setup_monitor(new_reports: nil)
-    ENV["DISCORD_REPORT_CHANNEL_NAME"] = "user-reports"
     report_channel = CHANNEL_MOCK.new(name: "user-reports")
     moderation_reports = FakeModerationReports.new(initial_reports: [], new_reports: new_reports || [])
     booru = Struct.new(:moderation_reports).new(moderation_reports)
-    monitor = Fumimi::ReportMonitor.new(bot: bot_with_channels(report_channel), booru:, log: Object.new)
+    monitor = Fumimi::ReportMonitor.new(bot: bot_with_channels(report_channel), fumimi: default_fumimi, booru:)
     monitor.instance_variable_set(:@mutex, Mutex.new)
     monitor
   end
@@ -155,7 +153,7 @@ class ReportMonitorTest < ApplicationTest
         "model" => { "creator" => { "id" => reported_user_id, "name" => reported_user_name } },
       },
       resource_name: "moderation_report",
-      fumimi: Fumimi.new(server_id: nil, client_id: nil, token: nil, log:)
+      fumimi: default_fumimi
     )
   end
 

@@ -1,10 +1,11 @@
 class Fumimi::ReportMonitor
   attr_reader :log, :booru
 
-  def initialize(bot:, booru:, log:)
+  def initialize(fumimi: nil, bot: fumimi&.bot, booru: fumimi&.booru, log: fumimi&.log, report_channel_name: fumimi&.report_channel_name)
     @bot = bot
     @booru = booru
-    @log = log
+    @log = log || Logger.new(nil)
+    @report_channel_name = report_channel_name || "user-reports"
     @report_channel = report_channel
   end
 
@@ -18,7 +19,7 @@ class Fumimi::ReportMonitor
 
   def report_channel
     @report_channel ||= @bot.servers.values.map(&:channels).flatten.detect do |c|
-      c.name == ENV.fetch("DISCORD_REPORT_CHANNEL_NAME", "user-reports")
+      c.name == @report_channel_name
     end
   end
 

@@ -155,11 +155,22 @@ class ApplicationTest < ActiveSupport::TestCase
     Logger.new($stderr, level: Logger::FATAL)
   end
 
-  def default_booru(censored_tags: [])
-    Fumimi.new(server_id: nil, client_id: nil, token: nil, censored_tags:, log:).booru
+  def default_fumimi(**options)
+    Fumimi.new(
+      server_id: ENV.fetch("DISCORD_SERVER_ID", nil),
+      client_id: ENV.fetch("DISCORD_CLIENT_ID", nil),
+      token: ENV.fetch("DISCORD_TOKEN", nil),
+      booru_url: ENV.fetch("BOORU_URL", "https://danbooru.donmai.us"),
+      booru_user: ENV.fetch("BOORU_USER", nil),
+      booru_api_key: ENV.fetch("BOORU_API_KEY", nil),
+      signoz_api_key: ENV.fetch("SIGNOZ_API_KEY", nil),
+      log: Logger.new(nil),
+      **options
+    )
   end
 
-  def mock_slash_command(name, args: {}, nsfw_channel: false, booru: default_booru, user_id: 123)
+  def mock_slash_command(name, args: {}, nsfw_channel: false, fumimi: nil, user_id: 123, **options)
+    fumimi ||= default_fumimi(**options)
     command_name = name.to_s.delete_prefix("/")
     command_class = ObjectSpace.each_object(Class).find do |klass|
       klass < Fumimi::SlashCommand && klass.name == command_name
@@ -171,19 +182,17 @@ class ApplicationTest < ActiveSupport::TestCase
                            channel: channel_mock(nsfw_channel:),
                            options: args)
 
-    command = command_class.new(event, log: log, booru: booru, cache: cache)
+    command = command_class.new(event, fumimi:)
     command.safe_handle_event
     event.captured
   end
 
-  def mock_event(text, nsfw_channel: false, censored_tags: [])
-    booru = default_booru(censored_tags:)
-
+  def mock_event(text, nsfw_channel: false, **options)
     event = EVENT_MOCK.new(text: text,
                            channel: channel_mock(nsfw_channel:),
                            user: user_mock)
 
-    Fumimi::Event.respond_to_all_matches(event, log: log, booru: booru)
+    Fumimi::Event.respond_to_all_matches(event, fumimi: default_fumimi(**options))
     event.captured
   end
 

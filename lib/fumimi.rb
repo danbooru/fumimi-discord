@@ -15,16 +15,33 @@ require "zache"
 class Fumimi
   include Fumimi::ExceptionHandler
 
-  attr_reader :server_id, :client_id, :token, :log, :booru, :cache, :initiate_shutdown, :censored_tags
+  attr_reader :server_id, :client_id, :token, :log, :booru, :cache, :initiate_shutdown, :censored_tags, :report_channel_name, :signoz_api_key
 
-  def initialize(server_id:, client_id:, token:, censored_tags: [], log: Logger.new($stderr))
+  def initialize(
+    server_id:,
+    client_id:,
+    token:,
+    booru_url: nil,
+    booru_user: nil,
+    booru_api_key: nil,
+    reports_user: nil,
+    reports_api_key: nil,
+    report_channel_name: "user-reports",
+    signoz_api_key: nil,
+    censored_tags: [],
+    log: Logger.new($stderr)
+  )
     @server_id = server_id
     @client_id = client_id
     @token = token
-    @log = log
+    @reports_user = reports_user
+    @reports_api_key = reports_api_key
+    @report_channel_name = report_channel_name
+    @signoz_api_key = signoz_api_key
     @censored_tags = censored_tags
+    @log = log
 
-    @booru = Danbooru.new(log: log, model_builder: method(:build_model))
+    @booru = Danbooru.new(url: booru_url, user: booru_user, api_key: booru_api_key, log: log, model_builder: method(:build_model))
     @cache = Zache.new
   end
 
@@ -57,39 +74,24 @@ class Fumimi
   end
 
   def register_commands
-    Fumimi::SlashCommand.register_all(
-      bot: bot,
-      server_id: server_id,
-      log: log,
-      booru: booru,
-      cache: cache
-    )
-    Fumimi::Event.register_all(
-      bot: bot,
-      log: log,
-      booru: booru,
-      cache: cache
-    )
+    Fumimi::SlashCommand.register_all(fumimi: self)
+    Fumimi::Event.register_all(fumimi: self)
 
     bot.button { |event| Fumimi::Button.mark_handled(event) }
   end
 
   def monitor_reports
-    reports_user = ENV.fetch("BOORU_REPORTS_USER", nil)
-    reports_api_key = ENV.fetch("BOORU_REPORTS_API_KEY", nil)
-
-    return unless [reports_user, reports_api_key].all?
+    return unless [@reports_user, @reports_api_key].all?
 
     report_booru = Danbooru.new(
       log: log,
-      user: reports_user,
-      api_key: reports_api_key,
+      url: booru.url,
+      user: @reports_user,
+      api_key: @reports_api_key,
       model_builder: ->(booru: nil, **kwargs) { build_model(booru: report_booru, **kwargs) }
     )
 
-    report_monitor = Fumimi::ReportMonitor.new(booru: report_booru,
-                                               log: log,
-                                               bot: bot)
+    report_monitor = Fumimi::ReportMonitor.new(fumimi: self, booru: report_booru)
     report_monitor.start
   end
 

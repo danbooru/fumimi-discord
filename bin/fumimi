@@ -31,15 +31,18 @@ def main(options)
   log = Logger.new($stderr)
   log.level = Logger::DEBUG
 
-  server_id = ENV["DISCORD_SERVER_ID"].presence || raise("No DISCORD_SERVER_ID env var provided.")
-  token = ENV["DISCORD_TOKEN"].presence || raise("No DISCORD_TOKEN env var provided.")
-  censored_tags = ENV["FUMIMI_CENSORED_TAGS"].to_s.split
-
   fumimi = Fumimi.new(
-    server_id: server_id.to_i,
+    server_id: ENV.fetch("DISCORD_SERVER_ID", nil)&.to_i,
     client_id: ENV.fetch("DISCORD_CLIENT_ID", nil),
-    token: token,
-    censored_tags: censored_tags,
+    token: ENV.fetch("DISCORD_TOKEN", nil),
+    booru_url: ENV.fetch("BOORU_URL", "https://danbooru.donmai.us"),
+    booru_user: ENV.fetch("BOORU_USER", nil),
+    booru_api_key: ENV.fetch("BOORU_API_KEY", nil),
+    reports_user: ENV.fetch("BOORU_REPORTS_USER", nil),
+    reports_api_key: ENV.fetch("BOORU_REPORTS_API_KEY", nil),
+    report_channel_name: ENV.fetch("DISCORD_REPORT_CHANNEL_NAME", "user-reports"),
+    signoz_api_key: ENV.fetch("SIGNOZ_API_KEY", nil),
+    censored_tags: ENV.fetch("FUMIMI_CENSORED_TAGS", nil).to_s.split,
     log: log
   )
 

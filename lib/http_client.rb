@@ -10,7 +10,6 @@ class HTTPClient
   # @param base [String] Base URL used by all requests.
   # @param user [String] Optional basic auth username.
   # @param pass [String] Optional basic auth password.
-  # @param signoz_api_key [String, nil] Optional SigNoz API key header.
   # @param log [Logger] Logger instance for debug output.
   def initialize(base:, user: "", pass: "", log: Logger.new(nil))
     @base = base.to_s.strip
