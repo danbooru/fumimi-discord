@@ -42,10 +42,8 @@ class Fumimi::ReportMonitor
   private
 
   def monitor_reports
-    log.info("Scanning for new danbooru reports since ID #{last_report_id}")
     new_reports = booru.moderation_reports.index(limit: 20, "search[id]": ">#{last_report_id}")
     if new_reports.empty?
-      log.info("No new danbooru reports found.")
       return
     end
 
@@ -54,7 +52,6 @@ class Fumimi::ReportMonitor
   end
 
   def send_report(report)
-    log.info("New danbooru report: #{report.id}. Sending it to ##{report_channel.name}...")
     report_channel.send_message(
       "",
       false,
