@@ -13,7 +13,8 @@ class Fumimi::Event::PoolEvent < Fumimi::Event
     query_parameters = { "search[id]": matches.join(",") }
     pools = @booru.pools.index(**query_parameters)
 
-    pools = pools.sort_by { |pool| matches.index(pool.id) || Float::INFINITY }
+    matches = matches.map(&:to_i)
+    pools.sort_by! { |pool| matches.index(pool.id) || Float::INFINITY }
     pools.map { |pool| pool.embed(nsfw_channel: @event.channel.nsfw?) }
   end
 end

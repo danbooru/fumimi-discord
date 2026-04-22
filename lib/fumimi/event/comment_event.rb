@@ -12,6 +12,9 @@ class Fumimi::Event::CommentEvent < Fumimi::Event
   def embeds_for(matches)
     query_parameters = { "search[id]": matches.join(",") }
     comments = @booru.comments.index(**query_parameters)
+
+    matches = matches.map(&:to_i)
+    comments.sort_by! { |comment| matches.index(comment.id) || Float::INFINITY }
     comments.map { |comment| comment.embed(nsfw_channel: @event.channel.nsfw?) }
   end
 end

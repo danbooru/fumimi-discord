@@ -13,7 +13,8 @@ class Fumimi::Event::ForumPostEvent < Fumimi::Event
     query_parameters = { "search[id]": matches.join(",") }
     forum_posts = @booru.forum_posts.index(**query_parameters)
 
-    forum_posts.sort_by { |forum| matches.index(forum.id) || Float::INFINITY }
+    matches = matches.map(&:to_i)
+    forum_posts.sort_by! { |forum| matches.index(forum.id) || Float::INFINITY }
     forum_posts.reject(&:hidden?).map(&:embed)
   end
 end

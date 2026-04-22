@@ -14,7 +14,8 @@ class Fumimi::Event::ForumTopicEvent < Fumimi::Event
                                              "search[is_private]": false,
                                              only: "id,original_post")
 
-    forum_topics = forum_topics.sort_by { |ft| matches.index(ft.id) || Float::INFINITY }
+    matches = matches.map(&:to_i)
+    forum_topics.sort_by! { |ft| matches.index(ft.id) || Float::INFINITY }
     forum_post_ids = forum_topics.map { |t| t.original_post.id }
 
     return [] if forum_post_ids.blank?

@@ -26,7 +26,9 @@ class Fumimi::Event::TagSyntaxEvent < Fumimi::Event
       @booru.pools.index(**query_parameters).first
     end
 
-    pools.compact.uniq(&:id).sort_by { |pool| matches.index(pool.id) || matches.index(pool.name) || Float::INFINITY }
+    pools.compact.uniq(&:id).sort_by! do |pool|
+      matches.map(&:to_i).index(pool.id) || matches.index(pool.name) || Float::INFINITY
+    end
     pools.map(&:embed)
   end
 
