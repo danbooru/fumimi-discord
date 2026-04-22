@@ -22,7 +22,7 @@ on:
 
 defaults:
   run:
-    working-directory: /root
+    working-directory: /app
 
 jobs:
   test:
