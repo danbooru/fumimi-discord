@@ -1,4 +1,4 @@
-FROM ruby:4.0.2 AS base
+FROM ruby:4.0.3 AS base
 ENV LANG=C.UTF-8
 ENV DISCORDRB_NONACL=1
 RUN \
@@ -9,7 +9,6 @@ RUN \
 FROM base AS build
 RUN apt install -y ragel
 COPY Gemfile Gemfile.lock fumimi-discord.gemspec ./
-RUN gem install bundler:2.6.9
 RUN bundle install --jobs $(nproc)
 
 

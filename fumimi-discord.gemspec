@@ -19,6 +19,6 @@ Gem::Specification.new do |spec|
   spec.executables   = %w[fumimi]
   spec.require_paths = ["lib"]
 
-  spec.required_ruby_version = "4.0.2"
+  spec.required_ruby_version = "4.0.3"
   spec.metadata["rubygems_mfa_required"] = "true"
 end
