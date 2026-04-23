@@ -6,11 +6,12 @@ desc "Run tests"
 Rake::TestTask.new(:test) do |t|
   t.libs << "lib"
   t.libs << "test"
+
   if selected_test_files.empty?
     t.pattern = "test/**/*_test.rb"
   else
     t.test_files = selected_test_files
   end
-  t.verbose = true
+
   t.warning = false
 end

@@ -4,7 +4,6 @@ gemspec
 
 gem "activesupport"
 gem "addressable"
-gem "connection_pool"
 gem "dentaku"
 # waiting for this to be released as a new version: https://github.com/shardlab/discordrb/issues/311
 gem "discordrb", github: "shardlab/discordrb", require: false, ref: "97c2856fabea08d9392248aef3d7e8cf12aa8556"
@@ -12,16 +11,15 @@ gem "dotenv"
 gem "dtext_rb", github: "danbooru/danbooru", glob: "lib/dtext_rb/dtext_rb.gemspec",
                 ref: "cb4061ef17b284451734e10409f57e6b552b699a"
 gem "http"
+gem "json"
 gem "nokogiri"
 gem "ostruct"
-gem "rdoc"
+gem "prophet-rb"
 gem "retriable"
 gem "zache"
 
 group :development, :test do
-  gem "bundler"
   gem "debug"
-  gem "prophet-rb"
   gem "pry"
   gem "rake"
   gem "rubocop"
