@@ -21,11 +21,6 @@ GIT
     discordrb-webhooks (3.8.0)
       rest-client (>= 2.0.0)
 
-PATH
-  remote: .
-  specs:
-    fumimi-discord (1.0.0)
-
 GEM
   remote: https://rubygems.org/
   specs:
@@ -184,7 +179,6 @@ DEPENDENCIES
   discordrb!
   dotenv
   dtext_rb!
-  fumimi-discord!
   http
   json
   minitest
@@ -221,7 +215,6 @@ CHECKSUMS
   erb (6.0.4) sha256=38e3803694be357fe2bfe312487c74beaf9fb4e5beb3e22498952fe1645b95d9
   event_emitter (0.2.6) sha256=c72697bd5cce9d36594be1972c17f1c9a573236f44303a4d1d548080364e1391
   ffi (1.17.4-x86_64-linux-gnu) sha256=9d3db14c2eae074b382fa9c083fe95aec6e0a1451da249eab096c34002bc752d
-  fumimi-discord (1.0.0)
   http (6.0.3) sha256=0206e79131089ca9aae557c6791afd6bf9339af319d78a616af1477ae79614fa
   http-accept (1.7.0) sha256=c626860682bfbb3b46462f8c39cd470fd7b0584f61b3cc9df5b2e9eb9972a126
   http-cookie (1.1.6) sha256=ba4b82be64de61dc281243dac70e3c382c45142f20268ed9276a3670c93feaa9

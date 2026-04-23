@@ -1,7 +1,5 @@
 source "https://rubygems.org"
 
-gemspec
-
 gem "activesupport"
 gem "addressable"
 gem "dentaku"
