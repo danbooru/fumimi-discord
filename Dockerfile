@@ -8,7 +8,7 @@ RUN \
 
 FROM base AS build
 RUN apt install -y ragel
-COPY Gemfile Gemfile.lock fumimi-discord.gemspec ./
+COPY Gemfile Gemfile.lock ./
 RUN bundle install --jobs $(nproc)
 
 
