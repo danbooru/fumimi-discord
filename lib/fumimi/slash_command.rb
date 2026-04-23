@@ -10,8 +10,6 @@ class Fumimi::SlashCommand
   include Fumimi::ClassRegister
   include Fumimi::ExceptionHandler
 
-  OWNERS = [310167383912349697, 1373735183425208331].freeze # rubocop:disable Style/NumericLiterals
-
   OPTION_TYPES = { string: 3, integer: 4, boolean: 5, number: 10 }.freeze
 
   # Command name users type in Discord.

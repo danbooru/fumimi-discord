@@ -197,16 +197,4 @@ class ApplicationTest < ActiveSupport::TestCase
       l.split("│").map(&:strip).map(&:presence).compact if l.start_with?("│")
     end
   end
-
-  def with_mocked_owners(owner_ids)
-    original_owners = Fumimi::SlashCommand::OWNERS
-
-    Fumimi::SlashCommand.send(:remove_const, :OWNERS)
-    Fumimi::SlashCommand.const_set(:OWNERS, owner_ids)
-
-    yield
-  ensure
-    Fumimi::SlashCommand.send(:remove_const, :OWNERS)
-    Fumimi::SlashCommand.const_set(:OWNERS, original_owners)
-  end
 end
