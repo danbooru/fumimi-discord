@@ -45,7 +45,7 @@ def main(options)
     report_channel_name: ENV.fetch("DISCORD_REPORT_CHANNEL_NAME", "user-reports"),
     signoz_api_key: ENV.fetch("SIGNOZ_API_KEY", nil),
     censored_tags: ENV.fetch("FUMIMI_CENSORED_TAGS", nil).to_s.split,
-    log: log
+    log: log,
   )
 
   %w[INT TERM].each do |signal|

@@ -2,7 +2,8 @@ require "test_helper"
 
 class ReportUserCommandTest < ApplicationTest
   def test_submits_report_to_mod_channel
-    mock_slash_command("/report", args: { user_id: 42, reason: "spam links" }, report_channel_name: "#test") => { replies:, messages:, embeds:, ** }
+    response = mock_slash_command("/report", args: { user_id: 42, reason: "spam links" }, report_channel_name: "#test")
+    response => { replies:, messages:, embeds: }
 
     assert_equal ["Your report has been submitted."], replies
     assert_equal [""], messages
@@ -18,7 +19,7 @@ class ReportUserCommandTest < ApplicationTest
   end
 
   def test_rejects_reason_over_1000_characters
-    mock_slash_command("/report", args: { user_id: 42, reason: "a" * 1001 }, report_channel_name: "#test") => { reply_embeds:, messages:, ** }
+    mock_slash_command("/report", args: { user_id: 42, reason: "a" * 1001 }) => { reply_embeds:, messages: }
 
     assert_equal [], messages
     assert_equal 1, reply_embeds.length

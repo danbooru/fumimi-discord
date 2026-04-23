@@ -11,7 +11,7 @@ class Fumimi::Report::UploadsByYearReport < Fumimi::Report::PostTableReport
     %w[Year Uploads Rate]
   end
 
-  def table_rows # rubocop:disable Metrics/CyclomaticComplexity,Metrics/PerceivedComplexity
+  def table_rows
     relevant_years.each_with_index.map do |each_year, index|
       prev_posts = relevant_years.dig(index + 1, "posts") || 0
       if index == 0

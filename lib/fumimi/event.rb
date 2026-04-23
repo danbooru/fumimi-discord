@@ -25,7 +25,7 @@ class Fumimi::Event
     return pattern unless model_for_link_capture
 
     model = model_for_link_capture.strip("/")
-    model_pattern = %r{\b(?!https?://\w+\.donmai\.us/#{model}/\d+/\w+)https?://(?!testbooru)\w+\.donmai\.us/#{model}/(\d+)\b[^[:space:]]*}i # rubocop:disable Layout/LineLength
+    model_pattern = %r{\b(?!https?://\w+\.donmai\.us/#{model}/\d+/\w+)https?://(?!testbooru)\w+\.donmai\.us/#{model}/(\d+)\b[^[:space:]]*}i
 
     Regexp.union(pattern, model_pattern)
   end
@@ -143,7 +143,7 @@ class Fumimi::Event
       embeds.first(10),
       nil,
       { replied_user: false }, # allowed mentions: don't ping who you're replying to
-      event.message # message reference
+      event.message, # message reference
     )
   end
 end

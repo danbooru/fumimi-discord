@@ -62,7 +62,7 @@ class Fumimi::Model::ModerationReport < Fumimi::Model
         row.button(
           label: "Mark as Handled",
           style: :danger,
-          custom_id: "fumimi_moderation_report"
+          custom_id: "fumimi_moderation_report",
         )
       end
     end

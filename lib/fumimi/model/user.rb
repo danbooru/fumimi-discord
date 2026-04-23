@@ -44,7 +44,7 @@ class Fumimi::Model::User < Fumimi::Model
     is_banned ? "~~#{at_name}~~" : at_name
   end
 
-  def embed_color # rubocop:disable Metrics/CyclomaticComplexity
+  def embed_color
     return "0x000000" if is_banned
 
     case level_string

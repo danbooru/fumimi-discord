@@ -5,13 +5,20 @@ AllCops:
 Layout/FirstHashElementIndentation:
   EnforcedStyle: consistent
 
+Layout/LineLength:
+  Max: 140
+
 Metrics/AbcSize:
   Enabled: false
 
 Metrics/ClassLength:
-  Enabled: true
-  Exclude:
-    - test/**/*
+  Enabled: false
+
+Metrics/CyclomaticComplexity:
+  Enabled: false
+
+Metrics/PerceivedComplexity:
+  Enabled: false
 
 Naming/BlockForwarding:
   Enabled: false
@@ -55,9 +62,6 @@ Style/ParallelAssignment:
 Metrics/ParameterLists:
   Max: 6
 
-Style/RedundantAssignment:
-  Enabled: false
-
 Style/RescueModifier:
   Enabled: false
 
@@ -70,8 +74,11 @@ Style/StringLiterals:
 Style/StringLiteralsInInterpolation:
   Enabled: false
 
+Style/TrailingCommaInArguments:
+  EnforcedStyleForMultiline: diff_comma
+
 Style/TrailingCommaInArrayLiteral:
-  EnforcedStyleForMultiline: consistent_comma
+  EnforcedStyleForMultiline: diff_comma
 
 Style/TrailingCommaInHashLiteral:
-  EnforcedStyleForMultiline: consistent_comma
+  EnforcedStyleForMultiline: diff_comma

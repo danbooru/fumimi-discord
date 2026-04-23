@@ -22,7 +22,7 @@ class Fumimi::Model::ForumTopic < Fumimi::Model
     forum_posts = booru.forum_posts.index(
       "search[topic][title_matches]": "Platinum Raffle",
       "search[creator][level]": ">=#{Fumimi::Model::User::Levels::MODERATOR}",
-      limit: 1
+      limit: 1,
     )
     forum_posts.first.topic
   end

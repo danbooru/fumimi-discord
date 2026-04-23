@@ -14,7 +14,7 @@ class Fumimi::Button
   def mark_handled
     @event.update_message(
       embeds: [build_embed],
-      components: build_view
+      components: build_view,
     )
   end
 
@@ -24,14 +24,14 @@ class Fumimi::Button
     embed = Discordrb::Webhooks::Embed.new(
       title: @old_embed.title,
       description: @old_embed.description,
-      color: embed_color
+      color: embed_color,
     )
 
     existing_fields.each do |field|
       embed.add_field(
         name: field.name,
         value: field.value,
-        inline: field.inline
+        inline: field.inline,
       )
     end
 
@@ -39,7 +39,7 @@ class Fumimi::Button
       embed.add_field(
         name: "Handled by",
         value: "<@#{@event.user.id}>",
-        inline: false
+        inline: false,
       )
     end
 
@@ -52,7 +52,7 @@ class Fumimi::Button
         row.button(
           label: button_label,
           style: button_style,
-          custom_id: @button.custom_id
+          custom_id: @button.custom_id,
         )
       end
     end

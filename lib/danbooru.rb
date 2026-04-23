@@ -14,7 +14,6 @@ class Danbooru
   # Resource-specific overrides. Any resource not listed here still works with
   # default URL and default query params via dynamic lookup.
 
-  # rubocop:disable Layout/LineLength
   RESOURCE_OVERRIDES = {
     "BulkUpdateRequests" => { default_params: { only: "id,script,user,forum_topic,forum_post,created_at,status,tags" } },
     "Comments" => { default_params: { group_by: "comment", only: "id,body,created_at,creator,post,score" } },
@@ -24,10 +23,10 @@ class Danbooru
                                    only: "id,uploader,created_at,score,fav_count," \
                                          "tag_string,source,rating,parent_id,has_active_children," \
                                          "is_flagged,is_pending,is_deleted," \
-                                         "media_asset", } },
+                                         "media_asset" } },
     "RelatedTags" => { url: "related_tag" },
     "Tags" => { default_params: { "search[hide_empty]": "no",
-                                  only: "id,name,is_deprecated,category,post_count,antecedent_alias,wiki_page,artist", } },
+                                  only: "id,name,is_deprecated,category,post_count,antecedent_alias,wiki_page,artist" } },
     "UserFeedback" => { url: "user_feedbacks" },
     "WikiPages" => { default_params: { only: "id,title,body,tag" } },
 
@@ -35,7 +34,6 @@ class Danbooru
     "PostCounts" => { url: "counts/posts" },
     "ModerationReports" => { default_params: { only: "id,created_at,model[creator],model_type,model_id,creator,reason" } },
   }.freeze
-  # rubocop:enable Layout/LineLength
 
   INCLUDE_MAP = {
     creator: "users",

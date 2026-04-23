@@ -39,7 +39,7 @@ class Fumimi::Report::ReportedUserReport
         row.button(
           label: "Mark as Handled",
           style: :danger,
-          custom_id: "fumimi_user_report"
+          custom_id: "fumimi_user_report",
         )
       end
     end

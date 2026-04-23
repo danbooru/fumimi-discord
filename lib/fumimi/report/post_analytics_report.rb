@@ -24,7 +24,7 @@ class Fumimi::PostAnalyticsReport
     EOS
   end
 
-  def clarification # rubocop:disable Metrics/CyclomaticComplexity,Metrics/PerceivedComplexity
+  def clarification
     lines = []
     if @tags.to_a.length > 1
       lines << "Unique users whose searches in the last #{@range.inspect} included all of these tags at once:"

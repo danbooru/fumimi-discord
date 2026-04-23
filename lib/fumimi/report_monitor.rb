@@ -1,7 +1,13 @@
 class Fumimi::ReportMonitor
   attr_reader :log, :booru
 
-  def initialize(fumimi: nil, bot: fumimi&.bot, booru: fumimi&.booru, log: fumimi&.log, report_channel_name: fumimi&.report_channel_name)
+  def initialize(
+    fumimi: nil,
+    bot: fumimi&.bot,
+    booru: fumimi&.booru,
+    log: fumimi&.log,
+    report_channel_name: fumimi&.report_channel_name
+  )
     @bot = bot
     @booru = booru
     @log = log || Logger.new(nil)
@@ -58,7 +64,7 @@ class Fumimi::ReportMonitor
       nil,
       nil,
       nil,
-      report.buttons
+      report.buttons,
     )
   end
 end

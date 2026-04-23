@@ -15,7 +15,8 @@ require "zache"
 class Fumimi
   include Fumimi::ExceptionHandler
 
-  attr_reader :server_id, :client_id, :token, :log, :booru, :cache, :initiate_shutdown, :censored_tags, :report_channel_name, :signoz_api_key
+  attr_reader :server_id, :client_id, :token, :log, :booru, :cache, :initiate_shutdown, :censored_tags,
+              :report_channel_name, :signoz_api_key
 
   def initialize(
     server_id:,
@@ -69,7 +70,7 @@ class Fumimi
       name: "Robot Maid Fumimi",
       client_id: client_id,
       token: token,
-      prefix: "/"
+      prefix: "/",
     )
   end
 
@@ -88,7 +89,7 @@ class Fumimi
       url: booru.url,
       user: @reports_user,
       api_key: @reports_api_key,
-      model_builder: ->(booru: nil, **kwargs) { build_model(booru: report_booru, **kwargs) }
+      model_builder: ->(booru: nil, **kwargs) { build_model(booru: report_booru, **kwargs) },
     )
 
     report_monitor = Fumimi::ReportMonitor.new(fumimi: self, booru: report_booru)

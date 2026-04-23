@@ -24,7 +24,7 @@ class Fumimi::TimeRangeParser
     range.inspect
   end
 
-  def self.parse_string(str) # rubocop:disable Metrics/CyclomaticComplexity
+  def self.parse_string(str)
     return nil if str.blank?
 
     case str.strip.downcase

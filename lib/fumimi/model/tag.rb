@@ -7,7 +7,7 @@ class Fumimi::Model::Tag < Fumimi::Model
 
   delegate :embed_image, to: :example_post, allow_nil: true
 
-  def embed_description # rubocop:disable Metrics/CyclomaticComplexity
+  def embed_description
     description = "-# Category: #{category_name} | Post Count: #{post_count.to_fs(:delimited)}\n"
     description += "-# This tag has been deprecated.\n" if is_deprecated
     description += "-# First result for `#{searched_term&.downcase&.strip}`.\n" if wildcard_search?

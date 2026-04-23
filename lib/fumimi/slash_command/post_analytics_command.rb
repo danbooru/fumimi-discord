@@ -13,7 +13,7 @@ class Fumimi::SlashCommand::PostAnalyticsCommand < Fumimi::SlashCommand
     [
       { type: OPTION_TYPES[:string], name: "tags", description: "List of searched tags.", required: false },
       { type: OPTION_TYPES[:string], name: "time_range",
-        description: "Custom time range. Default 1d. Examples: 1h, 2d, 1w, 1mo.", required: false, },
+        description: "Custom time range. Default 1d. Examples: 1h, 2d, 1w, 1mo.", required: false },
     ]
   end
 
@@ -37,7 +37,7 @@ class Fumimi::SlashCommand::PostAnalyticsCommand < Fumimi::SlashCommand
       custom_range,
       min: 1.second,
       max: is_staff ? 1.month : 1.day,
-      raise_on_validation: true
+      raise_on_validation: true,
     )
   end
 end

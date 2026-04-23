@@ -85,7 +85,7 @@ class HTTPClient
       method: method.upcase,
       time: "#{runtime_ms.to_i}ms",
       total: "#{total_ms.to_i}ms",
-      url: response.uri
+      url: response.uri,
     )
   end
 end

@@ -76,8 +76,6 @@ class Fumimi::Model
       value.iso8601(3)
     when Addressable::URI
       value.to_s
-    when Fumimi::Model
-      value.as_json(options)
     when Array
       value.map { |item| serialize_attribute(item, options) }
     else

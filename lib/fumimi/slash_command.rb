@@ -156,14 +156,14 @@ class Fumimi::SlashCommand
       fumimi.bot.token,
       fumimi.bot.profile.id,
       fumimi.server_id,
-      subclasses.map(&:to_h)
+      subclasses.map(&:to_h),
     )
   end
 
   # Builds the Discord API payload for this command.
   #
   # @return [Hash<Symbol, Object>]
-  def self.to_h # rubocop:disable Metrics/CyclomaticComplexity,Metrics/PerceivedComplexity
+  def self.to_h
     command_options = options&.map(&:with_indifferent_access)&.map(&:symbolize_keys) || []
     command_options.each { |opt| opt.delete(:required) if opt[:required] == false }
 

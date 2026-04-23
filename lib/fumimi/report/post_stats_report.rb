@@ -39,9 +39,7 @@ class Fumimi::PostStatsReport
   end
 
   def tag_description
-    return "" if tag_string.blank?
-
-    "Report for tags: `%s`." % tag_string if tag_string
+    "Report for tags: `#{tag_string}`." if tag_string.present?
   end
 
   def total_posts

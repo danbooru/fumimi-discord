@@ -3,7 +3,7 @@
 require "dtext"
 require "nokogiri"
 
-class Fumimi::DText # rubocop:disable Metrics/ClassLength
+class Fumimi::DText
   CUTOFF_MESSAGE = "***[...text was too long and has been cut off]***"
 
   # Converts DText markup into a Discord-safe markdown string.
@@ -68,7 +68,7 @@ class Fumimi::DText # rubocop:disable Metrics/ClassLength
   #
   # @param text [String]
   # @return [String]
-  def self.collapse_for_wiki_page(text) # rubocop:disable Metrics/CyclomaticComplexity,Metrics/PerceivedComplexity
+  def self.collapse_for_wiki_page(text)
     source_lines = text.split("\n").grep_v(/^\[Expand .*?\]$/)
     lines = []
     index = 0
@@ -113,7 +113,7 @@ class Fumimi::DText # rubocop:disable Metrics/ClassLength
   # @param node [Nokogiri::XML::Node]
   # @param next_node [Nokogiri::XML::Node, nil]
   # @return [String]
-  def self.node_to_markdown(node, next_node: nil) # rubocop:disable Metrics/CyclomaticComplexity,Metrics/PerceivedComplexity
+  def self.node_to_markdown(node, next_node: nil)
     case node.name
     when "h1", "h2", "h3", "h4", "h5", "h6"
       "**#{sanitize_text(node.text)}**\n"
@@ -244,7 +244,7 @@ class Fumimi::DText # rubocop:disable Metrics/ClassLength
   #
   # @param list_lines [Array<String>]
   # @return [String]
-  def self.collapsed_list_summary(list_lines) # rubocop:disable Metrics/CyclomaticComplexity
+  def self.collapsed_list_summary(list_lines)
     media_counts = Hash.new(0)
     media_line_count = 0
 

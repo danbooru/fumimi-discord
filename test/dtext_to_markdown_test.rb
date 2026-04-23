@@ -298,7 +298,7 @@ class DtextToMarkdownTest < ApplicationTest
       DTEXT_STRING,
       max_lines: 1000,
       max_characters: 10_000,
-      wiki_page: true
+      wiki_page: true,
     )
     assert_equal MARKDOWN_STRING_FOR_WIKI, markdown
   end
@@ -309,7 +309,7 @@ class DtextToMarkdownTest < ApplicationTest
     markdown = Fumimi::DText.dtext_to_markdown(
       too_many_paragraphs_dtext,
       max_lines: 10,
-      max_characters: 1_000
+      max_characters: 1_000,
     )
 
     assert_includes markdown, "***[...text was too long and has been cut off]***"
@@ -323,7 +323,7 @@ class DtextToMarkdownTest < ApplicationTest
     markdown = Fumimi::DText.dtext_to_markdown(
       long_paragraph_dtext,
       max_lines: 10,
-      max_characters: 1_000
+      max_characters: 1_000,
     )
 
     assert_includes markdown, "***[...text was too long and has been cut off]***"
@@ -346,7 +346,7 @@ class DtextToMarkdownTest < ApplicationTest
       dtext,
       max_lines: 100,
       max_characters: 2_000,
-      wiki_page: true
+      wiki_page: true,
     )
 
     assert_includes markdown, "See also"

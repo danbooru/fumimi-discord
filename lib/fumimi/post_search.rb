@@ -7,7 +7,7 @@ class Fumimi::PostSearch
     when 3 # copy
       "everyone copytags:<5 -parody -crossover"
     when 4 # char
-      "solo chartags:<5 -cosplay -fusion -character_doll -character_hair_ornament -character_print -crossover -very_wide_shot" # rubocop:disable Layout/LineLength
+      "solo chartags:<5 -cosplay -fusion -character_doll -character_hair_ornament -character_print -crossover -very_wide_shot"
     else # meta or general
       "-6+girls -6+boys -comic -very_wide_shot"
     end

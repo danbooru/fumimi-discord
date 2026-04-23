@@ -46,7 +46,7 @@ class ReportMonitorTest < ApplicationTest
   end
 
   def test_start_sets_last_report_id
-    report_channel = CHANNEL_MOCK.new(name: "user-reports")
+    report_channel = ChannelMock.new(name: "user-reports")
     initial_report = Report.new(42, nil, nil)
     moderation_reports = FakeModerationReports.new(initial_reports: [initial_report], new_reports: [])
     booru = Struct.new(:moderation_reports).new(moderation_reports)
@@ -84,7 +84,7 @@ class ReportMonitorTest < ApplicationTest
       creator_id: 10,
       creator_name: "reporter_name",
       reported_user_id: 20,
-      reported_user_name: "reported_name"
+      reported_user_name: "reported_name",
     )
 
     monitor.send(:send_report, report)
@@ -126,7 +126,7 @@ class ReportMonitorTest < ApplicationTest
   private
 
   def setup_monitor(new_reports: nil)
-    report_channel = CHANNEL_MOCK.new(name: "user-reports")
+    report_channel = ChannelMock.new(name: "user-reports")
     moderation_reports = FakeModerationReports.new(initial_reports: [], new_reports: new_reports || [])
     booru = Struct.new(:moderation_reports).new(moderation_reports)
     monitor = Fumimi::ReportMonitor.new(bot: bot_with_channels(report_channel), fumimi: default_fumimi, booru:)
@@ -153,11 +153,11 @@ class ReportMonitorTest < ApplicationTest
         "model" => { "creator" => { "id" => reported_user_id, "name" => reported_user_name } },
       },
       resource_name: "moderation_report",
-      fumimi: default_fumimi
+      fumimi: default_fumimi,
     )
   end
 
   def bot_with_channels(*channels)
-    Bot.new({ 1 => SERVER_MOCK.new(channels) })
+    Bot.new({ 1 => ServerMock.new(channels) })
   end
 end

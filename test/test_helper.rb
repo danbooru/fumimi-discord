@@ -6,13 +6,13 @@ require "minitest/autorun"
 require "minitest/mock"
 require "active_support/test_case"
 
-USER_MOCK = Struct.new(:id, :username) do
+UserMock = Struct.new(:id, :username) do
   def roles
     []
   end
 end
 
-MESSAGE_MOCK = Struct.new(:content) do
+MessageMock = Struct.new(:content) do
   def delete
     nil
   end
@@ -27,7 +27,7 @@ MESSAGE_MOCK = Struct.new(:content) do
   end
 end
 
-class CHANNEL_MOCK
+class ChannelMock
   attr_reader :id, :name, :messages, :embeds
 
   def initialize(name:, id: 123, is_nsfw: true, pm: false)
@@ -59,7 +59,7 @@ class CHANNEL_MOCK
   end
 end
 
-class SERVER_MOCK
+class ServerMock
   attr_reader :channels
 
   def initialize(channels)
@@ -67,14 +67,14 @@ class SERVER_MOCK
   end
 end
 
-class EVENT_MOCK
+class EventMock
   attr_reader :text, :user, :channel, :message, :options, :replies, :reply_embeds, :deferred
 
   def initialize(user:, channel:, text: nil, options: {})
     @text = text
     @user = user
     @channel = channel
-    @message = MESSAGE_MOCK.new(text) if text
+    @message = MessageMock.new(text) if text
     @application_command_event = text.nil?
     @options = options
     @replies = []
@@ -98,7 +98,7 @@ class EVENT_MOCK
   end
 
   def server
-    SERVER_MOCK.new(@channels.values)
+    ServerMock.new(@channels.values)
   end
 
   def captured
@@ -114,7 +114,7 @@ class EVENT_MOCK
 
   def send_message(msg)
     @channel.send_message(msg)
-    MESSAGE_MOCK.new(msg)
+    MessageMock.new(msg)
   end
 
   def defer(ephemeral: false)
@@ -144,11 +144,11 @@ class ApplicationTest < ActiveSupport::TestCase
   end
 
   def user_mock(user_id: 123)
-    USER_MOCK.new(user_id, "tester")
+    UserMock.new(user_id, "tester")
   end
 
   def channel_mock(nsfw_channel:)
-    CHANNEL_MOCK.new(name: "#test", is_nsfw: nsfw_channel)
+    ChannelMock.new(name: "#test", is_nsfw: nsfw_channel)
   end
 
   def log
@@ -165,7 +165,7 @@ class ApplicationTest < ActiveSupport::TestCase
       booru_api_key: ENV.fetch("BOORU_API_KEY", nil),
       signoz_api_key: ENV.fetch("SIGNOZ_API_KEY", nil),
       log: Logger.new(nil),
-      **options
+      **options,
     )
   end
 
@@ -178,9 +178,7 @@ class ApplicationTest < ActiveSupport::TestCase
 
     raise ArgumentError, "Unknown slash command: #{name}" unless command_class
 
-    event = EVENT_MOCK.new(user: user_mock(user_id:),
-                           channel: channel_mock(nsfw_channel:),
-                           options: args)
+    event = EventMock.new(user: user_mock(user_id:), channel: channel_mock(nsfw_channel:), options: args)
 
     command = command_class.new(event, fumimi:)
     command.safe_handle_event
@@ -188,9 +186,7 @@ class ApplicationTest < ActiveSupport::TestCase
   end
 
   def mock_event(text, nsfw_channel: false, **options)
-    event = EVENT_MOCK.new(text: text,
-                           channel: channel_mock(nsfw_channel:),
-                           user: user_mock)
+    event = EventMock.new(text: text, channel: channel_mock(nsfw_channel:), user: user_mock)
 
     Fumimi::Event.respond_to_all_matches(event, fumimi: default_fumimi(**options))
     event.captured

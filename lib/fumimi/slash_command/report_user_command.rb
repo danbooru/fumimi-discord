@@ -42,7 +42,7 @@ class Fumimi::SlashCommand::ReportUserCommand < Fumimi::SlashCommand
       nil, # attachments
       nil, # allowed_mentions
       nil, # message_reference
-      report.buttons # components
+      report.buttons, # components
     )
     @event.edit_response(content: "Your report has been submitted.")
   end

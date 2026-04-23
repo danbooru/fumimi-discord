@@ -11,7 +11,7 @@ class Fumimi::DiscordEmbed < Discordrb::Webhooks::Embed
     super
   end
 
-  def length # rubocop:disable Metrics/PerceivedComplexity,Metrics/CyclomaticComplexity
+  def length
     length = title.length
     length += author&.name&.length || 0
     length += footer&.text&.length || 0

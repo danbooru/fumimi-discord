@@ -38,7 +38,7 @@ class Fumimi::FutureReport
       current_post:,
       target_index:,
       milestones:,
-      formatter: method(:short_date_label)
+      formatter: method(:short_date_label),
     )
 
     consume_forecast_points(
@@ -48,7 +48,7 @@ class Fumimi::FutureReport
       current_post:,
       target_index:,
       milestones:,
-      formatter: method(:long_date_label)
+      formatter: method(:long_date_label),
     )
 
     milestones
