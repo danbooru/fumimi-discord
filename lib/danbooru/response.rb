@@ -47,6 +47,8 @@ class Danbooru
       raise Danbooru::Exceptions::BadRequestError if bad_range_request?
       raise Danbooru::Exceptions::AccessDeniedError if access_denied?
 
+      raise Danbooru::Exceptions::NotFoundError if not_found?
+
       raise Danbooru::Exceptions::DanbooruError, (@json["message"].presence || @json["error"].presence) if bad_parsable_request?
 
       raise Danbooru::Exceptions::MaintenanceError if maintenance?
@@ -118,6 +120,13 @@ class Danbooru
     # @return [Boolean]
     def bad_range_request?
       @response.code >= 500 && ["ActiveModel::RangeError"].include?(@json["error"])
+    end
+
+    # Returns true if the server returned ActiveRecord::RecordNotFound
+    #
+    # @return [Boolean]
+    def not_found?
+      @response.code == 404 && ["ActiveRecord::RecordNotFound"].include?(@json["error"])
     end
 
     # Returns true for any response that has a json payload.

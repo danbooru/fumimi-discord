@@ -68,7 +68,7 @@ class Fumimi::Event
     messages = messages_for(matches)
     begin
       embeds = embeds_for(matches)
-    rescue Danbooru::Exceptions::BadRequestError
+    rescue Danbooru::Exceptions::BadRequestError, Danbooru::Exceptions::NotFoundError
       embeds = []
     end
 

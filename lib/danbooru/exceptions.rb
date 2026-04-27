@@ -18,6 +18,9 @@ module Danbooru::Exceptions
     end
   end
 
+  class NotFoundError < DanbooruError
+  end
+
   class TimeoutError < DanbooruError
     def embed_title
       "Timeout Encontered!"
