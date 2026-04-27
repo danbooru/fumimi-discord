@@ -44,12 +44,13 @@ class Danbooru
     # @return [void]
     def raise_for_errors!
       raise Danbooru::Exceptions::TimeoutError if timeout?
-      raise Danbooru::Exceptions::BadRequestError if bad_request?
-      raise Danbooru::Exceptions::MaintenanceError if maintenance?
-      raise Danbooru::Exceptions::DownbooruError if downbooru?
+      raise Danbooru::Exceptions::BadRequestError if bad_range_request?
       raise Danbooru::Exceptions::AccessDeniedError if access_denied?
 
-      raise Danbooru::Exceptions::DanbooruError, @json["message"] if failed?
+      raise Danbooru::Exceptions::DanbooruError, (@json["message"].presence || @json["error"].presence) if bad_parsable_request?
+
+      raise Danbooru::Exceptions::MaintenanceError if maintenance?
+      raise Danbooru::Exceptions::DownbooruError if downbooru?
     end
 
     # Delegates unknown methods to the parsed model payload.
@@ -66,19 +67,13 @@ class Danbooru
 
     private
 
-    # Parses JSON with a fallback payload for non-JSON error bodies.
+    # Parses JSON or return an empty json.
     #
     # @return [Array, Hash]
     def parse_json
       JSON.parse(@response.body)
     rescue JSON::JSONError
-      {
-        "success" => false,
-        "message" => "ERROR: non-JSON response. Status code: #{@response.code}",
-        "code" => @response.code,
-        "mime_type" => @response.headers["Content-Type"],
-        "body" => @response.body.to_s,
-      }
+      {}
     end
 
     # Builds model objects from parsed JSON.
@@ -108,7 +103,7 @@ class Danbooru
     #
     # @return [Boolean]
     def timeout?
-      @response.code == 500 && @data.try(:message) == "The database timed out running your query."
+      @response.code == 500 && @json["message"] == "The database timed out running your query."
     end
 
     # Returns true when the maintenance banner appears.
@@ -121,8 +116,15 @@ class Danbooru
     # Returns true for known bad-range server errors.
     #
     # @return [Boolean]
-    def bad_request?
+    def bad_range_request?
       @response.code >= 500 && ["ActiveModel::RangeError"].include?(@json["error"])
+    end
+
+    # Returns true for any response that has a json payload.
+    #
+    # @return [Boolean]
+    def bad_parsable_request?
+      failed? && @json["error"].present?
     end
 
     # Returns true when the site is generally unavailable.
