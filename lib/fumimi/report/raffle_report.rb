@@ -70,7 +70,7 @@ class Fumimi::RaffleReport
   end
 
   def forum_posts
-    @cache.get(:"#{cache_key}_forum_posts", lifetime: cache_lifetime) { forum_topic.all_posts }
+    @cache.fetch(:"#{cache_key}_forum_posts", expires_in: cache_lifetime) { forum_topic.all_posts }
   end
 
   def candidates
@@ -96,7 +96,7 @@ class Fumimi::RaffleReport
 
   def cache_lifetime
     # if the forum topic is locked, the raffle is over, so cache indefinitely
-    forum_topic.is_locked ? 2**32 : 30 * 60
+    30.minutes unless forum_topic.is_locked
   end
 
   def post_search_string
@@ -106,7 +106,7 @@ class Fumimi::RaffleReport
   end
 
   def posts_by_user
-    @cache.get(:"#{cache_key}_posts_by_user", lifetime: cache_lifetime) do
+    @cache.fetch(:"#{cache_key}_posts_by_user", expires_in: cache_lifetime) do
       all_posts = Fumimi::PostSearch.all_posts_in_search(post_search_string, @booru)
       count_map = Hash.new { |h, key| h[key] = Hash.new(0) }
       all_posts.each { |post| tally_post(post, count_map) }

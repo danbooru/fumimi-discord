@@ -86,7 +86,8 @@ class PostAnalyticsCommandTest < ApplicationTest
   private
 
   def build_report(tags:, range:)
-    Fumimi::PostAnalyticsReport.new(tags: tags, range: range, log: Logger.new(File::NULL), cache: Zache.new)
+    fumimi = default_fumimi
+    Fumimi::PostAnalyticsReport.new(tags: tags, range: range, log: fumimi.log, cache: fumimi.cache)
   end
 
   def with_stubbed_client(report, data, &block)

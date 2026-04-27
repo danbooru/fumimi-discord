@@ -10,7 +10,6 @@ require "active_support"
 require "active_support/core_ext"
 require "addressable/uri"
 require "discordrb"
-require "zache"
 
 class Fumimi
   include Fumimi::ExceptionHandler
@@ -43,7 +42,7 @@ class Fumimi
     @log = log
 
     @booru = Danbooru.new(url: booru_url, user: booru_user, api_key: booru_api_key, log: log, model_builder: method(:build_model))
-    @cache = Zache.new
+    @cache = ActiveSupport::Cache::MemoryStore.new
   end
 
   def server

@@ -139,10 +139,6 @@ end
 class ApplicationTest < ActiveSupport::TestCase
   parallelize(workers: :number_of_processors, with: :threads)
 
-  def cache
-    Zache.new
-  end
-
   def user_mock(user_id: 123)
     UserMock.new(user_id, "tester")
   end

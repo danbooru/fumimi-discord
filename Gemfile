@@ -14,7 +14,6 @@ gem "nokogiri"
 gem "ostruct"
 gem "prophet-rb"
 gem "retriable"
-gem "zache"
 
 group :development, :test do
   gem "debug"

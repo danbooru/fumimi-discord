@@ -33,7 +33,7 @@ class SigNozClient
       payload[:compositeQuery][:queries] << create_tag_payload(tags, index)
     end
 
-    @cache.get(cache_key(range, sets_of_tags), lifetime: cache_lifetime(range)) do
+    @cache.fetch(cache_key(range, sets_of_tags), expires_in: cache_lifetime(range)) do
       # cache queries about a set of tags for their selected timespan
       @log.info("[Signoz] Fetching signoz query for #{sets_of_tags} for the last #{range.inspect}...")
       parse_request(payload)

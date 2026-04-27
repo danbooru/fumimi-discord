@@ -18,7 +18,7 @@ class Fumimi::FutureReport
   end
 
   def embed_description
-    description = @cache.get(:future_report, lifetime: 60 * 60 * 24) do
+    description = @cache.fetch(:future_report, expires_in: 1.day) do
       forecasted_milestones.map do |target_post, date_label|
         human_number = ActiveSupport::NumberHelper.number_to_human(target_post, units: { million: "M" }, format: "%n%u")
         "* post #{human_number} - #{date_label}"
