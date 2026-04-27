@@ -3,7 +3,7 @@ require "date"
 require "active_support/all"
 require "prophet-rb"
 
-class Fumimi::FutureReport
+class Fumimi::Report::FutureReport
   include Fumimi::HasDiscordEmbed
 
   MAX_GETS = 10

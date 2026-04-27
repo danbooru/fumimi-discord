@@ -1,4 +1,4 @@
-class Fumimi::RelatedReport
+class Fumimi::Report::RelatedReport
   include Fumimi::HasDiscordEmbed
 
   def initialize(booru:, tags:, category: nil)

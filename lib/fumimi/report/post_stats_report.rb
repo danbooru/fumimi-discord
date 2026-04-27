@@ -1,4 +1,4 @@
-class Fumimi::PostStatsReport
+class Fumimi::Report::PostStatsReport
   include Fumimi::HasDiscordEmbed
 
   def initialize(booru:, tags:)

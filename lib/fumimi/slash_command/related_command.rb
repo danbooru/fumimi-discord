@@ -21,7 +21,7 @@ class Fumimi::SlashCommand::RelatedCommand < Fumimi::SlashCommand
   end
 
   def report
-    Fumimi::RelatedReport.new(booru: @booru, tags: tags, category: category)
+    Fumimi::Report::RelatedReport.new(booru: @booru, tags: tags, category: category)
   end
 
   def tags

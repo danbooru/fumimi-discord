@@ -20,7 +20,7 @@ class Fumimi::SlashCommand::RafflepickCommand < Fumimi::SlashCommand
   end
 
   def report
-    Fumimi::RaffleReport.new(booru: @booru, cache: @cache, winner_count: winner_count)
+    Fumimi::Report::RaffleReport.new(booru: @booru, cache: @cache, winner_count: winner_count)
   end
 
   def winner_count

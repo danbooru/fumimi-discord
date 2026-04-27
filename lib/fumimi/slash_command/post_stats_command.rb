@@ -20,7 +20,7 @@ class Fumimi::SlashCommand::PostStatsCommand < Fumimi::SlashCommand
   end
 
   def report
-    Fumimi::PostStatsReport.new(booru: @booru, tags: tags)
+    Fumimi::Report::PostStatsReport.new(booru: @booru, tags: tags)
   end
 
   def tags

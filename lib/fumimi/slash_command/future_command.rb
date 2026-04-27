@@ -14,6 +14,6 @@ class Fumimi::SlashCommand::FutureCommand < Fumimi::SlashCommand
   end
 
   def report
-    Fumimi::FutureReport.new(booru: @booru, cache: @cache)
+    Fumimi::Report::FutureReport.new(booru: @booru, cache: @cache)
   end
 end

@@ -22,7 +22,7 @@ class Fumimi::SlashCommand::PostAnalyticsCommand < Fumimi::SlashCommand
   end
 
   def report
-    Fumimi::PostAnalyticsReport.new(tags: tags, range: range, fumimi: @fumimi)
+    Fumimi::Report::PostAnalyticsReport.new(tags: tags, range: range, fumimi: @fumimi)
   end
 
   def tags

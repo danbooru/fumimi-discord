@@ -1,4 +1,4 @@
-class Fumimi::PostAnalyticsReport
+class Fumimi::Report::PostAnalyticsReport
   include Fumimi::HasDiscordEmbed
 
   def initialize(fumimi:, tags:, range: 1.day)

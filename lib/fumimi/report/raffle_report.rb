@@ -1,4 +1,4 @@
-class Fumimi::RaffleReport
+class Fumimi::Report::RaffleReport
   include Fumimi::HasDiscordEmbed
 
   def initialize(booru:, cache:, winner_count: 0)

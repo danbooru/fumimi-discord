@@ -14,6 +14,6 @@ class Fumimi::SlashCommand::RaffleCommand < Fumimi::SlashCommand
   end
 
   def report
-    Fumimi::RaffleReport.new(booru: @booru, cache: @cache)
+    Fumimi::Report::RaffleReport.new(booru: @booru, cache: @cache)
   end
 end
