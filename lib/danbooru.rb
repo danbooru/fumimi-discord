@@ -47,7 +47,15 @@ class Danbooru
   # @param model_builder [#call] Callable used to construct model objects from API responses.
   def initialize(url: "https://danbooru.donmai.us", user: nil, api_key: nil, http: HTTPClient.new, model_builder: nil)
     @url, @user, @api_key = Addressable::URI.parse(url), user, api_key
-    @http = http.base_url(url).auth(user, api_key).headers(Accept: "application/json").use(:follow_redirects)
+    @http =
+      http
+      .base_url(url)
+      .auth(user, api_key)
+      .headers(Accept: "application/json")
+      .use(:follow_redirects)
+      # 3 retries, starting at 1 second apart, with 1.5x backoff
+      .use(:retry, max: 3, interval: 1, backoff_factor: 1.5, retry_statuses: [429, 502, 503, 504])
+
     @resources = {}
     @model_builder = model_builder || ->(**kwargs) { OpenStruct.new(**kwargs) }
   end

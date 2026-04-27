@@ -1,6 +1,7 @@
 require "faraday"
 require "faraday/follow_redirects"
 require "faraday/net_http_persistent"
+require "faraday/retry"
 
 # The internal library used to make HTTP requests. A wrapper around Faraday that adds a chainable API for configuration.
 class HTTPClient

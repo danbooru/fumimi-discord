@@ -11,13 +11,13 @@ gem "dtext_rb", github: "danbooru/danbooru", glob: "lib/dtext_rb/dtext_rb.gemspe
 gem "faraday"
 gem "faraday-follow_redirects"
 gem "faraday-net_http_persistent"
+gem "faraday-retry"
 gem "json"
 gem "nokogiri"
 gem "ostruct"
 gem "prophet-rb"
 gem "rack"
 gem "rackup"
-gem "retriable"
 gem "webrick"
 
 group :development, :test do
