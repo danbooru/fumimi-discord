@@ -22,10 +22,7 @@ class Fumimi::SlashCommand::ForumPostCommand < Fumimi::SlashCommand
   end
 
   def forum_posts
-    forum_posts = @booru.forum_posts.index(**query_params).reject(&:hidden?)
-    raise Fumimi::Exceptions::NoResultsError if forum_posts.blank?
-
-    forum_posts
+    @booru.forum_posts.index(**query_params).reject(&:hidden?)
   end
 
   def query_params

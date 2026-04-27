@@ -26,10 +26,7 @@ class Fumimi::SlashCommand::ForumTopicCommand < Fumimi::SlashCommand
     forum_post_ids = forum_topics.map { |t| t.original_post.id }
     raise Fumimi::Exceptions::NoResultsError if forum_post_ids.blank?
 
-    forum_posts = @booru.forum_posts.index("search[id]": forum_post_ids.join(",")).reject(&:hidden?)
-    raise Fumimi::Exceptions::NoResultsError if forum_posts.blank?
-
-    forum_posts
+    @booru.forum_posts.index("search[id]": forum_post_ids.join(",")).reject(&:hidden?)
   end
 
   def forum_topics

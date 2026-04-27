@@ -23,10 +23,7 @@ class Fumimi::SlashCommand::CommentCommand < Fumimi::SlashCommand
   end
 
   def comments
-    comments = @booru.comments.index(**query_params)
-    raise Fumimi::Exceptions::NoResultsError if comments.blank?
-
-    comments
+    @booru.comments.index(**query_params)
   end
 
   def query_params

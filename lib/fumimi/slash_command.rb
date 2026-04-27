@@ -74,8 +74,9 @@ class Fumimi::SlashCommand
   # @raise [TypeError]
   def respond_to_event
     msg, embs = message, embeds
-    raise NotImplementedError, "No message or embeds to return." if msg.blank? && embs.blank?
+    raise NotImplementedError, "No message or embeds to return." if msg.blank? && embs.nil?
     raise TypeError, ".embeds must be an array" if embs.present? && !embs.is_a?(Array)
+    raise Fumimi::Exceptions::NoResultsError if embs == [] && msg.blank?
 
     @event.edit_response(content: msg, embeds: embs)
   end
