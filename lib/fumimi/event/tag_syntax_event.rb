@@ -15,7 +15,7 @@ class Fumimi::Event::TagSyntaxEvent < Fumimi::Event
 
   def user_embeds_for(matches)
     users = matches.map { |username| @booru.users.index(name: username.delete_prefix("user:")) }
-    users.map(&:embed)
+    users.filter { |u| u.respond_to?(:embed) }.map(&:embed)
   end
 
   def pool_embeds_for(matches)
