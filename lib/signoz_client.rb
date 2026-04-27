@@ -8,17 +8,16 @@ require_relative "http_client"
 # attributes.url -> donmai\.\w+(?<danbooru_path>[\w\/]+) -> attributes (Regex parser)
 # attributes.url -> tags=(?P<query_string_tags>[^&]*) -> attributes (Regex parser)
 class SigNozClient
-  # @param base [String] SigNoz base URL.
+  # @param base_url [String] SigNoz base URL.
   # @param api_key [String] SigNoz API key header value.
   # @param log [Logger] Logger instance.
+  # @param http [HTTPClient] HTTP client instance.
   # @param cache [Object] Cache object with `get` support.
-  def initialize(base, api_key, log:, cache:)
-    @base        = base
+  def initialize(base_url, api_key, log:, http:, cache:)
     @api_key     = api_key
     @log         = log
     @cache       = cache
-    @http        = HTTPClient.new(base: @base, log: @log)
-                             .headers("SIGNOZ-API-KEY": api_key)
+    @http        = http.base_url(base_url).headers("SIGNOZ-API-KEY": api_key)
   end
 
   # Returns a data structure detailing unique IP counts for sets of tags over a given time range.
@@ -63,7 +62,7 @@ class SigNozClient
   #
   # @return [Hash]
   def post_json(path, payload)
-    response = @http.timeout(50).post(path, json: payload)
+    response = @http.use(:json).post(path, body: payload)
 
     if response.code >= 400
       @log.info("[Signoz] Response: #{response.body}")

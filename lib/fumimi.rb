@@ -15,7 +15,7 @@ require "rackup/handler/webrick"
 class Fumimi
   include Fumimi::ExceptionHandler
 
-  attr_reader :server_id, :client_id, :token, :log, :booru, :cache, :webserver, :initiate_shutdown, :censored_tags,
+  attr_reader :server_id, :client_id, :token, :log, :http, :booru, :cache, :webserver, :initiate_shutdown, :censored_tags,
               :report_channel_name, :signoz_api_key
 
   # Adapts the Discordrb logger to write through Fumimi's logger.
@@ -50,7 +50,7 @@ class Fumimi
     report_channel_name: "user-reports",
     signoz_api_key: nil,
     censored_tags: [],
-    log: Logger.new($stderr)
+    log: Logger.new(nil)
   )
     @server_id = server_id
     @client_id = client_id
@@ -62,7 +62,8 @@ class Fumimi
     @censored_tags = censored_tags
     @log = log
 
-    @booru = Danbooru.new(url: booru_url, user: booru_user, api_key: booru_api_key, log: log, model_builder: method(:build_model))
+    @http = HTTPClient.new.logger(log).timeout(30)
+    @booru = Danbooru.new(url: booru_url, user: booru_user, api_key: booru_api_key, http: http, model_builder: method(:build_model))
     @cache = ActiveSupport::Cache::MemoryStore.new
     @webserver = Fumimi::Webserver.new(host: host, port: port, fumimi: self)
 
@@ -109,10 +110,10 @@ class Fumimi
     return unless [@reports_user, @reports_api_key].all?
 
     report_booru = Danbooru.new(
-      log: log,
       url: booru.url,
       user: @reports_user,
       api_key: @reports_api_key,
+      http: http,
       model_builder: ->(booru: nil, **kwargs) { build_model(booru: report_booru, **kwargs) },
     )
 

@@ -1,91 +1,120 @@
-require "http"
+require "faraday"
+require "faraday/follow_redirects"
+require "faraday/net_http_persistent"
 
-# Small wrapper around the `http` gem that centralizes request setup,
-# execution timing, and debug logging.
+# The internal library used to make HTTP requests. A wrapper around Faraday that adds a chainable API for configuration.
 class HTTPClient
-  attr_writer :client
+  class Error < StandardError; end
+  class TimeoutError < Error; end
+  class ConnectionError < Error; end
 
-  delegate_missing_to :client
-
-  # @param base [String] Base URL used by all requests.
-  # @param user [String] Optional basic auth username.
-  # @param pass [String] Optional basic auth password.
-  # @param log [Logger] Logger instance for debug output.
-  def initialize(base:, user: "", pass: "", log: Logger.new(nil))
-    @base = base.to_s.strip
-    @user = user.to_s.strip
-    @pass = pass.to_s.strip
-    @log = log
+  # Wraps a Faraday::Response instead of exposing it directly, to abstract away the underlying HTTP library.
+  Response = Struct.new(:response) do
+    def code    = response.status
+    def status  = response.status
+    def headers = response.headers
+    def body    = response.body
   end
 
-  %i[get put post delete].each do |method|
-    define_method(method) do |url, **options|
-      request(method, url, **options)
-    end
+  protected attr_writer :base_url, :timeout, :headers, :middlewares, :connection
+
+  # @return [HTTPClient] A new HTTP client with default configuration.
+  def initialize
+    @base_url = nil
+    @headers = {}
+    @middlewares = []
+    @timeout = nil
   end
 
-  # Executes an HTTP request and emits one debug log line with timing metadata.
-  #
-  # @param method [Symbol] HTTP method (`:get`, `:post`, `:put`, `:delete`).
-  # @param path [String] Resource path beginning with `/`.
-  # @param options [Hash] Request options forwarded to the http gem.
-  # @return [HTTP::Response]
-  def request(method, path, **options)
-    response, duration = timed_request(method, path, **options)
-    log_response(response, method, duration)
-    response
+  # @param log [Logger] Logger instance for logging requests.
+  # @return [HTTPClient] A new client with the given logger set.
+  def logger(log)
+    use(:logger, log, headers: false)
   end
 
-  # Builds the configured `HTTP::Client` instance.
-  #
-  # @return [HTTP::Client]
-  def client
-    @client ||= begin
-      http = HTTP.persistent(@base)
-      http = http.accept("application/json")
-      http = http.use(:auto_inflate).headers("Accept-Encoding": "gzip")
-      http = http.follow
-      http = http.nodelay
-      http = http.basic_auth(user: @user, pass: @pass) unless @user.empty? || @pass.empty?
-      http
-    end
+  # @param url [String] Base URL used by all requests.
+  # @return [HTTPClient] A new client with the given base URL set.
+  def base_url(url)
+    with_copy(:base_url, url.to_s.strip)
+  end
+
+  # @param user [String] Basic auth username.
+  # @param pass [String] Basic auth password.
+  # @return [HTTPClient] A new client with basic auth credentials set.
+  def auth(user, pass)
+    return self if user.blank? || pass.blank?
+
+    use(:authorization, :basic, user.to_s.strip, pass.to_s.strip)
+  end
+
+  # @param value [Numeric] HTTP request timeout in seconds.
+  # @return [HTTPClient] A new client with the timeout set.
+  def timeout(value)
+    with_copy(:timeout, value)
+  end
+
+  # @param new_headers [Hash] The headers to add to the existing default headers.
+  # @return [HTTPClient] A new client with the given headers set.
+  def headers(new_headers)
+    with_copy(:headers, @headers.merge(new_headers).transform_keys(&:to_s))
+  end
+
+  # @param middleware [Symbol] The middleware to add to the stack.
+  # @return [HTTPClient] A new client with the given middleware added to the stack.
+  def use(middleware, *args, **kwargs)
+    middleware = lookup_middleware(middleware) if middleware.is_a?(Symbol)
+    with_copy(:middlewares, @middlewares + [[middleware, args, kwargs]])
+  end
+
+  def get(url, **options) = request(:get, url, **options)
+  def put(url, **options) = request(:put, url, **options)
+  def post(url, **options) = request(:post, url, **options)
+  def delete(url, **options) = request(:delete, url, **options)
+
+  # @param method [Symbol] HTTP method.
+  # @param url [String] The URL to request.
+  # @param params [Hash, nil] The GET/HEAD query string parameters.
+  # @param body [String, Hash, nil] The PUT/POST body.
+  # @return [HTTPClient::Response] The HTTP response.
+  def request(method, url, params: nil, body: nil)
+    response = connection.send(method, url, params || body)
+    Response.new(response)
+  rescue Faraday::TimeoutError
+    raise TimeoutError
+  rescue Faraday::ConnectionFailed
+    raise ConnectionError
   end
 
   private
 
-  # Sends one request and returns both response and wall-clock duration.
-  #
-  # @return [Array<(HTTP::Response, Float)>]
-  def timed_request(method, path, **options)
-    start = Time.now.to_f
-    response = client.request(method, path, **options).flush
-    duration = Time.now.to_f - start
-    [response, duration]
-  end
+  def connection
+    @connection ||= Faraday.new do |f|
+      @headers.each { |k, v| f.headers[k] = v }
+      @middlewares.each { |name, args, kwargs| f.use(name, *args, **kwargs) }
 
-  # Emits a debug log line for a request when a logger is configured.
-  def log_response(response, method, duration)
-    return unless @log
-
-    @log.debug("http") do
-      default_log_message(response, method, duration)
+      f.url_prefix = @base_url
+      f.options.timeout = @timeout if @timeout
+      f.adapter :net_http_persistent
     end
   end
 
-  # Default unified HTTP log formatter used by all callers.
-  #
-  # @return [String]
-  def default_log_message(response, method, duration)
-    runtime_ms = (response.headers["X-Runtime"]&.to_f || 0) * 1000
-    total_ms = duration * 1000
+  # @param name [Symbol] The Faraday middleware name.
+  # @return [Class] The resolved middleware class.
+  def lookup_middleware(name)
+    [Faraday::Request, Faraday::Response, Faraday::Middleware].each do |registry|
+      return registry.lookup_middleware(name)
+    rescue Faraday::Error
+      next
+    end
+  end
 
-    format(
-      "code=%<code>-3s method=%<method>-6s time=%<time>-7s total=%<total>-7s url=%<url>s",
-      code: response.code,
-      method: method.upcase,
-      time: "#{runtime_ms.to_i}ms",
-      total: "#{total_ms.to_i}ms",
-      url: response.uri,
-    )
+  # @param attribute [Symbol] The attribute to change.
+  # @param value [Object] The new value for the attribute.
+  # @return [HTTPClient] A new HTTP client, used for chaining configuration methods.
+  def with_copy(attribute, value)
+    copy = dup
+    copy.send("#{attribute}=", value)
+    copy.connection = nil
+    copy
   end
 end

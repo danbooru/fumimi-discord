@@ -43,13 +43,11 @@ class Danbooru
   # @param url [String, nil] Danbooru base URL.
   # @param user [String, nil] Danbooru login.
   # @param api_key [String, nil] Danbooru API key.
-  # @param log [Logger] Logger instance.
+  # @param http [HTTPClient] HTTPClient instance.
   # @param model_builder [#call] Callable used to construct model objects from API responses.
-  def initialize(url: "https://danbooru.donmai.us", user: nil, api_key: nil, log: Logger.new($stderr), model_builder: nil)
-    log.info("Running on instance: #{url}, with user: '#{user}'")
-
-    @url, @user, @api_key, @log = Addressable::URI.parse(url), user, api_key, log
-    @http = HTTPClient.new(base: url, user: user, pass: api_key, log: log)
+  def initialize(url: "https://danbooru.donmai.us", user: nil, api_key: nil, http: HTTPClient.new, model_builder: nil)
+    @url, @user, @api_key = Addressable::URI.parse(url), user, api_key
+    @http = http.base_url(url).auth(user, api_key).headers(Accept: "application/json").use(:follow_redirects)
     @resources = {}
     @model_builder = model_builder || ->(**kwargs) { OpenStruct.new(**kwargs) }
   end

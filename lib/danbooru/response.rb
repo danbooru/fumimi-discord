@@ -7,7 +7,7 @@ class Danbooru
   class Response
     attr_reader :data
 
-    # @param response [HTTP::Response] Low-level HTTP response object.
+    # @param response [HTTPClient::Response] Low-level HTTP response object.
     # @param resource_name [String] API resource name for model resolution.
     # @param booru [Danbooru] API client used to build model URLs.
     def initialize(response, resource_name:, booru:)
@@ -75,7 +75,7 @@ class Danbooru
         success: false,
         message: "ERROR: non-JSON response.",
         code: @response.code,
-        mime_type: @response.mime_type,
+        mime_type: @response.headers["Content-Type"],
         body: @response.body.to_s,
       }
     end

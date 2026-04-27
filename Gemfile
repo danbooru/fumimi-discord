@@ -8,7 +8,9 @@ gem "discordrb", github: "shardlab/discordrb", require: false, ref: "97c2856fabe
 gem "dotenv"
 gem "dtext_rb", github: "danbooru/danbooru", glob: "lib/dtext_rb/dtext_rb.gemspec",
                 ref: "cb4061ef17b284451734e10409f57e6b552b699a"
-gem "http"
+gem "faraday"
+gem "faraday-follow_redirects"
+gem "faraday-net_http_persistent"
 gem "json"
 gem "nokogiri"
 gem "ostruct"

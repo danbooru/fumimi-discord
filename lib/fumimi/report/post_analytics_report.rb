@@ -1,12 +1,10 @@
 class Fumimi::PostAnalyticsReport
   include Fumimi::HasDiscordEmbed
 
-  def initialize(tags:, log:, cache:, range: 1.day, signoz_api_key: nil)
+  def initialize(fumimi:, tags:, range: 1.day)
+    @fumimi = fumimi
     @tags = tags.sort
-    @log = log
-    @cache = cache
     @range = range
-    @signoz_api_key = signoz_api_key
   end
 
   def embed_title
@@ -52,10 +50,9 @@ class Fumimi::PostAnalyticsReport
 
   def client
     return @client if defined? @client
+    raise Fumimi::Exceptions::MissingCredentialsError, "SIGNOZ_API_KEY is not configured." if @fumimi.signoz_api_key.nil?
 
-    raise Fumimi::Exceptions::MissingCredentialsError, "SIGNOZ_API_KEY is not configured." if @signoz_api_key.nil?
-
-    @client ||= SigNozClient.new("https://signoz.donmai.us", @signoz_api_key, log: @log, cache: @cache)
+    @client ||= SigNozClient.new("https://signoz.donmai.us", @fumimi.signoz_api_key, http: @fumimi.http, log: @fumimi.log, cache: @fumimi.cache)
   end
 
   def negated_tags
