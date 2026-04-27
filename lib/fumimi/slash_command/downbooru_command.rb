@@ -11,7 +11,7 @@ class Fumimi::SlashCommand::DownbooruCommand < Fumimi::SlashCommand
 
   def embeds
     begin
-      @booru.posts.index({ limit: 1 })
+      @booru.posts.index(limit: 1)
     rescue Timeout::Error
       raise Danbooru::Exceptions::DownbooruError
     end
