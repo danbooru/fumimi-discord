@@ -5,7 +5,7 @@ require "json"
 class Danbooru
   # Wraps one API response and exposes parsed data + status helpers.
   class Response
-    attr_reader :data
+    attr_reader :data, :response, :json
 
     # @param response [HTTPClient::Response] Low-level HTTP response object.
     # @param resource_name [String] API resource name for model resolution.
@@ -48,6 +48,8 @@ class Danbooru
       raise Danbooru::Exceptions::MaintenanceError if maintenance?
       raise Danbooru::Exceptions::DownbooruError if downbooru?
       raise Danbooru::Exceptions::AccessDeniedError if access_denied?
+
+      raise Danbooru::Exceptions::DanbooruError, @json["message"] if failed?
     end
 
     # Delegates unknown methods to the parsed model payload.
@@ -71,11 +73,11 @@ class Danbooru
       JSON.parse(@response.body)
     rescue JSON::JSONError
       {
-        success: false,
-        message: "ERROR: non-JSON response.",
-        code: @response.code,
-        mime_type: @response.headers["Content-Type"],
-        body: @response.body.to_s,
+        "success" => false,
+        "message" => "ERROR: non-JSON response. Status code: #{@response.code}",
+        "code" => @response.code,
+        "mime_type" => @response.headers["Content-Type"],
+        "body" => @response.body.to_s,
       }
     end
 
