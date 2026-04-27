@@ -2,6 +2,8 @@ require "fumimi/model"
 
 class Fumimi::Model::PostCount < Fumimi::Model
   def count
+    raise Danbooru::Exceptions::TimeoutError if counts.posts.nil?
+
     counts.posts
   end
 
