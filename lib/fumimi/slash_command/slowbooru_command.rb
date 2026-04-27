@@ -1,6 +1,6 @@
 require "fumimi/slash_command"
 
-class Fumimi::SlashCommand::DownbooruCommand < Fumimi::SlashCommand
+class Fumimi::SlashCommand::SlowbooruCommand < Fumimi::SlashCommand
   def self.name
     "slowbooru"
   end
