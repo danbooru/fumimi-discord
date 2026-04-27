@@ -1,5 +1,3 @@
-require "fumimi/model"
-
 class Fumimi::Model::BulkUpdateRequest < Fumimi::Model
   # no embed, just embed the forum post instead so we can also get votes and argument
 

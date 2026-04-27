@@ -1,5 +1,3 @@
-require "fumimi/model"
-
 class Fumimi::Model::ForumTopic < Fumimi::Model
   def hidden?
     min_level != "None"

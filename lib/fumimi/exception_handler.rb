@@ -1,5 +1,3 @@
-require "fumimi/exceptions"
-
 module Fumimi::ExceptionHandler
   def execute_and_rescue_errors(event, &block)
     block.call

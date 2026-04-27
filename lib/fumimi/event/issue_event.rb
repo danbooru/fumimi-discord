@@ -1,5 +1,3 @@
-require "fumimi/event"
-
 class Fumimi::Event::IssueEvent < Fumimi::Event
   def self.pattern
     /issue #([0-9]+)/i

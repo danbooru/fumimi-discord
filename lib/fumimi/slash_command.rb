@@ -1,13 +1,9 @@
-require "fumimi/class_register"
-require "fumimi/exception_handler"
-
 # Base class for Discord slash commands.
 #
 # Subclasses are auto-registered and should define {.name} plus a response via
 # {#message}, {#embeds}, or a custom {#respond_to_event}.
 #
 class Fumimi::SlashCommand
-  include Fumimi::ClassRegister
   include Fumimi::ExceptionHandler
 
   OPTION_TYPES = { string: 3, integer: 4, boolean: 5, number: 10 }.freeze
@@ -100,7 +96,10 @@ class Fumimi::SlashCommand
   # @return [void]
   def self.register_all(fumimi:)
     register_slash_commands(fumimi:) if outdated_commands?(fumimi:)
-    super
+
+    command_classes.each do |command|
+      register(command, fumimi:)
+    end
   end
 
   # Registers one slash command subclass with the bot.
@@ -109,8 +108,10 @@ class Fumimi::SlashCommand
   # @param fumimi [Fumimi]
   # @return [Proc]
   def self.register(command, fumimi:)
+    class_name = command.to_s
+
     fumimi.bot.application_command(command.name) do |event|
-      kommand = command.new(event, fumimi:)
+      kommand = class_name.constantize.new(event, fumimi:)
       kommand.safe_handle_event
     end
   end
@@ -135,7 +136,7 @@ class Fumimi::SlashCommand
     response = Discordrb::API::Application.get_guild_commands(fumimi.bot.token, fumimi.bot.profile.id, fumimi.server_id)
 
     existing_commands = JSON.parse(response.body, symbolize_names: true).index_by { |c| c[:name] }
-    subclasses.map do |subclass|
+    command_classes.map do |subclass|
       old_command = existing_commands[subclass.name] || {}
       new_command = subclass.to_h
 
@@ -155,8 +156,14 @@ class Fumimi::SlashCommand
       fumimi.bot.token,
       fumimi.bot.profile.id,
       fumimi.server_id,
-      subclasses.map(&:to_h),
+      command_classes.map(&:to_h),
     )
+  end
+
+  # @return [Array<Class>] The list of all slash command subclasses.
+  def self.command_classes
+    Zeitwerk::Loader.eager_load_namespace(Fumimi::SlashCommand)
+    subclasses
   end
 
   # Builds the Discord API payload for this command.

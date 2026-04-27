@@ -1,5 +1,3 @@
-require "fumimi/event"
-
 class Fumimi::Event::PoolEvent < Fumimi::Event
   def self.pattern
     /pool #([0-9]+)/i

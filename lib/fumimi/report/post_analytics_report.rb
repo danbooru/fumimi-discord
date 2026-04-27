@@ -52,7 +52,7 @@ class Fumimi::Report::PostAnalyticsReport
     return @client if defined? @client
     raise Fumimi::Exceptions::MissingCredentialsError, "SIGNOZ_API_KEY is not configured." if @fumimi.signoz_api_key.nil?
 
-    @client ||= SigNozClient.new("https://signoz.donmai.us", @fumimi.signoz_api_key, http: @fumimi.http, log: @fumimi.log, cache: @fumimi.cache)
+    @client ||= SignozClient.new("https://signoz.donmai.us", @fumimi.signoz_api_key, http: @fumimi.http, log: @fumimi.log, cache: @fumimi.cache)
   end
 
   def negated_tags

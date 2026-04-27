@@ -1,5 +1,3 @@
-require "fumimi/slash_command"
-
 class Fumimi::SlashCommand::UploadsByYearCommand < Fumimi::SlashCommand
   def self.name
     "uploads_by_year"

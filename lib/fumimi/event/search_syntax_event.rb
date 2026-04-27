@@ -1,5 +1,3 @@
-require "fumimi/event"
-
 class Fumimi::Event::SearchSyntaxEvent < Fumimi::Event
   def self.pattern
     /{{ [^}]+ }}/x

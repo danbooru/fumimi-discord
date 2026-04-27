@@ -1,5 +1,3 @@
-require "fumimi/discord_embed"
-
 module Fumimi::HasDiscordEmbed
   attr_writer :nsfw_channel
 

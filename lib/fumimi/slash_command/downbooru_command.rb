@@ -1,5 +1,3 @@
-require "fumimi/slash_command"
-
 class Fumimi::SlashCommand::DownbooruCommand < Fumimi::SlashCommand
   def self.name
     "downbooru"

@@ -1,5 +1,3 @@
-require "fumimi/model"
-
 class Fumimi::Model::Tag < Fumimi::Model
   attr_reader :searched_term
 

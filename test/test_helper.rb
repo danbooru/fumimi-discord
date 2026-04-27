@@ -168,8 +168,8 @@ class ApplicationTest < ActiveSupport::TestCase
   def mock_slash_command(name, args: {}, nsfw_channel: false, fumimi: nil, user_id: 123, **options)
     fumimi ||= default_fumimi(**options)
     command_name = name.to_s.delete_prefix("/")
-    command_class = ObjectSpace.each_object(Class).find do |klass|
-      klass < Fumimi::SlashCommand && klass.name == command_name
+    command_class = Fumimi::SlashCommand.command_classes.find do |klass|
+      klass.name == command_name
     end
 
     raise ArgumentError, "Unknown slash command: #{name}" unless command_class

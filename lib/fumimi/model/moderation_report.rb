@@ -1,4 +1,3 @@
-require "fumimi/model"
 require "active_support/core_ext/string/inflections"
 
 class Fumimi::Model::ModerationReport < Fumimi::Model

@@ -1,5 +1,3 @@
-require "fumimi/slash_command"
-
 class Fumimi::SlashCommand::ApproversCommand < Fumimi::SlashCommand
   def self.name
     "approvers"

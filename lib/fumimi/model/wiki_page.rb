@@ -1,5 +1,3 @@
-require "fumimi/model"
-
 class Fumimi::Model::WikiPage < Fumimi::Model
   def embed_title
     title.tr("_", " ")

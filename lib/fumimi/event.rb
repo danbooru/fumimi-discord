@@ -1,13 +1,9 @@
-require "fumimi/class_register"
-require "fumimi/exception_handler"
-
 # Base class for message-triggered Discord events.
 #
 # Subclasses are auto-registered and define matching behavior with {.pattern}.
 # They can return text and embeds for each match set.
 #
 class Fumimi::Event
-  include Fumimi::ClassRegister
   include Fumimi::ExceptionHandler
 
   # Regex used to find matches in a message.
@@ -92,7 +88,8 @@ class Fumimi::Event
   # @param fumimi [Fumimi]
   # @return [void]
   def self.register_all(fumimi:)
-    total_regex = Regexp.union(subclasses.map(&:total_pattern))
+    # XXX In development mode, if an event class's pattern changes or new events are added they won't be registered until the next restart.
+    total_regex = Regexp.union(event_classes.map(&:total_pattern))
 
     fumimi.bot.message(contains: total_regex) do |event|
       respond_to_all_matches(event, fumimi:)
@@ -107,7 +104,7 @@ class Fumimi::Event
   def self.respond_to_all_matches(event, fumimi:)
     text = event.text.gsub(/```.*?```/m, "").gsub(/`.*?`/m, "")
 
-    messages, embeds = subclasses.each_with_object([[], []]) do |subclass, (messages, embeds)|
+    messages, embeds = event_classes.each_with_object([[], []]) do |subclass, (messages, embeds)|
       matches = text.scan(subclass.total_pattern).flatten.compact.uniq
       next unless matches.present?
 
@@ -145,5 +142,11 @@ class Fumimi::Event
       { replied_user: false }, # allowed mentions: don't ping who you're replying to
       event.message, # message reference
     )
+  end
+
+  # @return [Array<Class>] The list of all event subclasses.
+  def self.event_classes
+    Zeitwerk::Loader.eager_load_namespace(Fumimi::Event)
+    subclasses
   end
 end

@@ -1,5 +1,3 @@
-require "fumimi/event"
-
 class Fumimi::Event::BulkUpdateRequestEvent < Fumimi::Event
   def self.pattern
     /bur #([0-9]+)/i

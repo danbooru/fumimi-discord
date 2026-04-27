@@ -1,5 +1,3 @@
-require "fumimi/event"
-
 class Fumimi::Event::MediaAssetEvent < Fumimi::Event
   def self.pattern
     /asset #([0-9]+)/i

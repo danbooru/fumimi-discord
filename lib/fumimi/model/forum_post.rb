@@ -1,5 +1,3 @@
-require "fumimi/model"
-
 class Fumimi::Model::ForumPost < Fumimi::Model
   delegate :hidden?, to: :topic
 

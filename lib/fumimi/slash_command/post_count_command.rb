@@ -1,5 +1,3 @@
-require "fumimi/slash_command"
-
 class Fumimi::SlashCommand::PostCountCommand < Fumimi::SlashCommand
   def self.name
     "count"

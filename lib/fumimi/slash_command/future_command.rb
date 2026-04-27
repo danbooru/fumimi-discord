@@ -1,5 +1,3 @@
-require "fumimi/slash_command"
-
 class Fumimi::SlashCommand::FutureCommand < Fumimi::SlashCommand
   def self.name
     "future"

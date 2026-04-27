@@ -1,5 +1,3 @@
-require "fumimi/event"
-
 class Fumimi::Event::ForumTopicEvent < Fumimi::Event
   def self.pattern
     /topic #([0-9]+)/i

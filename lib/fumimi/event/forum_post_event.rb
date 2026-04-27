@@ -1,5 +1,3 @@
-require "fumimi/event"
-
 class Fumimi::Event::ForumPostEvent < Fumimi::Event
   def self.pattern
     /forum #([0-9]+)/i

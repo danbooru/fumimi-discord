@@ -1,5 +1,3 @@
-require "fumimi/event"
-
 class Fumimi::Event::PixivEvent < Fumimi::Event
   def self.pattern
     /pixiv #([0-9]+)/i

@@ -1,4 +1,3 @@
-require "fumimi/model"
 require "active_support/core_ext"
 
 class Fumimi::Model::User < Fumimi::Model

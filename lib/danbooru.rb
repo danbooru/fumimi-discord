@@ -2,12 +2,9 @@ require "active_support"
 require "active_support/core_ext/string/inflections"
 require "active_support/core_ext/hash/indifferent_access"
 require "addressable/uri"
-require_relative "http_client"
+require "ostruct"
 
 # Top-level Danbooru API client.
-class Danbooru; end
-Dir[__dir__ + "/danbooru/**/*.rb"].each { |file| require file }
-
 class Danbooru
   attr_reader :url, :http
 

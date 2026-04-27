@@ -1,5 +1,3 @@
-require "fumimi/slash_command"
-
 class Fumimi::SlashCommand::ModQueueCommand < Fumimi::SlashCommand
   def self.name
     "modqueue"

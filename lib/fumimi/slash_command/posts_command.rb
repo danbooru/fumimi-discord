@@ -1,5 +1,3 @@
-require "fumimi/slash_command"
-
 class Fumimi::SlashCommand::PostsCommand < Fumimi::SlashCommand
   def self.name
     "posts"

@@ -19,9 +19,11 @@ gem "prophet-rb"
 gem "rack"
 gem "rackup"
 gem "webrick"
+gem "zeitwerk"
 
 group :development, :test do
   gem "debug"
+  gem "listen" # For ActiveSupport::EventedFileUpdateChecker
   gem "pry"
   gem "rake"
   gem "rubocop"

@@ -1,5 +1,3 @@
-require "fumimi/slash_command"
-
 class Fumimi::SlashCommand::ReportUserCommand < Fumimi::SlashCommand
   def self.name
     "report"

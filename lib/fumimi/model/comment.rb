@@ -1,5 +1,3 @@
-require "fumimi/model"
-
 class Fumimi::Model::Comment < Fumimi::Model
   delegate :embed_thumbnail, to: :post
 

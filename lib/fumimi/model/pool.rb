@@ -1,5 +1,3 @@
-require "fumimi/model"
-
 class Fumimi::Model::Pool < Fumimi::Model
   delegate :embed_thumbnail, to: :example_post, allow_nil: true
 

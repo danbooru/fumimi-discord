@@ -1,13 +1,12 @@
 require "json"
 require "time"
-require_relative "http_client"
 
 # Client for querying SigNoz log analytics endpoints.
 #
 # Required signoz configuration:
 # attributes.url -> donmai\.\w+(?<danbooru_path>[\w\/]+) -> attributes (Regex parser)
 # attributes.url -> tags=(?P<query_string_tags>[^&]*) -> attributes (Regex parser)
-class SigNozClient
+class SignozClient
   # @param base_url [String] SigNoz base URL.
   # @param api_key [String] SigNoz API key header value.
   # @param log [Logger] Logger instance.

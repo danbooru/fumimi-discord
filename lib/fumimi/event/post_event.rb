@@ -1,5 +1,3 @@
-require "fumimi/event"
-
 class Fumimi::Event::PostEvent < Fumimi::Event
   def self.pattern
     /post #([0-9]+)/i

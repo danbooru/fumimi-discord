@@ -1,5 +1,3 @@
-require "fumimi/event"
-
 class Fumimi::Event::ArtistEvent < Fumimi::Event
   def self.pattern
     /artist #([0-9]+)/i

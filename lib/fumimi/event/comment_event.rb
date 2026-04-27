@@ -1,5 +1,3 @@
-require "fumimi/event"
-
 class Fumimi::Event::CommentEvent < Fumimi::Event
   def self.pattern
     /comment #([0-9]+)/i

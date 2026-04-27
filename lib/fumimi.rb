@@ -1,18 +1,27 @@
 require "dotenv"
 Dotenv.load
 
-class Fumimi; end
-
-require "danbooru"
-Dir[__dir__ + "/**/*.rb"].each { |file| require file }
-
+require "zeitwerk"
 require "active_support"
 require "active_support/core_ext"
+require "active_support/evented_file_update_checker"
+require "active_support/string_inquirer"
 require "addressable/uri"
 require "discordrb"
 require "rackup/handler/webrick"
 
 class Fumimi
+  mattr_reader :app_env, default: ActiveSupport::StringInquirer.new(ENV.fetch("APP_ENV", "development"))
+
+  mattr_reader :loader, default: Zeitwerk::Loader.new.tap { |loader|
+    loader.push_dir(__dir__)
+    loader.inflector.inflect("dtext" => "DText", "http_client" => "HTTPClient")
+    loader.enable_reloading if Fumimi.app_env.development?
+    loader.logger = Logger.new($stderr, level: Logger::INFO)
+    loader.setup
+    loader.eager_load unless Fumimi.app_env.development?
+  }
+
   include Fumimi::ExceptionHandler
 
   attr_reader :server_id, :client_id, :token, :log, :http, :booru, :cache, :webserver, :initiate_shutdown, :censored_tags,
@@ -142,6 +151,7 @@ class Fumimi
     monitor_reports
 
     loop do
+      reload_changed_code!
       shutdown! if initiate_shutdown
       sleep 1
     end
@@ -149,5 +159,22 @@ class Fumimi
 
   def initiate_shutdown!
     @initiate_shutdown = true
+  end
+
+  private
+
+  # @return [ActiveSupport::EventedFileUpdateChecker, nil] A file update checker that reloads code when changes are detected.
+  def code_reloader
+    return nil unless Fumimi.app_env.development?
+
+    @code_reloader ||= ActiveSupport::EventedFileUpdateChecker.new([], { __dir__ => ["rb"] }) do
+      log.info("Code changes detected. Reloading...")
+      Fumimi.loader.reload
+      log.info("Code reloaded.")
+    end
+  end
+
+  def reload_changed_code!
+    code_reloader&.execute_if_updated
   end
 end

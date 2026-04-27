@@ -1,5 +1,3 @@
-require "fumimi/slash_command"
-
 class Fumimi::SlashCommand::BursCommand < Fumimi::SlashCommand
   def self.name
     "burs"

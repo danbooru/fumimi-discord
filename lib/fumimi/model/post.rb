@@ -1,5 +1,3 @@
-require "fumimi/model"
-
 class Fumimi::Model::Post < Fumimi::Model
   delegate :file_ext, :file_info, :file_variant, :preview_variant, to: :media_asset
 
