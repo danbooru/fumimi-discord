@@ -18,6 +18,7 @@ class Fumimi::Model::Post < Fumimi::Model
   end
 
   def embed_image
+    return nil if is_banned
     return nil if censored?
     return nil unless nsfw_channel? || !nsfw?
 
@@ -27,6 +28,7 @@ class Fumimi::Model::Post < Fumimi::Model
   end
 
   def embed_thumbnail
+    return nil if is_banned
     return nil if censored?
     return nil unless nsfw_channel? || !nsfw?
 

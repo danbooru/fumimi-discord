@@ -22,7 +22,7 @@ class Danbooru
     "Posts" => { default_params: { limit: 200,
                                    only: "id,uploader,created_at,score,fav_count," \
                                          "tag_string,source,rating,parent_id,has_active_children," \
-                                         "is_flagged,is_pending,is_deleted," \
+                                         "is_flagged,is_pending,is_deleted,is_banned," \
                                          "media_asset" } },
     "RelatedTags" => { url: "related_tag" },
     "Tags" => { default_params: { "search[hide_empty]": "no",
