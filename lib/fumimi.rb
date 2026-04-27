@@ -68,7 +68,7 @@ class Fumimi
     @webserver = Fumimi::Webserver.new(host: host, port: port, fumimi: self)
 
     Discordrb::LOGGER.streams = [DiscordLogStream.new(log)]
-    Discordrb::LOGGER.mode = :debug
+    Discordrb::LOGGER.mode = :info
   end
 
   def server
