@@ -18,6 +18,24 @@ class Fumimi
   attr_reader :server_id, :client_id, :token, :log, :booru, :cache, :webserver, :initiate_shutdown, :censored_tags,
               :report_channel_name, :signoz_api_key
 
+  # Adapts the Discordrb logger to write through Fumimi's logger.
+  DiscordLogStream = Struct.new(:log) do
+    def puts(msg)
+      level, thread, message = msg.to_s.match(/\A\[(\w+) : (\S+) @ [^\]]+\] (.*)/m)&.captures
+
+      case level
+      when "DEBUG", "OUT", "IN" then severity = Logger::DEBUG
+      when "WARN", "RATELIMIT"  then severity = Logger::WARN
+      when "ERROR"              then severity = Logger::ERROR
+      else                           severity = Logger::INFO
+      end
+
+      log.add(severity) { "[discord/#{thread}] #{message}".strip }
+    end
+
+    def flush = nil
+  end
+
   def initialize(
     server_id:,
     client_id:,
@@ -47,6 +65,9 @@ class Fumimi
     @booru = Danbooru.new(url: booru_url, user: booru_user, api_key: booru_api_key, log: log, model_builder: method(:build_model))
     @cache = ActiveSupport::Cache::MemoryStore.new
     @webserver = Fumimi::Webserver.new(host: host, port: port, fumimi: self)
+
+    Discordrb::LOGGER.streams = [DiscordLogStream.new(log)]
+    Discordrb::LOGGER.mode = :debug
   end
 
   def server
