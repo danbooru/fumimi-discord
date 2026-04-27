@@ -13,7 +13,10 @@ gem "json"
 gem "nokogiri"
 gem "ostruct"
 gem "prophet-rb"
+gem "rack"
+gem "rackup"
 gem "retriable"
+gem "webrick"
 
 group :development, :test do
   gem "debug"

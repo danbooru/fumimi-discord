@@ -10,17 +10,20 @@ require "active_support"
 require "active_support/core_ext"
 require "addressable/uri"
 require "discordrb"
+require "rackup/handler/webrick"
 
 class Fumimi
   include Fumimi::ExceptionHandler
 
-  attr_reader :server_id, :client_id, :token, :log, :booru, :cache, :initiate_shutdown, :censored_tags,
+  attr_reader :server_id, :client_id, :token, :log, :booru, :cache, :webserver, :initiate_shutdown, :censored_tags,
               :report_channel_name, :signoz_api_key
 
   def initialize(
     server_id:,
     client_id:,
     token:,
+    host: nil,
+    port: nil,
     booru_url: nil,
     booru_user: nil,
     booru_api_key: nil,
@@ -43,6 +46,7 @@ class Fumimi
 
     @booru = Danbooru.new(url: booru_url, user: booru_user, api_key: booru_api_key, log: log, model_builder: method(:build_model))
     @cache = ActiveSupport::Cache::MemoryStore.new
+    @webserver = Fumimi::Webserver.new(host: host, port: port, fumimi: self)
   end
 
   def server
@@ -109,6 +113,7 @@ class Fumimi
   def run
     log.debug("Starting bot...")
 
+    webserver.start
     register_commands
     bot.run(:async)
 

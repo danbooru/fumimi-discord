@@ -37,6 +37,8 @@ def main(options)
     server_id: ENV.fetch("DISCORD_SERVER_ID", nil)&.to_i,
     client_id: ENV.fetch("DISCORD_CLIENT_ID", nil),
     token: ENV.fetch("DISCORD_TOKEN", nil),
+    host: ENV.fetch("FUMIMI_WEBSERVER_HOST", "0.0.0.0"),
+    port: ENV.fetch("FUMIMI_WEBSERVER_PORT", 3000),
     booru_url: ENV.fetch("BOORU_URL", "https://danbooru.donmai.us"),
     booru_user: ENV.fetch("BOORU_USER", nil),
     booru_api_key: ENV.fetch("BOORU_API_KEY", nil),

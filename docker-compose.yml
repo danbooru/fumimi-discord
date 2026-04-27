@@ -8,5 +8,8 @@ services:
       RUBY_DEBUG_OPEN: "true"
       RUBY_DEBUG_NONSTOP: "true"
 
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/up"]
+
     volumes:
       - .:/app
