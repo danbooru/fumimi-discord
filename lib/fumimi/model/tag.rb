@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 require "fumimi/model"
 
 class Fumimi::Model::Tag < Fumimi::Model

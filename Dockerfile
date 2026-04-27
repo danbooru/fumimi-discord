@@ -18,5 +18,6 @@ COPY --from=build --chown=fumimi:fumimi /usr/local/bundle /usr/local/bundle
 COPY --chown=fumimi:fumimi . .
 
 USER fumimi
+ENV RUBYOPT=--enable=frozen-string-literal
 ENTRYPOINT ["/usr/bin/tini", "-g", "--"]
 CMD ["bundle", "exec", "ruby", "bin/fumimi"]

@@ -1,6 +1,7 @@
 AllCops:
   NewCops: enable
   TargetRubyVersion: 4.0
+  StringLiteralsFrozenByDefault: true
 
 Layout/FirstHashElementIndentation:
   EnforcedStyle: consistent
@@ -48,7 +49,7 @@ Style/FormatString:
   Enabled: false
 
 Style/FrozenStringLiteralComment:
-  Enabled: false
+  EnforcedStyle: never
 
 Metrics/MethodLength:
   Max: 100
