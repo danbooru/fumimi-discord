@@ -39,7 +39,7 @@ Use `/help` on a server the bot is configured on for a list of commands.
 ## Development
 
 After cloning this repo, run `bundle install` to install dependencies.
-To run the tests use `bin/rake test`.
+To run the tests use `minitest` or `minitest test/<file.rb>`.
 
 ## Contributing
 
