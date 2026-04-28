@@ -1,5 +1,3 @@
-require "active_support/core_ext/string/inflections"
-
 class Fumimi::Model::ModerationReport < Fumimi::Model
   def embed_title
     "Danbooru Report ##{id}"

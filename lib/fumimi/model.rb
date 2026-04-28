@@ -1,11 +1,3 @@
-require "active_support"
-require "active_support/core_ext/module/delegation"
-require "active_support/core_ext/object/json"
-require "active_support/core_ext/string/inflections"
-require "addressable/uri"
-require "ostruct"
-require "time"
-
 class Fumimi::Model
   include Fumimi::HasDiscordEmbed
 

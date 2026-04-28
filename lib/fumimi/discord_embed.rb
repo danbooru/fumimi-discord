@@ -1,5 +1,3 @@
-require "discordrb"
-
 class Fumimi::DiscordEmbed < Discordrb::Webhooks::Embed
   MAX_MESSAGE_LENGTH = 5800
 

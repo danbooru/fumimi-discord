@@ -1,9 +1,3 @@
-require "active_support"
-require "active_support/core_ext/string/inflections"
-require "active_support/core_ext/hash/indifferent_access"
-require "addressable/uri"
-require "ostruct"
-
 # Top-level Danbooru API client.
 class Danbooru
   attr_reader :url, :http

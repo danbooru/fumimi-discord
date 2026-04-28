@@ -1,17 +1,13 @@
-require "dotenv"
-Dotenv.load
+require "dotenv/load"
+require "bundler/setup"
 
-require "zeitwerk"
-require "active_support"
-require "active_support/core_ext"
-require "active_support/evented_file_update_checker"
-require "active_support/string_inquirer"
-require "addressable/uri"
-require "discordrb"
-require "rackup/handler/webrick"
+APP_ENV = ENV.fetch("APP_ENV", "development")
+Bundler.require(:default, APP_ENV.to_sym)
+
+require "cgi/escape"
 
 class Fumimi
-  mattr_reader :app_env, default: ActiveSupport::StringInquirer.new(ENV.fetch("APP_ENV", "development"))
+  mattr_reader :app_env, default: ActiveSupport::StringInquirer.new(APP_ENV)
 
   mattr_reader :loader, default: Zeitwerk::Loader.new.tap { |loader|
     loader.push_dir(__dir__)

@@ -1,7 +1,3 @@
-require "active_support"
-require "active_support/core_ext/object/try"
-require "json"
-
 class Danbooru
   # Wraps one API response and exposes parsed data + status helpers.
   class Response

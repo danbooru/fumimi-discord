@@ -1,8 +1,3 @@
-require "date"
-
-require "active_support/all"
-require "prophet-rb"
-
 class Fumimi::Report::FutureReport
   include Fumimi::HasDiscordEmbed
 

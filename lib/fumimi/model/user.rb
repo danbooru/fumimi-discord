@@ -1,5 +1,3 @@
-require "active_support/core_ext"
-
 class Fumimi::Model::User < Fumimi::Model
   module Levels
     ANONYMOUS = 0

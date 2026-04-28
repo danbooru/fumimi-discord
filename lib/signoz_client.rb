@@ -1,6 +1,3 @@
-require "json"
-require "time"
-
 # Client for querying SigNoz log analytics endpoints.
 #
 # Required signoz configuration:

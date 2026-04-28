@@ -1,5 +1,3 @@
-require "dentaku"
-
 class Fumimi::SlashCommand::CalcCommand < Fumimi::SlashCommand
   def self.name
     "calc"

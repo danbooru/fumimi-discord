@@ -1,5 +1,3 @@
-require "unicode/display_width/string_ext"
-
 class Fumimi::DiscordTable
   # This class generates a table from a list of headers and list of rows
   # For example, with headers: [name, year]; rows: [["bowser", 2006], ["luigi_mario", 2007]]

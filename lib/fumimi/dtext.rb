@@ -1,6 +1,3 @@
-require "dtext"
-require "nokogiri"
-
 class Fumimi::DText
   CUTOFF_MESSAGE = "***[...text was too long and has been cut off]***"
 
