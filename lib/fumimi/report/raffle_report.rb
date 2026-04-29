@@ -136,7 +136,7 @@ class Fumimi::Report::RaffleReport
   end
 
   def pending_link
-    "http://danbooru.donmai.us/modqueue?search[uploader][level]=20&search[uploader][is_banned]=false"
+    "#{@booru.url}/modqueue?search[uploader][level]=20&search[uploader][is_banned]=false"
   end
 
   def top_uploaders

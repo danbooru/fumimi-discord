@@ -4,6 +4,6 @@ class Fumimi::Event::ArtistEvent < Fumimi::Event
   end
 
   def messages_for(matches)
-    matches.map { |artist| "https://danbooru.donmai.us/artists/#{artist}" }
+    matches.map { |artist| "#{@booru.url}/artists/#{artist}" }
   end
 end

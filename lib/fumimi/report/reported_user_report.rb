@@ -1,10 +1,11 @@
 class Fumimi::Report::ReportedUserReport
   include Fumimi::HasDiscordEmbed
 
-  def initialize(reported_id:, reporter_id:, report_reason:)
+  def initialize(reported_id:, reporter_id:, report_reason:, booru:)
     @reported_id = reported_id
     @reporter_id = reporter_id
     @report_reason = report_reason
+    @booru = booru
   end
 
   def embed_title
@@ -30,7 +31,7 @@ class Fumimi::Report::ReportedUserReport
   end
 
   def reported_user_shortlink
-    "[User ##{@reported_id}](https://danbooru.donmai.us/users/#{@reported_id})"
+    "[User ##{@reported_id}](#{@booru.url}/users/#{@reported_id})"
   end
 
   def buttons

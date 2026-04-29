@@ -26,9 +26,12 @@ class Fumimi::SlashCommand::ReportUserCommand < Fumimi::SlashCommand
   end
 
   def respond_to_event
-    report = Fumimi::Report::ReportedUserReport.new(reported_id: arguments[:user_id],
-                                                    reporter_id: @event.user.id,
-                                                    report_reason: report_reason)
+    report = Fumimi::Report::ReportedUserReport.new(
+      reported_id: arguments[:user_id],
+      reporter_id: @event.user.id,
+      report_reason: report_reason,
+      booru: @booru,
+    )
 
     mod_channel = @event.server.channels.detect do |c|
       c.name == @report_channel_name

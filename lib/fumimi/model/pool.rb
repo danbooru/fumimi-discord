@@ -37,7 +37,7 @@ class Fumimi::Model::Pool < Fumimi::Model
     return "" unless category == "series"
     return unless post_ids.length
 
-    "### [Start Reading Here](https://danbooru.donmai.us/posts/#{post_ids.first}?q=ordpool:#{id})"
+    "### [Start Reading Here](#{@base_url}/posts/#{post_ids.first}?q=ordpool:#{id})"
   end
 
   def example_post
