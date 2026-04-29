@@ -54,7 +54,4 @@ module Fumimi::Exceptions
       "You can't do that! Stop touching me that way!"
     end
   end
-
-  class MissingCredentialsError < FumimiException
-  end
 end

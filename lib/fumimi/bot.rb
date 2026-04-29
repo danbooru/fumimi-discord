@@ -4,7 +4,7 @@ class Fumimi
     include Fumimi::ExceptionHandler
 
     attr_reader :server_id, :client_id, :token, :log, :http, :booru, :cache, :webserver, :censored_tags,
-                :report_channel_name, :signoz_api_key
+                :report_channel_name, :signoz_url, :signoz_api_key
 
     # Adapts the Discordrb logger to write through Fumimi's logger.
     DiscordLogStream = Struct.new(:log) do
@@ -36,6 +36,7 @@ class Fumimi
       reports_user: nil,
       reports_api_key: nil,
       report_channel_name: nil,
+      signoz_url: nil,
       signoz_api_key: nil,
       censored_tags: nil,
       log: Fumimi.log,
@@ -52,6 +53,7 @@ class Fumimi
       @reports_user = reports_user.presence || env["BOORU_REPORTS_USER"]
       @reports_api_key = reports_api_key.presence || env["BOORU_REPORTS_API_KEY"]
       @report_channel_name = report_channel_name.presence || env["DISCORD_REPORT_CHANNEL_NAME"] || "user-reports"
+      @signoz_url = signoz_url.presence || env["SIGNOZ_URL"]
       @signoz_api_key = signoz_api_key.presence || env["SIGNOZ_API_KEY"]
       @censored_tags = censored_tags.presence || env["FUMIMI_CENSORED_TAGS"].to_s.split || []
       @log = log
