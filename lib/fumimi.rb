@@ -11,7 +11,7 @@ class Fumimi
 
   mattr_reader :loader, default: Zeitwerk::Loader.new.tap { |loader|
     loader.push_dir(__dir__)
-    loader.inflector.inflect("dtext" => "DText", "http_client" => "HTTPClient")
+    loader.inflector.inflect("cli" => "CLI", "dtext" => "DText", "http_client" => "HTTPClient")
     loader.enable_reloading if Fumimi.app_env.development?
     loader.logger = Logger.new($stderr, level: Logger::INFO)
     loader.setup
@@ -20,7 +20,7 @@ class Fumimi
 
   include Fumimi::ExceptionHandler
 
-  attr_reader :server_id, :client_id, :token, :log, :http, :booru, :cache, :webserver, :initiate_shutdown, :censored_tags,
+  attr_reader :server_id, :client_id, :token, :log, :http, :booru, :cache, :webserver, :censored_tags,
               :report_channel_name, :signoz_api_key
 
   # Adapts the Discordrb logger to write through Fumimi's logger.
@@ -42,9 +42,9 @@ class Fumimi
   end
 
   def initialize(
-    server_id:,
-    client_id:,
-    token:,
+    server_id: nil,
+    client_id: nil,
+    token: nil,
     host: nil,
     port: nil,
     booru_url: nil,
@@ -52,25 +52,31 @@ class Fumimi
     booru_api_key: nil,
     reports_user: nil,
     reports_api_key: nil,
-    report_channel_name: "user-reports",
+    report_channel_name: nil,
     signoz_api_key: nil,
-    censored_tags: [],
-    log: Logger.new(nil)
+    censored_tags: nil,
+    log: Logger.new(nil),
+    env: ENV
   )
-    @server_id = server_id
-    @client_id = client_id
-    @token = token
-    @reports_user = reports_user
-    @reports_api_key = reports_api_key
-    @report_channel_name = report_channel_name
-    @signoz_api_key = signoz_api_key
-    @censored_tags = censored_tags
+    @server_id = server_id.presence&.to_i || env["DISCORD_SERVER_ID"]&.to_i || raise("DISCORD_SERVER_ID must be set")
+    @client_id = client_id.presence || env["DISCORD_CLIENT_ID"] || raise("DISCORD_CLIENT_ID must be set")
+    @token = token.presence || env["DISCORD_TOKEN"] || raise("DISCORD_TOKEN must be set")
+    @host = host.presence || env["FUMIMI_WEBSERVER_HOST"] || "0.0.0.0"
+    @post = port.presence || env["FUMIMI_WEBSERVER_PORT"] || 3000
+    @booru_url = booru_url.presence || env["BOORU_URL"] || "https://danbooru.donmai.us"
+    @booru_user = booru_user.presence || env["BOORU_USER"]
+    @booru_api_key = booru_api_key.presence || env["BOORU_API_KEY"]
+    @reports_user = reports_user.presence || env["BOORU_REPORTS_USER"]
+    @reports_api_key = reports_api_key.presence || env["BOORU_REPORTS_API_KEY"]
+    @report_channel_name = report_channel_name.presence || env["DISCORD_REPORT_CHANNEL_NAME"] || "user-reports"
+    @signoz_api_key = signoz_api_key.presence || env["SIGNOZ_API_KEY"]
+    @censored_tags = censored_tags.presence || env["FUMIMI_CENSORED_TAGS"].to_s.split || []
     @log = log
 
     @http = HTTPClient.new.logger(log).timeout(30)
-    @booru = Danbooru.new(url: booru_url, user: booru_user, api_key: booru_api_key, http: http, model_builder: method(:build_model))
+    @booru = Danbooru.new(url: @booru_url, user: @booru_user, api_key: @booru_api_key, http: http, model_builder: method(:build_model))
     @cache = ActiveSupport::Cache::MemoryStore.new
-    @webserver = Fumimi::Webserver.new(host: host, port: port, fumimi: self)
+    @webserver = Fumimi::Webserver.new(host: @host, port: @port, fumimi: self)
 
     Discordrb::LOGGER.streams = [DiscordLogStream.new(log)]
     Discordrb::LOGGER.mode = :info
@@ -88,11 +94,6 @@ class Fumimi
     log.info("Shutting down...")
     bot.stop
     exit(0)
-  end
-
-  def pry
-    require "pry"
-    binding.pry # rubocop:disable Lint/Debugger
   end
 
   def bot
@@ -140,6 +141,13 @@ class Fumimi
   def run
     log.debug("Starting bot...")
 
+    %w[INT TERM].each do |signal|
+      trap signal do
+        warn "SIG#{signal} received, initiating shutdown..." # Can't use logger inside a signal handler
+        @initiate_shutdown = true
+      end
+    end
+
     webserver.start
     register_commands
     bot.run(:async)
@@ -148,13 +156,9 @@ class Fumimi
 
     loop do
       reload_changed_code!
-      shutdown! if initiate_shutdown
+      shutdown! if @initiate_shutdown
       sleep 1
     end
-  end
-
-  def initiate_shutdown!
-    @initiate_shutdown = true
   end
 
   private

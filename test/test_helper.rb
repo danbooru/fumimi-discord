@@ -150,17 +150,7 @@ class ApplicationTest < ActiveSupport::TestCase
   end
 
   def default_fumimi(**options)
-    Fumimi.new(
-      server_id: ENV.fetch("DISCORD_SERVER_ID", nil),
-      client_id: ENV.fetch("DISCORD_CLIENT_ID", nil),
-      token: ENV.fetch("DISCORD_TOKEN", nil),
-      booru_url: ENV.fetch("BOORU_URL", "https://danbooru.donmai.us"),
-      booru_user: ENV.fetch("BOORU_USER", nil),
-      booru_api_key: ENV.fetch("BOORU_API_KEY", nil),
-      signoz_api_key: ENV.fetch("SIGNOZ_API_KEY", nil),
-      log: Logger.new(nil),
-      **options,
-    )
+    Fumimi.new(log: Logger.new(nil), **options)
   end
 
   def mock_slash_command(name, args: {}, nsfw_channel: false, fumimi: nil, user_id: 123, **options)

@@ -1,5 +1,7 @@
 #!/usr/bin/env ruby
 
 require_relative "../lib/fumimi"
+require "pry"
 
-exit Fumimi::CLI.run!
+Pry.config.pager = false
+Pry.start
