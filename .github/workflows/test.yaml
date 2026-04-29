@@ -54,4 +54,5 @@ jobs:
         env:
           BOORU_USER: ${{ secrets.BOORU_USER }}
           BOORU_API_KEY: ${{ secrets.BOORU_API_KEY }}
+          SIGNOZ_URL: https://signoz.donmai.us
           SIGNOZ_API_KEY: ${{ secrets.SIGNOZ_API_KEY }}

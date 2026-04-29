@@ -42,16 +42,16 @@ class Fumimi
       log: Fumimi.log,
       env: ENV
     )
-      @server_id = server_id.presence&.to_i || env["DISCORD_SERVER_ID"]&.to_i || raise("DISCORD_SERVER_ID must be set")
-      @client_id = client_id.presence || env["DISCORD_CLIENT_ID"] || raise("DISCORD_CLIENT_ID must be set")
-      @token = token.presence || env["DISCORD_TOKEN"] || raise("DISCORD_TOKEN must be set")
+      @server_id = server_id.presence&.to_i || env["DISCORD_SERVER_ID"]&.to_i
+      @client_id = client_id.presence || env["DISCORD_CLIENT_ID"]
+      @token = token.presence || env["DISCORD_TOKEN"]
       @host = host.presence || env["FUMIMI_WEBSERVER_HOST"] || "0.0.0.0"
       @post = port.presence || env["FUMIMI_WEBSERVER_PORT"] || 3000
       @booru_url = booru_url.presence || env["BOORU_URL"] || "https://danbooru.donmai.us"
       @booru_user = booru_user.presence || env["BOORU_USER"]
       @booru_api_key = booru_api_key.presence || env["BOORU_API_KEY"]
-      @reports_user = reports_user.presence || env["BOORU_REPORTS_USER"]
-      @reports_api_key = reports_api_key.presence || env["BOORU_REPORTS_API_KEY"]
+      @reports_user = reports_user.presence || env["BOORU_REPORTS_USER"] || @booru_user
+      @reports_api_key = reports_api_key.presence || env["BOORU_REPORTS_API_KEY"] || @booru_api_key
       @report_channel_name = report_channel_name.presence || env["DISCORD_REPORT_CHANNEL_NAME"] || "user-reports"
       @signoz_url = signoz_url.presence || env["SIGNOZ_URL"]
       @signoz_api_key = signoz_api_key.presence || env["SIGNOZ_API_KEY"]
@@ -91,6 +91,10 @@ class Fumimi
     end
 
     def register_commands
+      raise "DISCORD_SERVER_ID must be set" if server_id.nil?
+      raise "DISCORD_CLIENT_ID must be set" if client_id.nil?
+      raise "DISCORD_TOKEN must be set" if token.nil?
+
       Fumimi::SlashCommand.register_all(fumimi: self)
       Fumimi::Event.register_all(fumimi: self)
 
