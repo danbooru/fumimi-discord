@@ -142,7 +142,7 @@ class Fumimi::SlashCommand
 
       next false if new_command.keys.none? { |key| old_command[key].presence != new_command[key].presence }
 
-      fumimi.log.debug("Refreshing outdated slash command /#{new_command[:name]}.")
+      fumimi.log.info("Refreshing outdated slash command /#{new_command[:name]}.")
       true
     end.any?
   end

@@ -62,7 +62,7 @@ class Fumimi
       @webserver = Fumimi::Webserver.new(host: @host, port: @port, fumimi: self)
 
       Discordrb::LOGGER.streams = [DiscordLogStream.new(log)]
-      Discordrb::LOGGER.mode = :info
+      Discordrb::LOGGER.mode = :debug
     end
 
     def server
@@ -122,7 +122,7 @@ class Fumimi
     end
 
     def run
-      log.debug("Starting bot...")
+      log.info("Starting bot...")
 
       %w[INT TERM].each do |signal|
         trap signal do

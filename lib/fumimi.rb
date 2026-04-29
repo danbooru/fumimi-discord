@@ -11,7 +11,7 @@ class Fumimi
   mattr_reader :app_env, default: ActiveSupport::StringInquirer.new(APP_ENV)
 
   # @return [Logger] The logger used throughout the application.
-  mattr_accessor :log, default: Logger.new($stderr, level: Logger::INFO)
+  mattr_accessor :log, default: Logger.new($stderr, level: ENV.fetch("FUMIMI_LOG_LEVEL", "info"))
 
   # @return [Zeitwerk::Loader] The Zeitwerk code loader responsible for loading and reloading application code.
   mattr_reader :loader, default: Zeitwerk::Loader.new.tap { |loader|

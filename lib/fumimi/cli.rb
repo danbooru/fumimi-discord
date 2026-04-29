@@ -14,7 +14,7 @@ class Fumimi
       @stderr = stderr
       @options = {}
       @log = Logger.new(@stderr)
-      @log.level = Logger::DEBUG
+      @log.level = env.fetch("FUMIMI_LOG_LEVEL", "info")
     end
 
     # @return [Boolean] Runs the CLI and returns true if the command succeeded, false if it failed with an error.
@@ -50,6 +50,14 @@ class Fumimi
         opts.on("-h", "--help", "Show this help message") do
           @stdout.puts opts
           exit(0)
+        end
+
+        opts.on("-v", "--verbose", "Set log level to debug") do
+          @log.level = Logger::DEBUG
+        end
+
+        opts.on("-l", "--log-level LEVEL", %w[debug info warn error fatal], "Set log level (debug, info, warn, error, fatal)") do |level|
+          @log.level = Logger.const_get(level.upcase)
         end
 
         opts.parse!(@argv, into: @options)
