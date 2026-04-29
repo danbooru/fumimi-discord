@@ -74,7 +74,7 @@ class Fumimi::Event
   ## Internal methods
 
   # @param event [Discordrb::Events::MessageEvent]
-  # @param fumimi [Fumimi]
+  # @param fumimi [Fumimi::Bot]
   def initialize(event, fumimi:)
     @event = event
     @fumimi = fumimi
@@ -85,7 +85,7 @@ class Fumimi::Event
 
   # Installs one message listener that dispatches to all event subclasses.
   #
-  # @param fumimi [Fumimi]
+  # @param fumimi [Fumimi::Bot]
   # @return [void]
   def self.register_all(fumimi:)
     # XXX In development mode, if an event class's pattern changes or new events are added they won't be registered until the next restart.
@@ -99,7 +99,7 @@ class Fumimi::Event
   # Runs all event subclasses against one message.
   #
   # @param event [Discordrb::Events::MessageEvent]
-  # @param fumimi [Fumimi]
+  # @param fumimi [Fumimi::Bot]
   # @return [void]
   def self.respond_to_all_matches(event, fumimi:)
     text = event.text.gsub(/```.*?```/m, "").gsub(/`.*?`/m, "")

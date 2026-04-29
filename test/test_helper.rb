@@ -150,7 +150,7 @@ class ApplicationTest < ActiveSupport::TestCase
   end
 
   def default_fumimi(**options)
-    Fumimi.new(log: Logger.new(nil), **options)
+    Fumimi::Bot.new(log: Logger.new(nil), **options)
   end
 
   def mock_slash_command(name, args: {}, nsfw_channel: false, fumimi: nil, user_id: 123, **options)

@@ -8,7 +8,7 @@ class Fumimi
       def <<(msg) = log.info { msg.strip }
     end
 
-    # @param fumimi [Fumimi] The Fumimi instance.
+    # @param fumimi [Fumimi::Bot] The Fumimi bot instance.
     # @param host [String] The address to bind the webserver to.
     # @param port [Integer] The port to bind the webserver to.
     def initialize(fumimi:, host: "localhost", port: 3000)

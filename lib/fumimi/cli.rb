@@ -25,7 +25,7 @@ class Fumimi
     # @return [Boolean] Runs the CLI and returns true if the command succeeded, false if it failed with an error.
     def run!
       parse_options
-      fumimi = Fumimi.new(log: log, env: env)
+      fumimi = Fumimi::Bot.new(log: log, env: env)
       fumimi.run
     rescue SystemExit => e
       e.success?

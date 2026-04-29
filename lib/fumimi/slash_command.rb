@@ -80,7 +80,7 @@ class Fumimi::SlashCommand
   ## Internal methods
 
   # @param event [Discordrb::Events::InteractionCreateEvent]
-  # @param fumimi [Fumimi]
+  # @param fumimi [Fumimi::Bot]
   def initialize(event, fumimi:)
     @event = event
     @fumimi = fumimi
@@ -92,7 +92,7 @@ class Fumimi::SlashCommand
 
   # Registers all commands, refreshing Discord definitions only when needed.
   #
-  # @param fumimi [Fumimi]
+  # @param fumimi [Fumimi::Bot]
   # @return [void]
   def self.register_all(fumimi:)
     register_slash_commands(fumimi:) if outdated_commands?(fumimi:)
@@ -105,7 +105,7 @@ class Fumimi::SlashCommand
   # Registers one slash command subclass with the bot.
   #
   # @param command [Class]
-  # @param fumimi [Fumimi]
+  # @param fumimi [Fumimi::Bot]
   # @return [Proc]
   def self.register(command, fumimi:)
     class_name = command.to_s
@@ -130,7 +130,7 @@ class Fumimi::SlashCommand
 
   # Returns true when local command definitions differ from Discord's.
   #
-  # @param fumimi [Fumimi]
+  # @param fumimi [Fumimi::Bot]
   # @return [Boolean]
   def self.outdated_commands?(fumimi:)
     response = Discordrb::API::Application.get_guild_commands(fumimi.bot.token, fumimi.bot.profile.id, fumimi.server_id)
@@ -149,7 +149,7 @@ class Fumimi::SlashCommand
 
   # Bulk-updates all slash command definitions in one API call.
   #
-  # @param fumimi [Fumimi]
+  # @param fumimi [Fumimi::Bot]
   # @return [Object]
   def self.register_slash_commands(fumimi:)
     Discordrb::API::Application.bulk_overwrite_guild_commands(
