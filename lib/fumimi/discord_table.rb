@@ -11,7 +11,7 @@ class Fumimi::DiscordTable
         # limit the max length of usernames etc
         cell.to_s.truncate(20, omission: "…")
       end
-    end
+    end.first(30)
   end
 
   def to_s

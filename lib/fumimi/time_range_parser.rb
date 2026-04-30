@@ -4,7 +4,7 @@ class Fumimi::TimeRangeParser
 
     if range.nil?
       raise Fumimi::Exceptions::CommandArgumentError,
-            "Invalid range format. Use e.g. 1h, 2d, 1w, 1mo."
+            "Invalid range format: #{range}. Use e.g. 1h, 2d, 1w, 1mo."
     end
 
     range = clamp(range, min:, max:, raise_on_validation:) if min || max
@@ -27,7 +27,7 @@ class Fumimi::TimeRangeParser
   def self.parse_string(str)
     return nil if str.blank?
 
-    case str.strip.downcase
+    case str.strip.downcase.delete_prefix("<")
     when /^(\d+)\s*mo(?:nths?)?/i then Regexp.last_match(1).to_i.months
     when /^(\d+)\s*w(?:eeks?)?/i  then Regexp.last_match(1).to_i.weeks
     when /^(\d+)\s*d(?:ays?)?/i then Regexp.last_match(1).to_i.days

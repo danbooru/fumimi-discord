@@ -58,4 +58,8 @@ class Fumimi::Model::ForumPost < Fumimi::Model
       Fumimi::Colors::RED
     end
   end
+
+  def word_count
+    body.scan(/[a-zA-Z'-]+/).size
+  end
 end
