@@ -32,7 +32,7 @@ class Fumimi::Report::YappersReport
   end
 
   def topic_link
-    "[topic ##{@topic_id}](#{@fumimi.booru.url}/#{@topic_id})"
+    "[topic ##{@topic_id}](#{@fumimi.booru.url}/forum_topics/#{@topic_id})"
   end
 
   def table
