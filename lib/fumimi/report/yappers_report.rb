@@ -16,6 +16,7 @@ class Fumimi::Report::YappersReport
   def embed_description
     <<~EOS
       #{description}
+      #{"Only showing the latest #{total_posts} posts." if hit_max_pages?}
       ```
       #{table.prettified}
       ```
@@ -67,12 +68,20 @@ class Fumimi::Report::YappersReport
     query_params
   end
 
+  def hit_max_pages?
+    total_posts >= 1000
+  end
+
   def top_yappers
     @cache.fetch(cache_key, expires_in: 1.hour) do
       @top_yappers ||= Hash.new(0).tap do |yappers_map|
         forum_posts.each { |fp| yappers_map[fp.creator.name] += fp.word_count }
       end.sort_by { |_k, v| v }.reverse.to_h # rubocop:disable Style/MultilineBlockChain
     end
+  end
+
+  def total_posts
+    @cache.fetch(:"#{cache_key}_total_posts", expires_in: 1.hour) { forum_posts.length }
   end
 
   def cache_key
@@ -84,15 +93,6 @@ class Fumimi::Report::YappersReport
   end
 
   def forum_posts
-    @forum_posts ||= [].tap do |posts|
-      page = 1
-      loop do
-        page_posts = @fumimi.booru.forum_posts.index(**query_params, page: page)
-        break if page_posts.empty?
-
-        page = "b#{page_posts.map(&:id).min}"
-        posts.concat(page_posts)
-      end
-    end
+    @forum_posts ||= @fumimi.booru.forum_posts.index(**query_params)
   end
 end
