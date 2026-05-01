@@ -3,7 +3,7 @@ class Fumimi
   class Bot
     include Fumimi::ExceptionHandler
 
-    attr_reader :server_id, :client_id, :token, :log, :http, :booru, :cache, :webserver, :censored_tags,
+    attr_reader :server_id, :client_id, :token, :log, :http, :booru, :booru_domains, :cache, :webserver, :censored_tags,
                 :report_channel_name, :signoz_url, :signoz_api_key
 
     # Adapts the Discordrb logger to write through Fumimi's logger.
@@ -31,6 +31,7 @@ class Fumimi
       host: nil,
       port: nil,
       booru_url: nil,
+      booru_domains: nil,
       booru_user: nil,
       booru_api_key: nil,
       reports_user: nil,
@@ -48,6 +49,7 @@ class Fumimi
       @host = host.presence || env["FUMIMI_WEBSERVER_HOST"] || "0.0.0.0"
       @post = port.presence || env["FUMIMI_WEBSERVER_PORT"] || 3000
       @booru_url = booru_url.presence || env["BOORU_URL"] || "https://danbooru.donmai.us"
+      @booru_domains = Array.wrap(booru_domains).presence || env["BOORU_DOMAINS"]&.split || [URI.parse(@booru_url).host]
       @booru_user = booru_user.presence || env["BOORU_USER"]
       @booru_api_key = booru_api_key.presence || env["BOORU_API_KEY"]
       @reports_user = reports_user.presence || env["BOORU_REPORTS_USER"] || @booru_user

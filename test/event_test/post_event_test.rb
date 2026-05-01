@@ -139,6 +139,26 @@ class PostEventTest < ApplicationTest
     assert_equal 1, suppress_embeds_calls
   end
 
+  def test_betabooru_post_link
+    embeds = mock_event("https://betabooru.donmai.us/posts/3", booru_domains: ["betabooru.donmai.us"]) => { embeds:, ** }
+    assert_equal 1, embeds.length
+    post = embeds.first
+
+    assert_equal "post #3", post.title
+    assert_equal "https://danbooru.donmai.us/posts/3", post.url
+  end
+
+  def test_post_subpage_link_is_ignored
+    embeds = mock_event("https://danbooru.donmai.us/posts/1234/events") => { embeds:, ** }
+    assert_equal 0, embeds.length
+  end
+
+  def test_post_link_with_query_params
+    embeds = mock_event("https://danbooru.donmai.us/posts/1234?q=touhou") => { embeds:, ** }
+    assert_equal 1, embeds.length
+    assert_equal "post #1234", embeds.first.title
+  end
+
   def test_no_post
     embeds = mock_event("post #6") => { embeds:, ** }
     assert_equal 0, embeds.length

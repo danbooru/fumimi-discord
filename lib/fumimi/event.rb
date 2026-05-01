@@ -16,12 +16,14 @@ class Fumimi::Event
 
   # Full regex for this event, including optional model-link capture.
   #
+  # @param domains [Array<String>] List of hostnames to match (e.g. ["danbooru.donmai.us"]).
   # @return [Regexp]
-  def self.total_pattern
+  def self.total_pattern(domains: nil)
     return pattern unless model_for_link_capture
 
     model = model_for_link_capture.strip("/")
-    model_pattern = %r{\b(?!https?://\w+\.donmai\.us/#{model}/\d+/\w+)https?://(?!testbooru)\w+\.donmai\.us/#{model}/(\d+)\b[^[:space:]]*}i
+    domain_pattern = Regexp.union(domains.map { |d| Regexp.new(Regexp.escape(d)) })
+    model_pattern = %r{\b(?!https?://#{domain_pattern}/#{model}/\d+/\w+)https?://#{domain_pattern}/#{model}/(\d+)\b}i
 
     Regexp.union(pattern, model_pattern)
   end
@@ -89,7 +91,7 @@ class Fumimi::Event
   # @return [void]
   def self.register_all(fumimi:)
     # XXX In development mode, if an event class's pattern changes or new events are added they won't be registered until the next restart.
-    total_regex = Regexp.union(event_classes.map(&:total_pattern))
+    total_regex = Regexp.union(event_classes.map { |klass| klass.total_pattern(domains: fumimi.booru_domains) })
 
     fumimi.bot.message(contains: total_regex) do |event|
       respond_to_all_matches(event, fumimi:)
@@ -105,7 +107,7 @@ class Fumimi::Event
     text = event.text.gsub(/```.*?```/m, "").gsub(/`.*?`/m, "")
 
     messages, embeds = event_classes.each_with_object([[], []]) do |subclass, (messages, embeds)|
-      matches = text.scan(subclass.total_pattern).flatten.compact.uniq
+      matches = text.scan(subclass.total_pattern(domains: fumimi.booru_domains)).flatten.compact.uniq
       next unless matches.present?
 
       next if embeds.length > 10
