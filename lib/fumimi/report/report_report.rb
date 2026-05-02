@@ -1,15 +1,14 @@
-class Fumimi::Report::ReportedUserReport
+class Fumimi::Report::ReportReport
   include Fumimi::HasDiscordEmbed
 
-  def initialize(reported_id:, reporter_id:, report_reason:, booru:)
-    @reported_id = reported_id
+  def initialize(reporter_id:, report_reason:, booru:)
     @reporter_id = reporter_id
     @report_reason = report_reason
     @booru = booru
   end
 
   def embed_title
-    "Discord User Report"
+    "Discord Report"
   end
 
   def embed_color
@@ -21,17 +20,12 @@ class Fumimi::Report::ReportedUserReport
       { name: "Submitted at", value: "<t:#{Time.now.to_i}:R>", inline: true },
       { name: "", value: "", inline: false },
 
-      { name: "Reported User", value: reported_user_shortlink, inline: true },
       { name: "Reporter", value: "<@#{@reporter_id}>", inline: true },
 
       { name: "", value: "", inline: false },
 
       { name: "Reason", value: @report_reason },
     ]
-  end
-
-  def reported_user_shortlink
-    "[User ##{@reported_id}](#{@booru.url}/users/#{@reported_id})"
   end
 
   def buttons

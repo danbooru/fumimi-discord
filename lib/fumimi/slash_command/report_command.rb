@@ -1,10 +1,10 @@
-class Fumimi::SlashCommand::ReportUserCommand < Fumimi::SlashCommand
+class Fumimi::SlashCommand::ReportCommand < Fumimi::SlashCommand
   def self.name
     "report"
   end
 
   def self.description
-    "Report a danbooru user to the staff. Don't submit joke reports, or else."
+    "Report a danbooru user, post, anything to the staff."
   end
 
   def self.ephemeral?
@@ -13,8 +13,7 @@ class Fumimi::SlashCommand::ReportUserCommand < Fumimi::SlashCommand
 
   def self.options
     [
-      { type: OPTION_TYPES[:integer], name: "user_id", description: "The danbooru user ID.", required: true },
-      { type: OPTION_TYPES[:string], name: "reason", description: "The reason for the report.", required: true },
+      { type: OPTION_TYPES[:string], name: "reason", description: "Explain what you're reporting.", required: true },
     ]
   end
 
@@ -26,8 +25,7 @@ class Fumimi::SlashCommand::ReportUserCommand < Fumimi::SlashCommand
   end
 
   def respond_to_event
-    report = Fumimi::Report::ReportedUserReport.new(
-      reported_id: arguments[:user_id],
+    report = Fumimi::Report::ReportReport.new(
       reporter_id: @event.user.id,
       report_reason: report_reason,
       booru: @booru,
