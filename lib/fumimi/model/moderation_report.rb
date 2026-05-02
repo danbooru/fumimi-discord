@@ -3,6 +3,10 @@ class Fumimi::Model::ModerationReport < Fumimi::Model
     "Danbooru Report ##{id}"
   end
 
+  def url
+    "#{booru.url}/moderation_reports/#{id}"
+  end
+
   def embed_color
     Fumimi::Colors::RED
   end

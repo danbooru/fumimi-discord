@@ -32,6 +32,7 @@ class Fumimi::ReportMonitor
   def start
     @mutex = Mutex.new
     self.last_report_id = booru.moderation_reports.index(limit: 1).first&.id || 0
+    # self.last_report_id -= 1 # uncomment this to force post the latest report on fumimi restart when testing
     log.info("Starting to monitor for new user reports...")
 
     Thread.new do
