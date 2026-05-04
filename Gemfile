@@ -2,6 +2,8 @@ source "https://rubygems.org"
 
 gem "activesupport", require: "active_support/all"
 gem "addressable", require: "addressable/uri"
+gem "concurrent-ruby", require: "concurrent"
+gem "concurrent-ruby-edge", require: "concurrent-edge"
 gem "date"
 gem "dentaku"
 # waiting for this to be released as a new version: https://github.com/shardlab/discordrb/issues/311

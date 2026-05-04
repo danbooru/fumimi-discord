@@ -1,7 +1,7 @@
 class Danbooru
   # Represents one Danbooru endpoint collection (for example `posts` or `tags`).
   class Resource
-    attr_reader :booru
+    attr_reader :name, :booru
 
     # @param name [String] Resource path name (usually pluralized, snake_case).
     # @param booru [Danbooru] Parent API client.
@@ -38,6 +38,13 @@ class Danbooru
     # @return [Danbooru::Response]
     def show(id, params = {})
       request(:get, "/#{id}", { params: @default_params.merge(params) })
+    end
+
+    # Returns a monitor that polls this resource for new items.
+    #
+    # @return [Danbooru::Monitor]
+    def monitor(**options, &block)
+      Danbooru::Monitor.new(resource: self, **options, &block)
     end
   end
 end
