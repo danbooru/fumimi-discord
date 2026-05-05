@@ -1,4 +1,4 @@
-class Fumimi::Event::PostEvent < Fumimi::Event
+class Fumimi::MessageEvent::PostEvent < Fumimi::MessageEvent
   def self.pattern
     /post #([0-9]+)/i
   end

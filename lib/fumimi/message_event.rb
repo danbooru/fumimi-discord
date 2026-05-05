@@ -1,0 +1,140 @@
+# Base class for message-triggered Discord events.
+#
+# Subclasses are auto-registered and define matching behavior with {.pattern}.
+# They can return text and embeds for each match set.
+#
+class Fumimi::MessageEvent < Fumimi::Event
+  # Regex used to find matches in a message.
+  #
+  # @return [Regexp]
+  # @raise [NotImplementedError]
+  def self.pattern
+    raise NotImplementedError, "Must implement a pattern."
+  end
+
+  # Full regex for this event, including optional model-link capture.
+  #
+  # @param domains [Array<String>] List of hostnames to match (e.g. ["danbooru.donmai.us"]).
+  # @return [Regexp]
+  def self.total_pattern(domains: nil)
+    return pattern unless model_for_link_capture
+
+    model = model_for_link_capture.strip("/")
+    domain_pattern = Regexp.union(domains.map { |d| Regexp.new(Regexp.escape(d)) })
+    model_pattern = %r{\b(?!https?://#{domain_pattern}/#{model}/\d+/\w+)https?://#{domain_pattern}/#{model}/(\d+)\b}i
+
+    Regexp.union(pattern, model_pattern)
+  end
+
+  # Embed responses for the matched values.
+  #
+  # @param matches [Array<String>]
+  # @return [Array<Discordrb::Webhooks::Embed>]
+  def embeds_for(matches)
+  end
+
+  # Text responses for the matched values.
+  #
+  # @param matches [Array<String>]
+  # @return [Array<String>]
+  def messages_for(matches)
+  end
+
+  # Optional Danbooru model path used for auto URL capture.
+  #
+  # @return [String, nil]
+  def self.model_for_link_capture
+    nil
+  end
+
+  # Whether to suppress Discord's default link preview on the source message.
+  #
+  # @return [Boolean]
+  def self.delete_link_embed?
+    false
+  end
+
+  # Executes this event for a set of already-found matches.
+  #
+  # @param matches [Array<String>]
+  # @return [Array<(Array<String>, Array<Discordrb::Webhooks::Embed>)>]
+  def respond_to_matches(matches)
+    @log.info("command='#{self.class.name.demodulize}' args=`#{matches}` user_id=#{@event.user.id} username='#{@event.user.username}' channel='##{@event.channel.name}'") # rubocop:disable Layout/LineLength
+
+    messages = messages_for(matches)
+    begin
+      embeds = embeds_for(matches)
+    rescue Danbooru::Exceptions::BadRequestError, Danbooru::Exceptions::NotFoundError
+      embeds = []
+    end
+
+    [messages.to_a, embeds.to_a]
+  end
+
+  # Installs one message listener that dispatches to all event subclasses.
+  #
+  # @param fumimi [Fumimi::Bot]
+  # @return [void]
+  def self.register_all(fumimi:)
+    # XXX In development mode, if an event class's pattern changes or new events are added they won't be registered until the next restart.
+    total_regex = Regexp.union(event_classes.map { |klass| klass.total_pattern(domains: fumimi.booru_domains) })
+
+    fumimi.bot.message(contains: total_regex) do |event|
+      respond_to_all_matches(event, fumimi:)
+    end
+  end
+
+  # Runs all event subclasses against one message.
+  #
+  # @param event [Discordrb::Events::MessageEvent]
+  # @param fumimi [Fumimi::Bot]
+  # @return [void]
+  def self.respond_to_all_matches(event, fumimi:)
+    text = event.text.gsub(/```.*?```/m, "").gsub(/`.*?`/m, "")
+
+    messages, embeds = event_classes.each_with_object([[], []]) do |subclass, (messages, embeds)|
+      matches = text.scan(subclass.total_pattern(domains: fumimi.booru_domains)).flatten.compact.uniq
+      next unless matches.present?
+
+      next if embeds.length > 10
+
+      event.message.suppress_embeds if subclass.delete_link_embed? && !event.channel.pm?
+
+      kommand = subclass.new(fumimi, event)
+      kommand.execute_and_rescue_errors(event) do
+        submessages, subembeds = kommand.respond_to_matches(matches)
+        messages.concat(submessages)
+        embeds.concat(subembeds)
+      end
+    end
+
+    send_combined_message(event, messages:, embeds:)
+  end
+
+  # Sends one combined response for all collected messages and embeds.
+  #
+  # @param event [Discordrb::Events::MessageEvent]
+  # @param messages [Array<String>, nil]
+  # @param embeds [Array<Discordrb::Webhooks::Embed>, nil]
+  # @return [void]
+  def self.send_combined_message(event, messages: nil, embeds: nil)
+    messages = messages.to_a.join("\n").strip
+    embeds = embeds.to_a.flatten.compact
+    return unless embeds.present? || messages.present?
+
+    event.channel.send_message(
+      messages,
+      false,
+      embeds.first(10),
+      nil,
+      { replied_user: false }, # allowed mentions: don't ping who you're replying to
+      event.message, # message reference
+    )
+  end
+
+  # @return [Array<Class>] The list of all event subclasses.
+  def self.event_classes
+    Zeitwerk::Loader.eager_load_namespace(Fumimi::MessageEvent)
+    subclasses
+  end
+end

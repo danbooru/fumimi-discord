@@ -1,4 +1,4 @@
-class Fumimi::Event::UserEvent < Fumimi::Event
+class Fumimi::MessageEvent::UserEvent < Fumimi::MessageEvent
   def self.pattern
     /user #([0-9]+)/i
   end

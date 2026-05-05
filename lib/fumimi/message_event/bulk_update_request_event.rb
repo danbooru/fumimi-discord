@@ -1,4 +1,4 @@
-class Fumimi::Event::BulkUpdateRequestEvent < Fumimi::Event
+class Fumimi::MessageEvent::BulkUpdateRequestEvent < Fumimi::MessageEvent
   def self.pattern
     /bur #([0-9]+)/i
   end

@@ -1,4 +1,4 @@
-class Fumimi::Event::SearchSyntaxEvent < Fumimi::Event
+class Fumimi::MessageEvent::SearchSyntaxEvent < Fumimi::MessageEvent
   def self.pattern
     /{{ [^}]+ }}/x
   end

@@ -1,4 +1,4 @@
-class Fumimi::Event::PullEvent < Fumimi::Event
+class Fumimi::MessageEvent::PullEvent < Fumimi::MessageEvent
   def self.pattern
     /pull #([0-9]+)/i
   end

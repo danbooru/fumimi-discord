@@ -3,9 +3,7 @@
 # Subclasses are auto-registered and should define {.name} plus a response via
 # {#message}, {#embeds}, or a custom {#respond_to_event}.
 #
-class Fumimi::SlashCommand
-  include Fumimi::ExceptionHandler
-
+class Fumimi::SlashCommand < Fumimi::Event
   OPTION_TYPES = { string: 3, integer: 4, boolean: 5, number: 10 }.freeze
 
   # @return [String] Command name users type in Discord.
@@ -75,18 +73,6 @@ class Fumimi::SlashCommand
     raise Fumimi::Exceptions::NoResultsError if embs == [] && msg.blank?
 
     @event.edit_response(content: msg, embeds: embs)
-  end
-
-  ## Internal methods
-
-  # @param event [Discordrb::Events::InteractionCreateEvent]
-  # @param fumimi [Fumimi::Bot]
-  def initialize(event, fumimi:)
-    @event = event
-    @fumimi = fumimi
-    @booru = fumimi.booru
-    @log = fumimi.log
-    @cache = fumimi.cache
   end
 
   # Handles command execution with logging and exception wrapping.

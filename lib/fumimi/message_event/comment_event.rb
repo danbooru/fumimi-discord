@@ -1,4 +1,4 @@
-class Fumimi::Event::CommentEvent < Fumimi::Event
+class Fumimi::MessageEvent::CommentEvent < Fumimi::MessageEvent
   def self.pattern
     /comment #([0-9]+)/i
   end

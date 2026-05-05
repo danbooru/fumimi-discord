@@ -1,4 +1,4 @@
-class Fumimi::Event::PoolEvent < Fumimi::Event
+class Fumimi::MessageEvent::PoolEvent < Fumimi::MessageEvent
   def self.pattern
     /pool #([0-9]+)/i
   end

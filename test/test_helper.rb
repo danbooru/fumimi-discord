@@ -164,7 +164,7 @@ class ApplicationTest < ActiveSupport::TestCase
 
     event = EventMock.new(user: user_mock(user_id:), channel: channel_mock(nsfw_channel:), options: args)
 
-    command = command_class.new(event, fumimi:)
+    command = command_class.new(fumimi, event)
     command.safe_handle_event
     event.captured
   end
@@ -172,7 +172,7 @@ class ApplicationTest < ActiveSupport::TestCase
   def mock_event(text, nsfw_channel: false, **options)
     event = EventMock.new(text: text, channel: channel_mock(nsfw_channel:), user: user_mock)
 
-    Fumimi::Event.respond_to_all_matches(event, fumimi: default_fumimi(**options))
+    Fumimi::MessageEvent.respond_to_all_matches(event, fumimi: default_fumimi(**options))
     event.captured
   end
 

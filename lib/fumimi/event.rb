@@ -1,154 +1,53 @@
-# Base class for message-triggered Discord events.
-#
-# Subclasses are auto-registered and define matching behavior with {.pattern}.
-# They can return text and embeds for each match set.
-#
-class Fumimi::Event
-  include Fumimi::ExceptionHandler
+class Fumimi
+  class Event
+    attr_reader :fumimi, :event
 
-  # Regex used to find matches in a message.
-  #
-  # @return [Regexp]
-  # @raise [NotImplementedError]
-  def self.pattern
-    raise NotImplementedError, "Must implement a pattern."
-  end
+    delegate :booru, :log, :cache, to: :fumimi
 
-  # Full regex for this event, including optional model-link capture.
-  #
-  # @param domains [Array<String>] List of hostnames to match (e.g. ["danbooru.donmai.us"]).
-  # @return [Regexp]
-  def self.total_pattern(domains: nil)
-    return pattern unless model_for_link_capture
-
-    model = model_for_link_capture.strip("/")
-    domain_pattern = Regexp.union(domains.map { |d| Regexp.new(Regexp.escape(d)) })
-    model_pattern = %r{\b(?!https?://#{domain_pattern}/#{model}/\d+/\w+)https?://#{domain_pattern}/#{model}/(\d+)\b}i
-
-    Regexp.union(pattern, model_pattern)
-  end
-
-  # Embed responses for the matched values.
-  #
-  # @param matches [Array<String>]
-  # @return [Array<Discordrb::Webhooks::Embed>]
-  def embeds_for(matches)
-  end
-
-  # Text responses for the matched values.
-  #
-  # @param matches [Array<String>]
-  # @return [Array<String>]
-  def messages_for(matches)
-  end
-
-  # Optional Danbooru model path used for auto URL capture.
-  #
-  # @return [String, nil]
-  def self.model_for_link_capture
-    nil
-  end
-
-  # Whether to suppress Discord's default link preview on the source message.
-  #
-  # @return [Boolean]
-  def self.delete_link_embed?
-    false
-  end
-
-  # Executes this event for a set of already-found matches.
-  #
-  # @param matches [Array<String>]
-  # @return [Array<(Array<String>, Array<Discordrb::Webhooks::Embed>)>]
-  def respond_to_matches(matches)
-    @log.info("command='#{self.class.name.demodulize}' args=`#{matches}` user_id=#{@event.user.id} username='#{@event.user.username}' channel='##{@event.channel.name}'") # rubocop:disable Layout/LineLength
-
-    messages = messages_for(matches)
-    begin
-      embeds = embeds_for(matches)
-    rescue Danbooru::Exceptions::BadRequestError, Danbooru::Exceptions::NotFoundError
-      embeds = []
+    # @param fumimi [Fumimi::Bot] The Fumimi bot instance.
+    # @param event [Discordrb::Events::Event] The Discordrb event object.
+    def initialize(fumimi, event)
+      @fumimi = fumimi
+      @event = event
+      @log = fumimi.log
+      @cache = fumimi.cache
+      @booru = fumimi.booru
     end
 
-    [messages.to_a, embeds.to_a]
-  end
-
-  ## Internal methods
-
-  # @param event [Discordrb::Events::MessageEvent]
-  # @param fumimi [Fumimi::Bot]
-  def initialize(event, fumimi:)
-    @event = event
-    @fumimi = fumimi
-    @booru = fumimi.booru
-    @log = fumimi.log
-    @cache = fumimi.cache
-  end
-
-  # Installs one message listener that dispatches to all event subclasses.
-  #
-  # @param fumimi [Fumimi::Bot]
-  # @return [void]
-  def self.register_all(fumimi:)
-    # XXX In development mode, if an event class's pattern changes or new events are added they won't be registered until the next restart.
-    total_regex = Regexp.union(event_classes.map { |klass| klass.total_pattern(domains: fumimi.booru_domains) })
-
-    fumimi.bot.message(contains: total_regex) do |event|
-      respond_to_all_matches(event, fumimi:)
+    # @param event [Discordrb::Events::Event] The Discord event to handle.
+    def execute_and_rescue_errors(event, &block)
+      block.call
+    rescue StandardError, RestClient::Exception, NotImplementedError => e
+      @log&.error e
+      send_error(event, e)
     end
-  end
 
-  # Runs all event subclasses against one message.
-  #
-  # @param event [Discordrb::Events::MessageEvent]
-  # @param fumimi [Fumimi::Bot]
-  # @return [void]
-  def self.respond_to_all_matches(event, fumimi:)
-    text = event.text.gsub(/```.*?```/m, "").gsub(/`.*?`/m, "")
+    # @param exception [Exception] The exception to create an embed for.
+    def embed_for_exception(exception)
+      error_embed = Discordrb::Webhooks::Embed.new
 
-    messages, embeds = event_classes.each_with_object([[], []]) do |subclass, (messages, embeds)|
-      matches = text.scan(subclass.total_pattern(domains: fumimi.booru_domains)).flatten.compact.uniq
-      next unless matches.present?
+      if exception.is_a?(Fumimi::Exceptions::FumimiException) || exception.is_a?(Danbooru::Exceptions::DanbooruError)
+        error_embed.title = exception&.embed_title
+        error_embed.description = exception&.embed_description
+        embed_image = exception&.embed_image
+      end
 
-      next if embeds.length > 10
+      error_embed.title ||= "Exception Encountered!"
+      error_embed.description ||= exception.to_s
+      embed_image ||= "https://i.imgur.com/0CsFWP3.png"
+      error_embed.image = Discordrb::Webhooks::EmbedImage.new(url: embed_image)
+      error_embed
+    end
 
-      event.message.suppress_embeds if subclass.delete_link_embed? && !event.channel.pm?
-
-      kommand = subclass.new(event, fumimi:)
-      kommand.execute_and_rescue_errors(event) do
-        submessages, subembeds = kommand.respond_to_matches(matches)
-        messages.concat(submessages)
-        embeds.concat(subembeds)
+    # @param event [Discordrb::Events::Event] The event to send the error message in response to.
+    # @param exception [Exception] The exception to send.
+    def send_error(event, exception)
+      embed = embed_for_exception(exception)
+      if event.respond_to?(:edit_response)
+        event.edit_response(embeds: [embed])
+      else
+        event.channel.send_message("", false, [embed], nil, { replied_user: false }, event.message)
       end
     end
-
-    send_combined_message(event, messages:, embeds:)
-  end
-
-  # Sends one combined response for all collected messages and embeds.
-  #
-  # @param event [Discordrb::Events::MessageEvent]
-  # @param messages [Array<String>, nil]
-  # @param embeds [Array<Discordrb::Webhooks::Embed>, nil]
-  # @return [void]
-  def self.send_combined_message(event, messages: nil, embeds: nil)
-    messages = messages.to_a.join("\n").strip
-    embeds = embeds.to_a.flatten.compact
-    return unless embeds.present? || messages.present?
-
-    event.channel.send_message(
-      messages,
-      false,
-      embeds.first(10),
-      nil,
-      { replied_user: false }, # allowed mentions: don't ping who you're replying to
-      event.message, # message reference
-    )
-  end
-
-  # @return [Array<Class>] The list of all event subclasses.
-  def self.event_classes
-    Zeitwerk::Loader.eager_load_namespace(Fumimi::Event)
-    subclasses
   end
 end

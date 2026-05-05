@@ -1,4 +1,4 @@
-class Fumimi::Event::PixivEvent < Fumimi::Event
+class Fumimi::MessageEvent::PixivEvent < Fumimi::MessageEvent
   def self.pattern
     /pixiv #([0-9]+)/i
   end

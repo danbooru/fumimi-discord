@@ -1,4 +1,4 @@
-class Fumimi::Event::MediaAssetEvent < Fumimi::Event
+class Fumimi::MessageEvent::MediaAssetEvent < Fumimi::MessageEvent
   def self.pattern
     /asset #([0-9]+)/i
   end

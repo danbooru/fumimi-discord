@@ -1,8 +1,6 @@
 class Fumimi
   # The main bot class that drives the Discord bot.
   class Bot
-    include Fumimi::ExceptionHandler
-
     attr_reader :client_id, :token, :log, :http, :booru, :booru_domains, :cache, :webserver, :censored_tags,
                 :report_channel_id, :signoz_url, :signoz_api_key
 
@@ -105,7 +103,7 @@ class Fumimi
       raise "DISCORD_TOKEN must be set" if token.nil?
 
       command_registry.register_all
-      Fumimi::Event.register_all(fumimi: self)
+      Fumimi::MessageEvent.register_all(fumimi: self)
 
       bot.button { |event| Fumimi::Button.mark_handled(event) }
     end

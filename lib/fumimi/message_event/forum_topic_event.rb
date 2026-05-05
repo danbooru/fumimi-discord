@@ -1,4 +1,4 @@
-class Fumimi::Event::ForumTopicEvent < Fumimi::Event
+class Fumimi::MessageEvent::ForumTopicEvent < Fumimi::MessageEvent
   def self.pattern
     /topic #([0-9]+)/i
   end

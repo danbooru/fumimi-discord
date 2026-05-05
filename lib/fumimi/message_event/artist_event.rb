@@ -1,4 +1,4 @@
-class Fumimi::Event::ArtistEvent < Fumimi::Event
+class Fumimi::MessageEvent::ArtistEvent < Fumimi::MessageEvent
   def self.pattern
     /artist #([0-9]+)/i
   end

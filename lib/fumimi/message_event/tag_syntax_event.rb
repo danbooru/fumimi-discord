@@ -1,4 +1,4 @@
-class Fumimi::Event::TagSyntaxEvent < Fumimi::Event
+class Fumimi::MessageEvent::TagSyntaxEvent < Fumimi::MessageEvent
   # Matches [[tag]], [[pool:name]], and [[pool:name with spaces]].
   def self.pattern
     /\[\[\s*([^\]]+?)\s*\]\]/

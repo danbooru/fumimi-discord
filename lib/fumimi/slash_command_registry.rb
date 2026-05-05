@@ -26,7 +26,7 @@ class Fumimi
       class_name = command.to_s
 
       bot.application_command(command.name) do |event|
-        kommand = class_name.constantize.new(event, fumimi: fumimi)
+        kommand = class_name.constantize.new(fumimi, event)
         kommand.safe_handle_event
       end
     end
