@@ -46,7 +46,7 @@ class Fumimi
       if event.respond_to?(:edit_response)
         event.edit_response(embeds: [embed])
       else
-        event.channel.send_message("", false, [embed], nil, { replied_user: false }, event.message)
+        event.message.reply!("", embed: embed)
       end
     end
   end

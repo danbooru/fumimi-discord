@@ -122,13 +122,11 @@ class Fumimi::MessageEvent < Fumimi::Event
     embeds = embeds.to_a.flatten.compact
     return unless embeds.present? || messages.present?
 
-    event.channel.send_message(
-      messages,
-      false,
-      embeds.first(10),
-      nil,
-      { replied_user: false }, # allowed mentions: don't ping who you're replying to
-      event.message, # message reference
+    event.channel.send_message!(
+      content: messages,
+      embeds: embeds.first(10),
+      allowed_mentions: { replied_user: false }, # don't ping who you're replying to
+      reference: event.message,
     )
   end
 

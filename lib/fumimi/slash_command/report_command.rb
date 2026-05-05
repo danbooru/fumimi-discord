@@ -31,15 +31,7 @@ class Fumimi::SlashCommand::ReportCommand < Fumimi::SlashCommand
       booru: @booru,
     )
 
-    @fumimi.report_channel.send_message(
-      "",
-      false,
-      report.embed,
-      nil, # attachments
-      nil, # allowed_mentions
-      nil, # message_reference
-      report.buttons, # components
-    )
+    @fumimi.report_channel.send_message!(embeds: [report.embed], components: report.buttons)
     @event.edit_response(content: "Your report has been submitted.")
   end
 end

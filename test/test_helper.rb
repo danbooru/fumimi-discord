@@ -28,24 +28,18 @@ end
 class ChannelMock
   attr_reader :id, :name, :messages, :embeds
 
-  def initialize(name:, id: 123, is_nsfw: true, pm: false)
+  def initialize(name: "#test", id: 123, is_nsfw: false, pm: false)
     @id = id
     @name = name
     @is_nsfw = is_nsfw
+    @pm = pm
     @messages = []
     @embeds = []
   end
 
-  def send_embed(msg = nil, embeds = nil, *_rest)
-    @messages << msg unless msg.nil?
-    @embeds.concat(Array(embeds)) if embeds
-    true
-  end
-
-  def send_message(msg = nil, _tts = false, embeds = nil, *_rest)
-    @messages << msg
-    @embeds.concat(Array(embeds)) if embeds
-    true
+  def send_message!(content: "", embeds: [], **_rest)
+    @messages << content
+    @embeds.concat(Array(embeds))
   end
 
   def nsfw?
@@ -141,8 +135,8 @@ class ApplicationTest < ActiveSupport::TestCase
     UserMock.new(user_id, "tester")
   end
 
-  def channel_mock(nsfw_channel:)
-    ChannelMock.new(name: "#test", is_nsfw: nsfw_channel)
+  def channel_mock(**options)
+    ChannelMock.new(**options)
   end
 
   def log
@@ -162,7 +156,7 @@ class ApplicationTest < ActiveSupport::TestCase
 
     raise ArgumentError, "Unknown slash command: #{name}" unless command_class
 
-    event = EventMock.new(user: user_mock(user_id:), channel: channel_mock(nsfw_channel:), options: args)
+    event = EventMock.new(user: user_mock(user_id:), channel: channel_mock(is_nsfw: nsfw_channel), options: args)
 
     command = command_class.new(fumimi, event)
     command.safe_handle_event
@@ -170,7 +164,7 @@ class ApplicationTest < ActiveSupport::TestCase
   end
 
   def mock_event(text, nsfw_channel: false, **options)
-    event = EventMock.new(text: text, channel: channel_mock(nsfw_channel:), user: user_mock)
+    event = EventMock.new(text: text, channel: channel_mock(is_nsfw: nsfw_channel), user: user_mock)
 
     Fumimi::MessageEvent.respond_to_all_matches(event, fumimi: default_fumimi(**options))
     event.captured

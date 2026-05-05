@@ -29,7 +29,7 @@ class Fumimi::SlashCommand::SayCommand < Fumimi::SlashCommand
     channel = @event.server.channels.detect { |c| c.id == channel }
     raise Fumimi::Exceptions::CommandArgumentError, "Unknown channel: #{channel_name}" if channel.blank?
 
-    channel.send_message(message)
+    channel.send_message!(content: message)
     @event.edit_response(content: "Sent.")
   end
 end
