@@ -9,7 +9,7 @@ class Fumimi::SlashCommand::PostAnalyticsCommand < Fumimi::SlashCommand
 
   def self.options
     [
-      { type: OPTION_TYPES[:string], name: "tags", description: "List of searched tags.", required: false },
+      { type: OPTION_TYPES[:string], name: "tags", description: "List of searched tags.", required: false, autocomplete: true },
       { type: OPTION_TYPES[:string], name: "time_range",
         description: "Custom time range. Default 1d. Examples: 1h, 2d, 1w, 1mo.", required: false },
     ]

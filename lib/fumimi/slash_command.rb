@@ -86,4 +86,63 @@ class Fumimi::SlashCommand < Fumimi::Event
       respond_to_event
     end
   end
+
+  concerning :AutocompleteMethods do
+    # Called when an autocomplete event is received for an option.
+    def handle_autocomplete
+      option_name = event.focused
+      option_value = event.options[option_name]&.to_s
+
+      log.info("command='/#{self.class.name}' autocomplete='#{option_name}' value='#{option_value}' user_id=#{event.user.id} username='#{event.user.username}' channel='##{event.channel.name}'") # rubocop:disable Layout/LineLength
+      choices = autocomplete_results(option_name, option_value)
+
+      event.respond(choices: choices)
+    rescue StandardError => e
+      log.error(e)
+    end
+
+    # Return autocomplete results for the given option based on its current value.
+    #
+    # @param option [String] The name of the option being autocompleted.
+    # @param value [String] The current value of the option being autocompleted.
+    # @return [Array<Hash>] List of autocomplete choices, each with a `name` and `value` key.
+    def autocomplete_results(option, value)
+      case option
+      when "creator"
+        autocomplete_username(value)
+      when "tags"
+        autocomplete_tags(value)
+      else
+        []
+      end
+    end
+
+    # Return autocomplete results for usernames matching the input string.
+    #
+    # @param username [String] The partial username to autocomplete.
+    # @return [Array<Hash>] The list of autocomplete results for usernames matching the input string.
+    def autocomplete_username(username)
+      results = @booru.autocomplete.index("search[query]": username, "search[type]": "user", limit: 20)
+      results.map { |result| { name: result["label"], value: result["value"] } }
+    end
+
+    # Return autocomplete results for a tag search matching the input string.
+    #
+    # @param query [String] The partial query to autocomplete.
+    # @return [Array<Hash>] The list of autocomplete results for the query.
+    def autocomplete_tags(query)
+      *prefix_terms, last_term = query.to_s.split(/\s+/)
+      prefix = prefix_terms.join(" ")
+
+      results = @booru.autocomplete.index("search[query]": last_term, "search[type]": "tag_query", limit: 20)
+
+      results.map do |result|
+        antecedent, label = result["antecedent"], result["label"]
+        name = (antecedent.presence || label).tr(" ", "_")
+        name = "#{prefix} #{name}".strip
+
+        { name: name, value: name }
+      end
+    end
+  end
 end

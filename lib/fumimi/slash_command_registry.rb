@@ -29,6 +29,14 @@ class Fumimi
         kommand = class_name.constantize.new(fumimi, event)
         kommand.safe_handle_event
       end
+
+      options = command.options.to_a.select { |opt| opt[:autocomplete] }
+      options.map do |option|
+        bot.autocomplete(option[:name], command_name: command.name) do |event|
+          kommand = class_name.constantize.new(fumimi, event)
+          kommand.handle_autocomplete
+        end
+      end
     end
 
     # Re-register all commands in Discord if any commands have changed or new commands have been added.

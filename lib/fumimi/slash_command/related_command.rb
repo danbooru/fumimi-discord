@@ -9,7 +9,7 @@ class Fumimi::SlashCommand::RelatedCommand < Fumimi::SlashCommand
 
   def self.options
     [
-      { type: OPTION_TYPES[:string], name: "tags", description: "Tags to search for.", required: true },
+      { type: OPTION_TYPES[:string], name: "tags", description: "Tags to search for.", required: true, autocomplete: true },
       { type: OPTION_TYPES[:string], name: "category", description: "Tag category (general, character, copyright, artist, meta).", required: false }, # rubocop:disable Layout/LineLength
     ]
   end

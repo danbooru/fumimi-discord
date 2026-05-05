@@ -10,8 +10,8 @@ class Fumimi::SlashCommand::CommentCommand < Fumimi::SlashCommand
   def self.options
     [
       { type: OPTION_TYPES[:string], name: "contains", description: "Contains this string.", required: false },
-      { type: OPTION_TYPES[:string], name: "creator", description: "Created by a user.", required: false },
-      { type: OPTION_TYPES[:string], name: "post_tags", description: "Tags for the post.", required: false },
+      { type: OPTION_TYPES[:string], name: "creator", description: "Created by a user.", required: false, autocomplete: true },
+      { type: OPTION_TYPES[:string], name: "tags", description: "Tag to search for.", required: false, autocomplete: true },
       { type: OPTION_TYPES[:integer], name: "limit", description: "Max amount to return.", required: false, min_value: 1, max_value: 10 },
     ]
   end

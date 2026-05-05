@@ -9,7 +9,7 @@ class Fumimi::SlashCommand::ApproversCommand < Fumimi::SlashCommand
 
   def self.options
     [
-      { type: OPTION_TYPES[:string], name: "tags", description: "Tags to search for.", required: false },
+      { type: OPTION_TYPES[:string], name: "tags", description: "Tags to search for.", required: false, autocomplete: true },
     ]
   end
 
