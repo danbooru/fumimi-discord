@@ -2,7 +2,7 @@ require "test_helper"
 
 class PoolEventTest < ApplicationTest
   def test_series_pool_event
-    embeds = mock_event("pool #8948") => { embeds:, ** }
+    mock_event("pool #8948") => { embeds: }
 
     assert_equal 1, embeds.length
     pool = embeds.first
@@ -17,7 +17,7 @@ class PoolEventTest < ApplicationTest
   end
 
   def test_collection_pool_event
-    embeds = mock_event("pool #109") => { embeds:, ** }
+    mock_event("pool #109") => { embeds: }
 
     assert_equal 1, embeds.length
     pool = embeds.first
@@ -32,7 +32,7 @@ class PoolEventTest < ApplicationTest
   end
 
   def test_deleted_pool_event
-    embeds = mock_event("pool #874") => { embeds:, ** }
+    mock_event("pool #874") => { embeds: }
 
     assert_equal 1, embeds.length
     pool = embeds.first
@@ -44,7 +44,7 @@ class PoolEventTest < ApplicationTest
   end
 
   def test_no_pool
-    embeds = mock_event("pool #999999999") => { embeds:, ** }
+    mock_event("pool #999999999") => { embeds: }
 
     assert_equal 0, embeds.length
   end

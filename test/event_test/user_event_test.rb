@@ -2,7 +2,8 @@ require "test_helper"
 
 class UserEventTest < ApplicationTest
   def test_user_event
-    embeds = mock_event("user #1") => { embeds:, ** }
+    mock_event("user #1") => { embeds: }
+
     assert_equal 1, embeds.length
     user = embeds.first
 
@@ -15,7 +16,8 @@ class UserEventTest < ApplicationTest
   end
 
   def test_user_link_event
-    embeds = mock_event("https://danbooru.donmai.us/users/1") => { embeds:, ** }
+    mock_event("https://danbooru.donmai.us/users/1") => { embeds: }
+
     assert_equal 1, embeds.length
     user = embeds.first
 
@@ -28,7 +30,7 @@ class UserEventTest < ApplicationTest
   end
 
   def test_no_user
-    embeds = mock_event("user #999999999") => { embeds:, ** }
+    mock_event("user #999999999") => { embeds: }
 
     assert_equal 0, embeds.length
   end

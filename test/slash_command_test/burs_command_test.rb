@@ -2,7 +2,7 @@ require "test_helper"
 
 class BursCommandTest < ApplicationTest
   def test_responds_to_command
-    mock_slash_command("/burs") => { reply_embeds:, ** }
+    mock_slash_command("/burs") => { reply_embeds: }
 
     assert_equal reply_embeds.length, 1
     report = reply_embeds.first

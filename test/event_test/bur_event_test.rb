@@ -2,7 +2,7 @@ require "test_helper"
 
 class BurEventTest < ApplicationTest
   def test_bur_event
-    embeds = mock_event("bur #50001, bur #50000") => { embeds:, ** }
+    mock_event("bur #50001, bur #50000") => { embeds: }
     assert_equal 2, embeds.length
 
     approved = embeds.first
@@ -18,7 +18,8 @@ class BurEventTest < ApplicationTest
   end
 
   def test_no_bur
-    embeds = mock_event("bur #101010101") => { embeds:, ** }
+    mock_event("bur #101010101") => { embeds: }
+
     assert_equal 0, embeds.length
   end
 end

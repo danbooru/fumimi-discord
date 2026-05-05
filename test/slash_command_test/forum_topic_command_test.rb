@@ -1,10 +1,8 @@
 require "test_helper"
 
 class ForumTopicCommandTest < ApplicationTest
-  FORUM_POST_FOOTER_PATTERN = /^\d{4}-\d{2}-\d{2} at \d{1,2}:\d{2} (?:AM|PM)$/
-
   def test_find_results
-    mock_slash_command("/topics", args: { limit: 2, creator: "nonamethanks" }) => { reply_embeds:, ** }
+    mock_slash_command("/topics", args: { limit: 2, creator: "nonamethanks" }) => { reply_embeds: }
     assert_equal 2, reply_embeds.length
 
     forum_post = reply_embeds[0]
@@ -20,7 +18,7 @@ class ForumTopicCommandTest < ApplicationTest
   end
 
   def test_no_results
-    mock_slash_command("/topics", args: { limit: 1, creator: "~~~" }) => { reply_embeds:, ** }
+    mock_slash_command("/topics", args: { limit: 1, creator: "~~~" }) => { reply_embeds: }
     assert_equal reply_embeds.length, 1
     error = reply_embeds.first
     assert_equal error.title, "No Results."

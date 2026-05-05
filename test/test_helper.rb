@@ -1,28 +1,16 @@
 require_relative "../lib/fumimi"
 
 require "minitest/autorun"
-require "minitest/mock"
-require "active_support/test_case"
+require "mocha/minitest"
+require "active_support/testing/parallelization"
+require "active_support/testing/parallelize_executor"
 
-UserMock = Struct.new(:id, :username) do
-  def roles
-    []
-  end
-end
-
-MessageMock = Struct.new(:content) do
-  def delete
-    nil
-  end
-
-  def suppress_embeds
-    @suppress_embeds_calls = suppress_embeds_calls + 1
-    nil
-  end
-
-  def suppress_embeds_calls
-    @suppress_embeds_calls ||= 0
-  end
+unless ENV["RUBY_LSP_TEST_RUNNER"] == "debug" || ENV.key?("DEBUG")
+  Minitest.parallel_executor = ActiveSupport::Testing::ParallelizeExecutor.new(
+    size: Concurrent.available_processor_count.to_i,
+    with: :processes,
+    threshold: 0,
+  )
 end
 
 class ChannelMock
@@ -60,114 +48,73 @@ class ServerMock
 end
 
 class EventMock
-  attr_reader :text, :user, :channel, :message, :options, :replies, :reply_embeds, :deferred
+  attr_reader :text, :server, :user, :channel, :message, :options, :replies, :reply_embeds
 
-  def initialize(user:, channel:, text: nil, options: {})
+  def initialize(user:, channel:, message:, text: nil, options: {})
     @text = text
     @user = user
     @channel = channel
-    @message = MessageMock.new(text) if text
-    @application_command_event = text.nil?
+    @message = message
     @options = options
     @replies = []
     @reply_embeds = []
-    @deferred = false
-    @channels = { channel.id => channel }
+    @server = ServerMock.new([channel])
   end
 
-  def is_a?(val)
-    (@application_command_event && val == Discordrb::Events::ApplicationCommandEvent) || super
-  end
-
-  def respond_to?(method_name, include_private = false)
-    return false if method_name.to_sym == :edit_response && !@application_command_event
-
-    super
-  end
-
-  def channels
-    { channel.name => channel }
-  end
-
-  def server
-    ServerMock.new(@channels.values)
-  end
-
-  def captured
+  def deconstruct_keys(_keys)
     {
       messages: @channel.messages,
       embeds: @channel.embeds,
       replies: @replies,
       reply_embeds: @reply_embeds,
-      suppress_embeds_calls: @message&.suppress_embeds_calls || 0,
-      deferred: @deferred,
     }
   end
 
-  def send_message(msg)
-    @channel.send_message(msg)
-    MessageMock.new(msg)
-  end
-
-  def defer(ephemeral: false)
-    @deferred = true
-    ephemeral
+  def defer(**)
+    nil
   end
 
   def edit_response(content: nil, embeds: nil)
     @replies << content if content
     @reply_embeds.concat(Array(embeds)) if embeds
   end
-
-  def drain
-    nil
-  end
-
-  def sleep(_seconds = nil)
-    nil
-  end
 end
 
-class ApplicationTest < ActiveSupport::TestCase
-  parallelize(workers: :number_of_processors, with: :threads)
+class ApplicationTest < Minitest::Test
+  def message_mock(**options)
+    stub(suppress_embeds: nil, **options)
+  end
 
-  def user_mock(user_id: 123)
-    UserMock.new(user_id, "tester")
+  def user_mock(id: 123, username: "tester", **options)
+    stub(id:, username:, **options)
   end
 
   def channel_mock(**options)
     ChannelMock.new(**options)
   end
 
-  def log
-    Logger.new($stderr, level: Logger::FATAL)
-  end
-
   def default_fumimi(**options)
     Fumimi::Bot.new(log: Logger.new(nil), **options)
   end
 
-  def mock_slash_command(name, args: {}, nsfw_channel: false, fumimi: nil, user_id: 123, **options)
-    fumimi ||= default_fumimi(**options)
+  def mock_slash_command(name, args: {}, message: message_mock, channel: channel_mock, user: user_mock, fumimi: default_fumimi)
     command_name = name.to_s.delete_prefix("/")
     command_class = Fumimi::SlashCommandRegistry.new(fumimi:).command_classes.find do |klass|
       klass.name == command_name
     end
 
-    raise ArgumentError, "Unknown slash command: #{name}" unless command_class
-
-    event = EventMock.new(user: user_mock(user_id:), channel: channel_mock(is_nsfw: nsfw_channel), options: args)
+    event = EventMock.new(channel:, user:, message:, options: args)
 
     command = command_class.new(fumimi, event)
     command.safe_handle_event
-    event.captured
+    event
   end
 
-  def mock_event(text, nsfw_channel: false, **options)
-    event = EventMock.new(text: text, channel: channel_mock(is_nsfw: nsfw_channel), user: user_mock)
+  def mock_event(text, message: message_mock, channel: channel_mock, user: user_mock, fumimi: default_fumimi)
+    event = EventMock.new(text:, channel:, user:, message:)
 
-    Fumimi::MessageEvent.respond_to_all_matches(event, fumimi: default_fumimi(**options))
-    event.captured
+    Fumimi::MessageEvent.respond_to_all_matches(event, fumimi:)
+    event
   end
 
   def table_lines_for(embed)

@@ -9,7 +9,7 @@ class MonitorTest < ApplicationTest
       deadline = 3.seconds.from_now
       sleep 0.25 while received.empty? && Time.now < deadline
 
-      assert_not_empty(received)
+      assert_equal(false, received.empty?)
       assert_equal(received.sort_by(&:id), received)
       assert_equal(received.last.id, monitor.last_id)
     end

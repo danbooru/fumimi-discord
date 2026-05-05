@@ -2,7 +2,7 @@ require "test_helper"
 
 class TagEventTest < ApplicationTest
   def test_tag
-    embeds = mock_event("[[academic_test]]", nsfw_channel: false) => { embeds:, ** }
+    embeds = mock_event("[[academic_test]]") => { embeds:, ** }
 
     assert_equal 1, embeds.length
     tag = embeds.first
@@ -22,7 +22,7 @@ class TagEventTest < ApplicationTest
   end
 
   def test_tag_alias
-    embeds = mock_event("[[jjk]]", nsfw_channel: false) => { embeds:, ** }
+    embeds = mock_event("[[jjk]]") => { embeds:, ** }
     assert_equal 1, embeds.length
     tag = embeds.first
 
@@ -32,7 +32,7 @@ class TagEventTest < ApplicationTest
   end
 
   def test_tag_wildcard
-    embeds = mock_event("[[*hand_on*]]", nsfw_channel: false) => { embeds:, ** }
+    embeds = mock_event("[[*hand_on*]]") => { embeds:, ** }
     assert_equal 1, embeds.length
     tag = embeds.first
 
@@ -42,7 +42,7 @@ class TagEventTest < ApplicationTest
   end
 
   def test_deprecated_tag
-    embeds = mock_event("[[test]]", nsfw_channel: false) => { embeds:, ** }
+    embeds = mock_event("[[test]]") => { embeds:, ** }
     assert_equal 1, embeds.length
     tag = embeds.first
 
@@ -55,7 +55,7 @@ class TagEventTest < ApplicationTest
   end
 
   def test_embed_wiki_with_no_tag
-    embeds = mock_event("[[about:danbooru]]", nsfw_channel: false) => { embeds:, ** }
+    embeds = mock_event("[[about:danbooru]]") => { embeds:, ** }
     assert_equal 1, embeds.length
     tag = embeds.first
 
@@ -68,7 +68,7 @@ class TagEventTest < ApplicationTest
 
   def test_embed_tag_with_no_wiki
     random_string = (0...15).map { rand(65..90).chr }.join
-    embeds = mock_event("[[#{random_string}]]", nsfw_channel: false) => { embeds:, ** }
+    embeds = mock_event("[[#{random_string}]]") => { embeds:, ** }
     assert_equal 1, embeds.length
     tag = embeds.first
 
@@ -80,7 +80,7 @@ class TagEventTest < ApplicationTest
   end
 
   def test_nsfw_tag_on_nsfw_channel
-    embeds = mock_event("[[sex]]", nsfw_channel: true) => { embeds:, ** }
+    embeds = mock_event("[[sex]]", channel: channel_mock(is_nsfw: true)) => { embeds:, ** }
 
     assert_equal 1, embeds.length
     tag = embeds.first
@@ -91,7 +91,7 @@ class TagEventTest < ApplicationTest
   end
 
   def test_nsfw_tag_on_sfw_channel
-    embeds = mock_event("[[sex]]", nsfw_channel: false) => { embeds:, ** }
+    embeds = mock_event("[[sex]]") => { embeds:, ** }
 
     assert_equal 1, embeds.length
     tag = embeds.first

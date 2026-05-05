@@ -4,7 +4,8 @@ class SearchEventTest < ApplicationTest
   POST_FOOTER_PATTERN = /^-?\d+⇧ \d+♥  •  Rating: [GSQE]  •  \d+x\d+ \(\d+\.\d+ \w+ \w+\)$/
 
   def test_search
-    embeds = mock_event("{{id:3}}", nsfw_channel: false) => { embeds:, ** }
+    mock_event("{{id:3}}") => { embeds: }
+
     assert_equal 1, embeds.length
     post = embeds.first
 
@@ -17,7 +18,8 @@ class SearchEventTest < ApplicationTest
   end
 
   def test_nsfw_search_on_sfw_channel
-    embeds = mock_event("{{id:12}}", nsfw_channel: false) => { embeds:, ** }
+    mock_event("{{id:12}}") => { embeds: }
+
     assert_equal 1, embeds.length
     post = embeds.first
 
@@ -30,7 +32,8 @@ class SearchEventTest < ApplicationTest
   end
 
   def test_nsfw_search_on_nsfw_channel
-    embeds = mock_event("{{id:12}}", nsfw_channel: true) => { embeds:, ** }
+    mock_event("{{id:12}}", channel: channel_mock(is_nsfw: true)) => { embeds: }
+
     assert_equal 1, embeds.length
     post = embeds.first
 
@@ -43,8 +46,8 @@ class SearchEventTest < ApplicationTest
   end
 
   def test_search_no_results
-    random_string = (0...15).map { rand(65..90).chr }.join
-    embeds = mock_event("{{#{random_string}}}", nsfw_channel: false) => { embeds:, ** }
+    mock_event("{{qwoigqeoirgjhq2eroj1304hj}}") => { embeds: }
+
     assert_equal 0, embeds.length
   end
 end

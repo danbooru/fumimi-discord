@@ -2,7 +2,7 @@ require "test_helper"
 
 class CommentCommandTest < ApplicationTest
   def test_find_results
-    mock_slash_command("/comments", args: { limit: 1, creator: "nonamethanks" }) => { reply_embeds:, ** }
+    mock_slash_command("/comments", args: { limit: 1, creator: "nonamethanks" }) => { reply_embeds: }
     assert_equal 1, reply_embeds.length
 
     comment = reply_embeds.first
@@ -16,7 +16,7 @@ class CommentCommandTest < ApplicationTest
   end
 
   def test_no_results
-    mock_slash_command("/comments", args: { limit: 1, creator: "~~~" }) => { reply_embeds:, ** }
+    mock_slash_command("/comments", args: { limit: 1, creator: "~~~" }) => { reply_embeds: }
     assert_equal reply_embeds.length, 1
     error = reply_embeds.first
     assert_equal error.title, "No Results."

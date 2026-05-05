@@ -2,7 +2,7 @@ require "test_helper"
 
 class ApproversCommandTest < ApplicationTest
   def test_responds_to_command
-    mock_slash_command("/approvers", args: { tags: "1girl age:<1d" }) => { reply_embeds:, ** }
+    mock_slash_command("/approvers", args: { tags: "1girl age:<1d" }) => { reply_embeds: }
 
     assert_equal 1, reply_embeds.length
     report = reply_embeds.first
@@ -14,7 +14,7 @@ class ApproversCommandTest < ApplicationTest
   end
 
   def test_no_results
-    mock_slash_command("/approvers", args: { tags: ")" }) => { reply_embeds:, ** }
+    mock_slash_command("/approvers", args: { tags: ")" }) => { reply_embeds: }
 
     assert_equal 1, reply_embeds.length
     report = reply_embeds.first

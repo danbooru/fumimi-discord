@@ -3,7 +3,9 @@ require "test_helper"
 class PostAnalyticsCommandTest < ApplicationTest
   def test_api_call
     skip unless default_fumimi.signoz_api_key.present?
-    mock_slash_command("/searches", args: { tags: "1girl", time_range: "30mi" }) => { reply_embeds:, ** }
+
+    user = user_mock(roles: [])
+    mock_slash_command("/searches", args: { tags: "1girl", time_range: "30mi" }, user:) => { reply_embeds: }
 
     assert_equal 1, reply_embeds.length
     report = reply_embeds.first
@@ -18,7 +20,8 @@ class PostAnalyticsCommandTest < ApplicationTest
   end
 
   def test_rejects_range_over_max
-    mock_slash_command("/searches", args: { tags: "1girl", time_range: "2d" }) => { reply_embeds:, ** }
+    user = user_mock(roles: [])
+    mock_slash_command("/searches", args: { tags: "1girl", time_range: "2d" }, user:) => { reply_embeds: }
 
     assert_equal 1, reply_embeds.length
     assert_equal "Bad Argument!", reply_embeds.first.title
@@ -90,13 +93,16 @@ class PostAnalyticsCommandTest < ApplicationTest
   end
 
   def with_stubbed_client(report, data, &block)
-    client = Object.new
-    client.define_singleton_method(:unique_ips_in_range) do |sets_of_tags, range|
-      tag_set = sets_of_tags.first
-      tag_data = data.find { |k, _| k == tag_set }&.last || {}
-      count = tag_data.find { |k, _| k == range }&.last || 0
-      { unique_ips: [count], duration: 0 }
+    client = stub
+
+    client.stubs(:unique_ips_in_range).returns({ unique_ips: [0], duration: 0 })
+    data.each do |tag_set, ranges|
+      ranges.each do |range, count|
+        client.stubs(:unique_ips_in_range).with([tag_set], range).returns({ unique_ips: [count], duration: 0 })
+      end
     end
-    report.stub(:client, client, &block)
+
+    report.stubs(:client).returns(client)
+    block.call
   end
 end
