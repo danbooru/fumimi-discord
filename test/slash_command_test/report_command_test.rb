@@ -2,14 +2,18 @@ require "test_helper"
 
 class ReportCommandTest < ApplicationTest
   def test_submits_report_to_mod_channel
-    response = mock_slash_command("/report", args: { reason: "spam links" }, report_channel_name: "#test")
-    response => { replies:, messages:, embeds: }
+    fumimi = default_fumimi
+    event_channel = ChannelMock.new(name: "#test")
+    fumimi.define_singleton_method(:report_channel) { event_channel }
+
+    response = mock_slash_command("/report", args: { reason: "spam links" }, fumimi:)
+    response => { replies:, embeds:, ** }
 
     assert_equal ["Your report has been submitted."], replies
-    assert_equal [""], messages
+    assert_equal [""], event_channel.messages
 
-    assert_equal 1, embeds.length
-    report = embeds.first
+    assert_equal 1, event_channel.embeds.length
+    report = event_channel.embeds.first
     assert_equal "Discord Report", report.title
 
     fields = report.fields.index_by(&:name)

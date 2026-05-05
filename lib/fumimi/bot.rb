@@ -3,13 +3,13 @@ class Fumimi
   class Bot
     include Fumimi::ExceptionHandler
 
-    attr_reader :server_id, :client_id, :token, :log, :http, :booru, :booru_domains, :cache, :webserver, :censored_tags,
-                :report_channel_name, :signoz_url, :signoz_api_key
+    attr_reader :client_id, :token, :log, :http, :booru, :booru_domains, :cache, :webserver, :censored_tags,
+                :report_channel_id, :signoz_url, :signoz_api_key
 
     # Adapts the Discordrb logger to write through Fumimi's logger.
     DiscordLogStream = Struct.new(:log) do
       def puts(msg)
-        level, thread, message = msg.to_s.match(/\A\[(\w+) : (\S+) @ [^\]]+\] (.*)/m)&.captures
+        level, thread, message = msg.to_s.match(/\A\[(\w+) : (\S*) @ [^\]]+\] (.*)/m)&.captures
 
         case level
         when "DEBUG", "OUT", "IN" then severity = Logger::DEBUG
@@ -18,14 +18,16 @@ class Fumimi
         else                           severity = Logger::INFO
         end
 
-        log.add(severity) { "[discord/#{thread}] #{message}".strip }
+        log.add(severity) do
+          tag = ["discord", thread].compact_blank.join("/")
+          "[#{tag}] #{message}".strip
+        end
       end
 
       def flush = nil
     end
 
     def initialize(
-      server_id: nil,
       client_id: nil,
       token: nil,
       host: nil,
@@ -36,14 +38,13 @@ class Fumimi
       booru_api_key: nil,
       reports_user: nil,
       reports_api_key: nil,
-      report_channel_name: nil,
+      report_channel_id: nil,
       signoz_url: nil,
       signoz_api_key: nil,
       censored_tags: nil,
       log: Fumimi.log,
       env: ENV
     )
-      @server_id = server_id.presence&.to_i || env["DISCORD_SERVER_ID"]&.to_i
       @client_id = client_id.presence || env["DISCORD_CLIENT_ID"]
       @token = token.presence || env["DISCORD_TOKEN"]
       @host = host.presence || env["FUMIMI_WEBSERVER_HOST"] || "0.0.0.0"
@@ -54,7 +55,7 @@ class Fumimi
       @booru_api_key = booru_api_key.presence || env["BOORU_API_KEY"]
       @reports_user = reports_user.presence || env["BOORU_REPORTS_USER"] || @booru_user
       @reports_api_key = reports_api_key.presence || env["BOORU_REPORTS_API_KEY"] || @booru_api_key
-      @report_channel_name = report_channel_name.presence || env["DISCORD_REPORT_CHANNEL_NAME"] || "user-reports"
+      @report_channel_id = report_channel_id.presence || env["DISCORD_REPORT_CHANNEL_ID"]
       @signoz_url = signoz_url.presence || env["SIGNOZ_URL"]
       @signoz_api_key = signoz_api_key.presence || env["SIGNOZ_API_KEY"]
       @censored_tags = censored_tags.presence || env["FUMIMI_CENSORED_TAGS"].to_s.split || []
@@ -69,12 +70,14 @@ class Fumimi
       Discordrb::LOGGER.mode = :debug
     end
 
+    # @return [Discordrb::Server] The Discord server the bot is connected to. Assumes the bot is only in one server.
     def server
-      bot.servers.fetch(@server_id)
+      @server ||= bot.servers.values.first
     end
 
-    def channels
-      server.channels.index_by(&:name)
+    # @return [Discordrb::Channel, nil] The channel where user reports should be sent, or nil if not configured or found.
+    def report_channel
+      @report_channel ||= bot.channel(@report_channel_id.to_i) if @report_channel_id
     end
 
     def shutdown!
@@ -93,7 +96,6 @@ class Fumimi
     end
 
     def register_commands
-      raise "DISCORD_SERVER_ID must be set" if server_id.nil?
       raise "DISCORD_CLIENT_ID must be set" if client_id.nil?
       raise "DISCORD_TOKEN must be set" if token.nil?
 
@@ -104,7 +106,7 @@ class Fumimi
     end
 
     def monitor_reports
-      return unless [@reports_user, @reports_api_key].all?
+      return unless [report_channel, @reports_user, @reports_api_key].all?
 
       report_booru = Danbooru.new(
         url: booru.url,

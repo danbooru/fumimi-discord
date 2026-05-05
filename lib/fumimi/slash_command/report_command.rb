@@ -31,10 +31,7 @@ class Fumimi::SlashCommand::ReportCommand < Fumimi::SlashCommand
       booru: @booru,
     )
 
-    mod_channel = @event.server.channels.detect do |c|
-      c.name == @report_channel_name
-    end
-    mod_channel.send_message(
+    @fumimi.report_channel.send_message(
       "",
       false,
       report.embed,

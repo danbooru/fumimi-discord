@@ -87,7 +87,6 @@ class Fumimi::SlashCommand
     @booru = fumimi.booru
     @log = fumimi.log
     @cache = fumimi.cache
-    @report_channel_name = fumimi.report_channel_name
   end
 
   # Registers all commands, refreshing Discord definitions only when needed.
@@ -133,7 +132,7 @@ class Fumimi::SlashCommand
   # @param fumimi [Fumimi::Bot]
   # @return [Boolean]
   def self.outdated_commands?(fumimi:)
-    response = Discordrb::API::Application.get_guild_commands(fumimi.bot.token, fumimi.bot.profile.id, fumimi.server_id)
+    response = Discordrb::API::Application.get_guild_commands(fumimi.bot.token, fumimi.bot.profile.id, fumimi.server.id)
 
     existing_commands = JSON.parse(response.body, symbolize_names: true).index_by { |c| c[:name] }
     command_classes.map do |subclass|
@@ -155,7 +154,7 @@ class Fumimi::SlashCommand
     Discordrb::API::Application.bulk_overwrite_guild_commands(
       fumimi.bot.token,
       fumimi.bot.profile.id,
-      fumimi.server_id,
+      fumimi.server.id,
       command_classes.map(&:to_h),
     )
   end

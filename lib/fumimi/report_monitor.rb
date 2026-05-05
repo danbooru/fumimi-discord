@@ -13,17 +13,7 @@ class Fumimi::ReportMonitor
 
   def monitor
     @monitor ||= Danbooru::Monitor.new(resource: @booru.moderation_reports, log: @fumimi.log, id: @id) do |report|
-      send_report(report)
+      @fumimi.report_channel.send_message("", false, report.embed, nil, nil, nil, report.buttons)
     end
-  end
-
-  def report_channel
-    @report_channel ||= @fumimi.server.channels.find do |c|
-      c.name == @fumimi.report_channel_name
-    end
-  end
-
-  def send_report(report)
-    report_channel.send_message("", false, report.embed, nil, nil, nil, report.buttons)
   end
 end

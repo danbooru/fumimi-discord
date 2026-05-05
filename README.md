@@ -19,7 +19,6 @@ Fumimi is a Danbooru Discord bot. It can be seen at work in the [official Danboo
 
 1. Clone this repository: `git clone https://github.com/danbooru/fumimi-discord.git`
 2. Configure `.env` from `.env.example`:
-    - a. Set `DISCORD_SERVER_ID` to your Discord server's ID.
     - b. Set `DISCORD_CLIENT_ID` to your bot's application ID.
     - c. Set `DISCORD_TOKEN` to your bot's API token.
 
