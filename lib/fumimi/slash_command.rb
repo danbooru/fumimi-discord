@@ -4,7 +4,7 @@
 # {#message}, {#embeds}, or a custom {#respond_to_event}.
 #
 class Fumimi::SlashCommand < Fumimi::Event
-  OPTION_TYPES = { string: 3, integer: 4, boolean: 5, number: 10 }.freeze
+  OPTION_TYPES = { string: 3, integer: 4, boolean: 5, channel: 7, number: 10 }.freeze
 
   # @return [String] Command name users type in Discord.
   def self.name

@@ -40,16 +40,8 @@ class ChannelMock
   end
 end
 
-class ServerMock
-  attr_reader :channels
-
-  def initialize(channels)
-    @channels = channels
-  end
-end
-
 class EventMock
-  attr_reader :text, :server, :user, :channel, :message, :options, :replies, :reply_embeds
+  attr_reader :text, :user, :channel, :message, :options, :replies, :reply_embeds
 
   def initialize(user:, channel:, message:, text: nil, options: {})
     @text = text
@@ -59,7 +51,6 @@ class EventMock
     @options = options
     @replies = []
     @reply_embeds = []
-    @server = ServerMock.new([channel])
   end
 
   def deconstruct_keys(_keys)

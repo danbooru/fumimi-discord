@@ -4,12 +4,11 @@ class Fumimi::SlashCommand::SayCommand < Fumimi::SlashCommand
   end
 
   def self.description
-    "Send a message to a channel by name (owners only)."
+    "Make Fumimi say something in the current channel."
   end
 
   def self.options
     [
-      { type: 7, name: "channel", description: "Target channel name.", required: true },
       { type: OPTION_TYPES[:string], name: "message", description: "Message to send. Supports pings.", required: true },
     ]
   end
@@ -23,13 +22,7 @@ class Fumimi::SlashCommand::SayCommand < Fumimi::SlashCommand
   end
 
   def respond_to_event
-    channel = arguments[:channel].to_i
-    message = arguments[:message]
-
-    channel = @event.server.channels.detect { |c| c.id == channel }
-    raise Fumimi::Exceptions::CommandArgumentError, "Unknown channel: #{channel_name}" if channel.blank?
-
-    channel.send_message!(content: message)
-    @event.edit_response(content: "Sent.")
+    event.channel.send_message!(content: arguments[:message])
+    event.delete_response
   end
 end
