@@ -8,26 +8,40 @@ class Fumimi::SlashCommand
 
   OPTION_TYPES = { string: 3, integer: 4, boolean: 5, number: 10 }.freeze
 
-  # Command name users type in Discord.
-  #
-  # @return [String]
-  # @raise [NotImplementedError]
+  # @return [String] Command name users type in Discord.
   def self.name
     raise NotImplementedError, "Must implement a command name to respond to."
   end
 
-  # Short command description shown in Discord.
-  #
-  # @return [String, nil]
+  # @return [String, nil] Short command description shown in Discord.
   def self.description
   end
 
-  # Slash command option definitions.
-  #
-  # @return [Array<Hash>, nil]
-  #
-  # { type: OPTION_TYPES[:integer], name: "", description: ".", required: false, min_value: 1, max_value: 10 },
+  # @return [Array<Hash>, nil] # Slash command option definitions.
   def self.options
+    # { type: OPTION_TYPES[:integer], name: "", description: ".", required: false, min_value: 1, max_value: 10 },
+  end
+
+  # @return [Boolean] Whether the message is only visible to the user.
+  def self.ephemeral?
+    false
+  end
+
+  # Default bits that decide whether a user can see this command.
+  # https://docs.discord.com/developers/topics/permissions
+  # Can be overriden in server settings > integration > fumimi > /<command name>
+  def self.default_member_permissions
+    # Ex: Discordrb::Permissions.new([:administrator]).bits
+  end
+
+  # @return [Hash<Symbol, Object>] The Discord API payload used to define this command.
+  def self.definition
+    {
+      name: name,
+      description: description,
+      options: options.to_a.map(&:compact_blank),
+      default_member_permissions: default_member_permissions&.to_s,
+    }.compact_blank.deep_symbolize_keys
   end
 
   # Plain text response body.
@@ -47,20 +61,6 @@ class Fumimi::SlashCommand
   # @return [Hash]
   def arguments
     @event.options.with_indifferent_access
-  end
-
-  # Whether the message is only visible to the user.
-  #
-  # @return [Boolean]
-  def self.ephemeral?
-    false
-  end
-
-  # Default bits that decide whether a user can see this command.
-  # https://docs.discord.com/developers/topics/permissions
-  # Can be overriden in server settings > integration > fumimi > /<command name>
-  def self.bits_to_view_command
-    # Ex: Discordrb::Permissions.new([:administrator]).bits
   end
 
   # Sends the interaction response using {#message} and {#embeds}.
@@ -89,32 +89,6 @@ class Fumimi::SlashCommand
     @cache = fumimi.cache
   end
 
-  # Registers all commands, refreshing Discord definitions only when needed.
-  #
-  # @param fumimi [Fumimi::Bot]
-  # @return [void]
-  def self.register_all(fumimi:)
-    register_slash_commands(fumimi:) if outdated_commands?(fumimi:)
-
-    command_classes.each do |command|
-      register(command, fumimi:)
-    end
-  end
-
-  # Registers one slash command subclass with the bot.
-  #
-  # @param command [Class]
-  # @param fumimi [Fumimi::Bot]
-  # @return [Proc]
-  def self.register(command, fumimi:)
-    class_name = command.to_s
-
-    fumimi.bot.application_command(command.name) do |event|
-      kommand = class_name.constantize.new(event, fumimi:)
-      kommand.safe_handle_event
-    end
-  end
-
   # Handles command execution with logging and exception wrapping.
   #
   # @return [Object]
@@ -125,56 +99,5 @@ class Fumimi::SlashCommand
       @event.defer(ephemeral: self.class.ephemeral?)
       respond_to_event
     end
-  end
-
-  # Returns true when local command definitions differ from Discord's.
-  #
-  # @param fumimi [Fumimi::Bot]
-  # @return [Boolean]
-  def self.outdated_commands?(fumimi:)
-    response = Discordrb::API::Application.get_guild_commands(fumimi.bot.token, fumimi.bot.profile.id, fumimi.server.id)
-
-    existing_commands = JSON.parse(response.body, symbolize_names: true).index_by { |c| c[:name] }
-    command_classes.map do |subclass|
-      old_command = existing_commands[subclass.name] || {}
-      new_command = subclass.to_h
-
-      next false if new_command.keys.none? { |key| old_command[key].presence != new_command[key].presence }
-
-      fumimi.log.info("Refreshing outdated slash command /#{new_command[:name]}.")
-      true
-    end.any?
-  end
-
-  # Bulk-updates all slash command definitions in one API call.
-  #
-  # @param fumimi [Fumimi::Bot]
-  # @return [Object]
-  def self.register_slash_commands(fumimi:)
-    Discordrb::API::Application.bulk_overwrite_guild_commands(
-      fumimi.bot.token,
-      fumimi.bot.profile.id,
-      fumimi.server.id,
-      command_classes.map(&:to_h),
-    )
-  end
-
-  # @return [Array<Class>] The list of all slash command subclasses.
-  def self.command_classes
-    Zeitwerk::Loader.eager_load_namespace(Fumimi::SlashCommand)
-    subclasses
-  end
-
-  # Builds the Discord API payload for this command.
-  #
-  # @return [Hash<Symbol, Object>]
-  def self.to_h
-    command_options = options&.map(&:with_indifferent_access)&.map(&:symbolize_keys) || []
-    command_options.each { |opt| opt.delete(:required) if opt[:required] == false }
-
-    command_hash = { name: name, description: description, options: command_options }.symbolize_keys
-    command_hash[:default_member_permissions] = bits_to_view_command.to_s if bits_to_view_command
-
-    command_hash
   end
 end

@@ -95,11 +95,16 @@ class Fumimi
       )
     end
 
+    # @return [Fumimi::SlashCommandRegistry] The registry that manages slash command definitions and registration with Discord.
+    def command_registry
+      @command_registry ||= Fumimi::SlashCommandRegistry.new(fumimi: self)
+    end
+
     def register_commands
       raise "DISCORD_CLIENT_ID must be set" if client_id.nil?
       raise "DISCORD_TOKEN must be set" if token.nil?
 
-      Fumimi::SlashCommand.register_all(fumimi: self)
+      command_registry.register_all
       Fumimi::Event.register_all(fumimi: self)
 
       bot.button { |event| Fumimi::Button.mark_handled(event) }
@@ -142,8 +147,8 @@ class Fumimi
       end
 
       webserver.start
-      register_commands
       bot.run(:async)
+      register_commands
 
       monitor_reports
 
