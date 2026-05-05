@@ -1,3 +1,4 @@
+ENV["APP_ENV"] = "test"
 require_relative "../lib/fumimi"
 
 require "minitest/autorun"

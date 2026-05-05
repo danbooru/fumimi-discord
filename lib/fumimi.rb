@@ -1,5 +1,6 @@
 require "dotenv/load"
 require "bundler/setup"
+require "debug/open_nonstop" if ENV["APP_ENV"] == "development"
 require "cgi/escape"
 
 # The top-level module for the application. Initializes the library and handles code reloading. See Fumimi::Bot for the bot itself.
