@@ -1,8 +1,8 @@
 class Fumimi
   # The main bot class that drives the Discord bot.
   class Bot
-    attr_reader :client_id, :token, :log, :http, :booru, :booru_domains, :cache, :webserver, :censored_tags,
-                :report_channel_id, :signoz_url, :signoz_api_key
+    attr_reader :client_id, :token, :log, :http, :booru, :mod_booru, :booru_domains, :cache, :webserver, :censored_tags,
+                :signoz_url, :signoz_api_key, :report_channel_id, :sockpuppet_channel_id, :report_monitor, :sockpuppet_monitor
 
     # Adapts the Discordrb logger to write through Fumimi's logger.
     DiscordLogStream = Struct.new(:log) do
@@ -34,9 +34,10 @@ class Fumimi
       booru_domains: nil,
       booru_user: nil,
       booru_api_key: nil,
-      reports_user: nil,
-      reports_api_key: nil,
+      mod_user: nil,
+      mod_api_key: nil,
       report_channel_id: nil,
+      sockpuppet_channel_id: nil,
       signoz_url: nil,
       signoz_api_key: nil,
       censored_tags: nil,
@@ -51,9 +52,10 @@ class Fumimi
       @booru_domains = Array.wrap(booru_domains).presence || env["BOORU_DOMAINS"]&.split || [URI.parse(@booru_url).host]
       @booru_user = booru_user.presence || env["BOORU_USER"]
       @booru_api_key = booru_api_key.presence || env["BOORU_API_KEY"]
-      @reports_user = reports_user.presence || env["BOORU_REPORTS_USER"] || @booru_user
-      @reports_api_key = reports_api_key.presence || env["BOORU_REPORTS_API_KEY"] || @booru_api_key
+      @mod_user = mod_user.presence || env["BOORU_MOD_USER"] || @booru_user
+      @mod_api_key = mod_api_key.presence || env["BOORU_MOD_API_KEY"] || @booru_api_key
       @report_channel_id = report_channel_id.presence || env["DISCORD_REPORT_CHANNEL_ID"]
+      @sockpuppet_channel_id = sockpuppet_channel_id.presence || env["DISCORD_SOCKPUPPET_CHANNEL_ID"]
       @signoz_url = signoz_url.presence || env["SIGNOZ_URL"]
       @signoz_api_key = signoz_api_key.presence || env["SIGNOZ_API_KEY"]
       @censored_tags = censored_tags.presence || env["FUMIMI_CENSORED_TAGS"].to_s.split || []
@@ -61,8 +63,12 @@ class Fumimi
 
       @http = HTTPClient.new.logger(log).timeout(30)
       @booru = Danbooru.new(url: @booru_url, user: @booru_user, api_key: @booru_api_key, http: http, model_builder: method(:build_model))
+      @mod_booru = Danbooru.new(url: @booru_url, user: @mod_user, api_key: @mod_api_key, http: http, model_builder: method(:build_model))
       @cache = ActiveSupport::Cache::MemoryStore.new
       @webserver = Fumimi::Webserver.new(host: @host, port: @port, fumimi: self)
+
+      @report_monitor = Fumimi::ReportMonitor.new(fumimi: self, booru: mod_booru)
+      @sockpuppet_monitor = Fumimi::SockpuppetMonitor.new(fumimi: self, booru: mod_booru)
 
       Discordrb::LOGGER.streams = [DiscordLogStream.new(log)]
       Discordrb::LOGGER.mode = :debug
@@ -76,6 +82,11 @@ class Fumimi
     # @return [Discordrb::Channel, nil] The channel where user reports should be sent, or nil if not configured or found.
     def report_channel
       @report_channel ||= bot.channel(@report_channel_id.to_i) if @report_channel_id
+    end
+
+    # @return [Discordrb::Channel, nil] The channel where sockpuppet reports should be sent, or nil if not configured or found.
+    def sockpuppet_channel
+      @sockpuppet_channel ||= bot.channel(@sockpuppet_channel_id.to_i) if @sockpuppet_channel_id
     end
 
     def shutdown!
@@ -108,21 +119,6 @@ class Fumimi
       bot.button { |event| Fumimi::Button.mark_handled(event) }
     end
 
-    def monitor_reports
-      return unless [report_channel, @reports_user, @reports_api_key].all?
-
-      report_booru = Danbooru.new(
-        url: booru.url,
-        user: @reports_user,
-        api_key: @reports_api_key,
-        http: http,
-        model_builder: ->(booru: nil, **kwargs) { build_model(booru: report_booru, **kwargs) },
-      )
-
-      report_monitor = Fumimi::ReportMonitor.new(fumimi: self, booru: report_booru)
-      report_monitor.start
-    end
-
     # Used by the Danbooru API client to build Fumimi::Model instances.
     #
     # @param resource_name [String] The model name (e.g. "post", "user", "comment", "wiki_page", etc).
@@ -148,7 +144,8 @@ class Fumimi
       bot.run(:async)
       register_commands
 
-      monitor_reports
+      report_monitor.start if report_channel.present?
+      sockpuppet_monitor.start if sockpuppet_channel.present?
 
       loop do
         Fumimi.reload_changed_code!

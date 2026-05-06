@@ -14,6 +14,21 @@ unless ENV["RUBY_LSP_TEST_RUNNER"] == "debug" || ENV.key?("DEBUG")
   )
 end
 
+# To re-record HTTP requests, delete the existing cassette files in test/cassettes or run the tests with `VCR_RECORD_MODE=all`.
+VCR.configure do |config|
+  config.cassette_library_dir = "test/cassettes"
+  config.hook_into :faraday
+  config.allow_http_connections_when_no_cassette = true
+  config.default_cassette_options = {
+    record: ENV.fetch("VCR_RECORD_MODE", :once).to_sym, # :all, :new_episodes, :once, or :none (https://benoittgt.github.io/vcr/#/record_modes)
+  }
+
+  config.before_record do |interaction|
+    interaction.request.headers.keep_if { |name, _| name == "Accept" }
+    interaction.response.headers.keep_if { |name, _| name == "Content-Type" }
+  end
+end
+
 class ChannelMock
   attr_reader :id, :name, :messages, :embeds
 

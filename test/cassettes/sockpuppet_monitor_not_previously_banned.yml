@@ -1,0 +1,39 @@
+---
+http_interactions:
+- request:
+    method: get
+    uri: https://danbooru.donmai.us/user_events/?limit=1000&only=id%2Ccategory%2Csession_id%2Cuser%5Bid%2Cname%5D&search%5Bid%5D=8566891
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      Accept:
+      - application/json
+  response:
+    status:
+      code: 200
+      message: OK
+    headers: {}
+    body:
+      encoding: UTF-8
+      string: '[{"id":8566891,"category":"email_change","session_id":"b4a02ac6fd03e9768c43be000482b486","user":{"id":1548352,"name":"Artorine"}}]'
+  recorded_at: Wed, 06 May 2026 20:58:28 GMT
+- request:
+    method: get
+    uri: https://danbooru.donmai.us/user_events/?limit=1000&only=id%2Ccategory%2Cuser%5Bid%2Cname%2Cis_banned%5D&search%5Bcategory%5D=login%2Clogin_verification%2Creauthenticate%2Clogout%2Cuser_creation%2Cuser_deletion%2Cuser_undeletion%2Cpassword_reset%2Cpassword_change%2Cemail_change%2Ctotp_enable%2Ctotp_update%2Ctotp_disable%2Ctotp_login%2Ctotp_reauthenticate%2Cbackup_code_generate%2Cbackup_code_login%2Cbackup_code_reauthenticate%2Capi_key_create%2Capi_key_update%2Capi_key_delete&search%5Bsession_id%5D=b4a02ac6fd03e9768c43be000482b486&search%5Buser_id_not_eq%5D=1548352
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      Accept:
+      - application/json
+  response:
+    status:
+      code: 200
+      message: OK
+    headers: {}
+    body:
+      encoding: UTF-8
+      string: '[{"id":8566886,"category":"logout","user":{"id":1548350,"name":"Akanabe","is_banned":false}},{"id":8566877,"category":"user_creation","user":{"id":1548350,"name":"Akanabe","is_banned":false}}]'
+  recorded_at: Wed, 06 May 2026 20:58:28 GMT
+recorded_with: VCR 6.4.0

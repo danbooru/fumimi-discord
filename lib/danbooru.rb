@@ -18,6 +18,9 @@ class Danbooru
     "RelatedTags" => { url: "related_tag" },
     "Tags" => { default_params: { "search[hide_empty]": "no",
                                   only: "id,name,is_deprecated,category,post_count,antecedent_alias,wiki_page,artist" } },
+    "UserEvents" => {
+      default_params: { only: "id,created_at,updated_at,user_id,category,ip_addr,session_id,user_agent,metadata,login_session_id,user" },
+    },
     "UserFeedback" => { url: "user_feedbacks" },
     "WikiPages" => { default_params: { only: "id,title,body,tag" } },
 
@@ -27,6 +30,7 @@ class Danbooru
   }.freeze
 
   INCLUDE_MAP = {
+    user: "user",
     creator: "users",
     topic: "forum_topic",
   }.with_indifferent_access.freeze

@@ -39,4 +39,5 @@ end
 group :test do
   gem "minitest"
   gem "mocha"
+  gem "vcr"
 end
