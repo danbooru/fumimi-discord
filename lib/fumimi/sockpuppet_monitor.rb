@@ -2,7 +2,10 @@ class Fumimi
   # Monitors /user_events for new sockpuppet accounts and posts them to the #sockpuppet-feed channel. A sockpuppet
   # account is detected when multiple accounts share the same session.
   class SockpuppetMonitor
+    attr_reader :fumimi, :booru, :id
+
     delegate :start, :shutdown, :running?, to: :monitor
+    delegate :cache, :log, :sockpuppet_channel, to: :fumimi
 
     # @param fumimi [Fumimi::Bot] Fumimi instance for accessing the bot and its configuration.
     # @param booru [Danbooru, nil] Booru client to use. Defaults to fumimi.mod_booru.
@@ -15,7 +18,7 @@ class Fumimi
 
     # @return [Danbooru::Monitor] The monitor instance that watches for new user events.
     def monitor
-      @monitor ||= @booru.user_events.monitor(log: @fumimi.log, id: @id) do |user_event|
+      @monitor ||= @booru.user_events.monitor(log: log, id: @id) do |user_event|
         handle_event(user_event)
       end
     end
@@ -24,7 +27,7 @@ class Fumimi
     def handle_event(user_event)
       sockpuppets = sockpuppet_users(user_event)
 
-      @fumimi.log.debug do
+      log.debug do
         [
           "[monitor/sockpuppets]",
           "user_event.id=#{user_event.id}",
@@ -35,10 +38,12 @@ class Fumimi
         ].join(" ")
       end
 
-      return if sockpuppets.empty?
+      return if sockpuppets.empty? || cache.read("sockpuppet_monitor/#{user_event.user.id}/reported")
+
+      cache.write("sockpuppet_monitor/#{user_event.user.id}/reported", true, expires_in: 24.hours)
 
       embed = build_embed(user_event, sockpuppets)
-      @fumimi.sockpuppet_channel.send_message!(embeds: [embed])
+      sockpuppet_channel.send_message!(embeds: [embed])
     end
 
     # @return [Fumimi::DiscordEmbed] A Discord embed summarizing the sockpuppet event.

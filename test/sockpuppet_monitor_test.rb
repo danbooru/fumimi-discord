@@ -44,4 +44,17 @@ class SockpuppetMonitorTest < ApplicationTest
       assert_match(%r{/bans\?search\[user_id\]=1546581}, embed.description)
     end
   end
+
+  def test_same_user_not_reported_twice
+    user = stub(id: 1_548_352, name: "Artorine", url: "https://danbooru.donmai.us/users/1548352", is_banned: false)
+    sockpuppet = stub(id: 999_999, name: "Akanabe", is_banned: false)
+    user_event = stub(id: 8_566_891, category: "login", session_id: "abc123", user: user)
+
+    @monitor.stubs(:sockpuppet_users).returns([sockpuppet])
+
+    @monitor.handle_event(user_event)
+    @monitor.handle_event(user_event)
+
+    assert_equal(1, @channel.embeds.length)
+  end
 end
