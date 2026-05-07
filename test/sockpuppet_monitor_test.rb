@@ -45,16 +45,25 @@ class SockpuppetMonitorTest < ApplicationTest
     end
   end
 
+  def test_failed_login_doesnt_trigger_detection
+    VCR.use_cassette("sockpuppet_monitor_failed_login") do
+      user_event = @fumimi.mod_booru.user_events.index("search[id]": 8_568_881, only: "id,category,session_id,user[id,name]").first
+
+      @monitor.handle_event(user_event)
+
+      assert_empty(@channel.embeds)
+    end
+  end
+
   def test_same_user_not_reported_twice
-    user = stub(id: 1_548_352, name: "Artorine", url: "https://danbooru.donmai.us/users/1548352", is_banned: false)
-    sockpuppet = stub(id: 999_999, name: "Akanabe", is_banned: false)
-    user_event = stub(id: 8_566_891, category: "login", session_id: "abc123", user: user)
+    VCR.use_cassette("sockpuppet_monitor_not_reported_twice") do
+      user_event1 = @fumimi.mod_booru.user_events.index("search[id]": 8_568_696, only: "id,category,session_id,user[id,name]").first
+      user_event2 = @fumimi.mod_booru.user_events.index("search[id]": 8_568_724, only: "id,category,session_id,user[id,name]").first
 
-    @monitor.stubs(:sockpuppet_users).returns([sockpuppet])
+      @monitor.handle_event(user_event1)
+      @monitor.handle_event(user_event2)
 
-    @monitor.handle_event(user_event)
-    @monitor.handle_event(user_event)
-
-    assert_equal(1, @channel.embeds.length)
+      assert_equal(1, @channel.embeds.length)
+    end
   end
 end

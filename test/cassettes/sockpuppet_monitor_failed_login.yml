@@ -1,0 +1,21 @@
+---
+http_interactions:
+- request:
+    method: get
+    uri: https://danbooru.donmai.us/user_events/?limit=1000&only=id%2Ccategory%2Csession_id%2Cuser%5Bid%2Cname%5D&search%5Bid%5D=8568881
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      Accept:
+      - application/json
+  response:
+    status:
+      code: 200
+      message: OK
+    headers: {}
+    body:
+      encoding: UTF-8
+      string: '[{"id":8568881,"category":"failed_login","session_id":"69c7bfa9f7739feed047419b138df9f8","user":{"id":1502120,"name":"Kph123"}}]'
+  recorded_at: Thu, 07 May 2026 03:25:52 GMT
+recorded_with: VCR 6.4.0

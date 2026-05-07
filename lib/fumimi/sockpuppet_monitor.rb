@@ -2,6 +2,12 @@ class Fumimi
   # Monitors /user_events for new sockpuppet accounts and posts them to the #sockpuppet-feed channel. A sockpuppet
   # account is detected when multiple accounts share the same session.
   class SockpuppetMonitor
+    AUTHORIZED_CATEGORIES = %w[
+      login login_verification reauthenticate logout user_creation user_deletion user_undeletion password_reset
+      password_change email_change totp_enable totp_update totp_disable totp_login totp_reauthenticate
+      backup_code_generate backup_code_login backup_code_reauthenticate api_key_create api_key_update api_key_delete
+    ].freeze
+
     attr_reader :fumimi, :booru, :id
 
     delegate :start, :shutdown, :running?, to: :monitor
@@ -70,16 +76,12 @@ class Fumimi
 
     # @return [Array<Fumimi::Model::User>] List of users that share the same session as the given user event.
     def sockpuppet_users(user_event)
-      authorized_categories = %w[
-        login login_verification reauthenticate logout user_creation user_deletion user_undeletion password_reset
-        password_change email_change totp_enable totp_update totp_disable totp_login totp_reauthenticate
-        backup_code_generate backup_code_login backup_code_reauthenticate api_key_create api_key_update api_key_delete
-      ]
+      return [] unless user_event.category.in?(AUTHORIZED_CATEGORIES)
 
       related_events = @booru.user_events.index(
         "search[session_id]": user_event.session_id,
         "search[user_id_not_eq]": user_event.user.id,
-        "search[category]": authorized_categories.join(","),
+        "search[category]": AUTHORIZED_CATEGORIES.join(","),
         only: "id,category,user[id,name,is_banned]",
         limit: 1000,
       )

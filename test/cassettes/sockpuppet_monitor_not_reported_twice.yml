@@ -1,0 +1,75 @@
+---
+http_interactions:
+- request:
+    method: get
+    uri: https://danbooru.donmai.us/user_events/?limit=1000&only=id%2Ccategory%2Csession_id%2Cuser%5Bid%2Cname%5D&search%5Bid%5D=8568696
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      Accept:
+      - application/json
+  response:
+    status:
+      code: 200
+      message: OK
+    headers: {}
+    body:
+      encoding: UTF-8
+      string: '[{"id":8568696,"category":"user_creation","session_id":"e526f9bf06e24800263a2f1de5ebfef1","user":{"id":1548535,"name":"hyakkiyagyou13"}}]'
+  recorded_at: Thu, 07 May 2026 03:32:57 GMT
+- request:
+    method: get
+    uri: https://danbooru.donmai.us/user_events/?limit=1000&only=id%2Ccategory%2Csession_id%2Cuser%5Bid%2Cname%5D&search%5Bid%5D=8568724
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      Accept:
+      - application/json
+  response:
+    status:
+      code: 200
+      message: OK
+    headers: {}
+    body:
+      encoding: UTF-8
+      string: '[{"id":8568724,"category":"email_change","session_id":"e526f9bf06e24800263a2f1de5ebfef1","user":{"id":1548535,"name":"hyakkiyagyou13"}}]'
+  recorded_at: Thu, 07 May 2026 03:32:57 GMT
+- request:
+    method: get
+    uri: https://danbooru.donmai.us/user_events/?limit=1000&only=id%2Ccategory%2Cuser%5Bid%2Cname%2Cis_banned%5D&search%5Bcategory%5D=login%2Clogin_verification%2Creauthenticate%2Clogout%2Cuser_creation%2Cuser_deletion%2Cuser_undeletion%2Cpassword_reset%2Cpassword_change%2Cemail_change%2Ctotp_enable%2Ctotp_update%2Ctotp_disable%2Ctotp_login%2Ctotp_reauthenticate%2Cbackup_code_generate%2Cbackup_code_login%2Cbackup_code_reauthenticate%2Capi_key_create%2Capi_key_update%2Capi_key_delete&search%5Bsession_id%5D=e526f9bf06e24800263a2f1de5ebfef1&search%5Buser_id_not_eq%5D=1548535
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      Accept:
+      - application/json
+  response:
+    status:
+      code: 200
+      message: OK
+    headers: {}
+    body:
+      encoding: UTF-8
+      string: '[{"id":8495965,"category":"logout","user":{"id":13056,"name":"Azhurel","is_banned":false}},{"id":7574334,"category":"login","user":{"id":13056,"name":"Azhurel","is_banned":false}}]'
+  recorded_at: Thu, 07 May 2026 03:32:57 GMT
+- request:
+    method: get
+    uri: https://danbooru.donmai.us/user_events/?limit=1000&only=id%2Ccategory%2Cuser%5Bid%2Cname%2Cis_banned%5D&search%5Bcategory%5D=login%2Clogin_verification%2Creauthenticate%2Clogout%2Cuser_creation%2Cuser_deletion%2Cuser_undeletion%2Cpassword_reset%2Cpassword_change%2Cemail_change%2Ctotp_enable%2Ctotp_update%2Ctotp_disable%2Ctotp_login%2Ctotp_reauthenticate%2Cbackup_code_generate%2Cbackup_code_login%2Cbackup_code_reauthenticate%2Capi_key_create%2Capi_key_update%2Capi_key_delete&search%5Bsession_id%5D=e526f9bf06e24800263a2f1de5ebfef1&search%5Buser_id_not_eq%5D=1548535
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      Accept:
+      - application/json
+  response:
+    status:
+      code: 200
+      message: OK
+    headers: {}
+    body:
+      encoding: UTF-8
+      string: '[{"id":8495965,"category":"logout","user":{"id":13056,"name":"Azhurel","is_banned":false}},{"id":7574334,"category":"login","user":{"id":13056,"name":"Azhurel","is_banned":false}}]'
+  recorded_at: Thu, 07 May 2026 03:32:57 GMT
+recorded_with: VCR 6.4.0
