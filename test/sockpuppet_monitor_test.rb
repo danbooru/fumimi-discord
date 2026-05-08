@@ -26,6 +26,7 @@ class SockpuppetMonitorTest < ApplicationTest
       assert_equal("Artorine", embed.title)
       assert_equal("https://danbooru.donmai.us/users/1548352", embed.url)
       assert_match(/Sock of Akanabe/, embed.description)
+      assert_equal(Fumimi::Colors::BLUE, embed.color)
       assert_match(/No previous ban detected/, embed.description)
     end
   end
@@ -41,6 +42,7 @@ class SockpuppetMonitorTest < ApplicationTest
       assert_equal("https://danbooru.donmai.us/users/1546591", embed.url)
       assert_match(/Sock of hanisann04/, embed.description)
       assert_match(/were already banned/, embed.description)
+      assert_equal(Fumimi::Colors::RED, embed.color)
       assert_match(%r{/bans\?search\[user_id\]=1546581}, embed.description)
     end
   end

@@ -57,7 +57,6 @@ class Fumimi
       embed = Fumimi::DiscordEmbed.new
       embed.title = user_event.user.name
       embed.url = user_event.user.url
-      embed.color = Fumimi::Colors::BLUE
 
       session_url = "#{@booru.url}/user_events?search[session_id]=#{user_event.session_id}"
       sock_text = "Sock of #{sockpuppets.first.name} #{"and at least #{sockpuppets.size - 1} other users" if sockpuppets.size > 1}".strip
@@ -67,8 +66,10 @@ class Fumimi
       if banned_users.present?
         ban_url = "#{@booru.url}/bans?search[user_id]=#{banned_users.pluck(:id).join(",")}"
         embed.description += "\n#{banned_users.size} of these users [were already banned](#{ban_url})"
+        embed.color = Fumimi::Colors::RED
       else
         embed.description += "\nNo previous ban detected."
+        embed.color = Fumimi::Colors::BLUE
       end
 
       embed
