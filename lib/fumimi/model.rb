@@ -74,4 +74,8 @@ class Fumimi::Model
       value.as_json(options)
     end
   end
+
+  def instance_variables_to_inspect
+    [:@attributes]
+  end
 end

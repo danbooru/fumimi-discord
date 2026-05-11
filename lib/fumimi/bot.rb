@@ -2,7 +2,7 @@ class Fumimi
   # The main bot class that drives the Discord bot.
   class Bot
     attr_reader :client_id, :token, :log, :http, :booru, :mod_booru, :booru_domains, :cache, :webserver, :censored_tags,
-                :signoz_url, :signoz_api_key, :report_channel_id, :sockpuppet_channel_id, :report_monitor, :sockpuppet_monitor
+                :signoz, :signoz_url, :signoz_api_key, :report_channel_id, :sockpuppet_channel_id, :report_monitor, :sockpuppet_monitor
 
     # Adapts the Discordrb logger to write through Fumimi's logger.
     DiscordLogStream = Struct.new(:log) do
@@ -65,6 +65,7 @@ class Fumimi
       @booru = Danbooru.new(url: @booru_url, user: @booru_user, api_key: @booru_api_key, http: http, model_builder: method(:build_model))
       @mod_booru = Danbooru.new(url: @booru_url, user: @mod_user, api_key: @mod_api_key, http: http, model_builder: method(:build_model))
       @cache = ActiveSupport::Cache::MemoryStore.new
+      @signoz = SignozClient.new(@signoz_url, @signoz_api_key, http: @http, log: @log, cache: @cache)
       @webserver = Fumimi::Webserver.new(host: @host, port: @port, fumimi: self)
 
       @report_monitor = Fumimi::ReportMonitor.new(fumimi: self, booru: mod_booru)

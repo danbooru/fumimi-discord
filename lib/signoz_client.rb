@@ -10,6 +10,9 @@ class SignozClient
   # @param http [HTTPClient] HTTP client instance.
   # @param cache [Object] Cache object with `get` support.
   def initialize(base_url, api_key, log:, http:, cache:)
+    raise Fumimi::Exceptions::FumimiException, "SIGNOZ_URL is not configured." if base_url.blank?
+    raise Fumimi::Exceptions::FumimiException, "SIGNOZ_API_KEY is not configured." if api_key.blank?
+
     @api_key     = api_key
     @log         = log
     @cache       = cache
@@ -19,18 +22,13 @@ class SignozClient
   # Returns a data structure detailing unique IP counts for sets of tags over a given time range.
   # { :duration => 1.second, :unique_ips => [10, 11]}
   # @return [Hash]
-  def unique_ips_in_range(sets_of_tags, range)
-    until_ms = (Time.now.to_f * 1000).to_i
-    since_ms = until_ms - range.in_milliseconds
+  def unique_ips_in_range(tags, range)
+    payload = base_payload(range)
+    payload[:compositeQuery][:queries] << create_tag_payload(tags)
 
-    payload = base_payload(since_ms, until_ms)
-    sets_of_tags.each_with_index do |tags, index|
-      payload[:compositeQuery][:queries] << create_tag_payload(tags, index)
-    end
-
-    @cache.fetch(cache_key(range, sets_of_tags), expires_in: cache_lifetime(range)) do
+    @cache.fetch(cache_key(range, tags), expires_in: 3.minutes) do
       # cache queries about a set of tags for their selected timespan
-      @log.info("[Signoz] Fetching signoz query for #{sets_of_tags} for the last #{range.inspect}...")
+      @log.info("[Signoz] Fetching signoz query for #{tags} for the last #{range.inspect}...")
       parse_request(payload)
     end
   end
@@ -42,16 +40,12 @@ class SignozClient
     {
       duration: (data["data"]["meta"]["durationMs"] / 1000.to_f).seconds,
       unique_ips: data["data"]["data"]["results"].sort_by { |q| q["queryName"] }.map { |q| q["data"] }.flatten,
+      cached_at: Time.now.to_s,
     }
   end
 
   def cache_key(range, tags)
-    :"signoz_count_tags_#{tags.flatten.sort.join("_")}_#{range.in_seconds}"
-  end
-
-  def cache_lifetime(range)
-    # cache queries for a minimum of one hour, to a maximum of one day
-    Fumimi::TimeRangeParser.clamp(range, min: 1.hour, max: 1.day).in_seconds
+    :"signoz_count_tags_#{tags.flatten.sort.join("_")}_#{range}"
   end
 
   # Sends the query payload and returns parsed response JSON.
@@ -74,11 +68,11 @@ class SignozClient
     parsed
   end
 
-  def base_payload(since_ms, until_ms)
+  def base_payload(range)
     {
       schemaVersion: "v1",
-      start: since_ms,
-      end: until_ms,
+      start: range.begin.to_i * 1000,
+      end: range.last.to_i * 1000,
       requestType: "scalar",
       compositeQuery: {
         queries: [],
@@ -91,13 +85,13 @@ class SignozClient
     }.with_indifferent_access
   end
 
-  def create_tag_payload(tags, query_n)
+  def create_tag_payload(tags)
     expressions = []
     expressions << "k8s.daemonset.name = 'nginx-ingress-controller'"
     expressions << "userAgent CONTAINS 'Mozilla/5.0' "
     expressions << "userAgent NOT CONTAINS 'compatible'" # googlebot, etc
-    expressions << "url contains '/posts?'"
-    expressions << "url contains 'tags='"
+    expressions << "url CONTAINS '/posts?tags='"
+    expressions << "query_string_page NOT EXISTS"
 
     tags.each do |tag|
       expressions << "url REGEXP '#{tag_regex(tag)}'"
@@ -106,7 +100,7 @@ class SignozClient
     {
       type: "builder_query",
       spec: {
-        name: query_n.to_s,
+        name: "query",
         signal: "logs",
         filter: {
           expression: expressions.join(" AND "),
@@ -124,24 +118,8 @@ class SignozClient
   def tag_regex(tag)
     tag = URI.encode_www_form_component(tag)
     tag = Regexp.escape(tag)
-    # Replace encoded asterisk back with a regex wildcard that stops at tag boundaries
-    if tag.include? "\\*"
-      tag = tag.gsub('\*', ".*")
-      return tag
-    end
+    tag = tag.gsub('\*', ".*") if tag.include?("\\*")
 
-    self.class.old_tag_regex(tag).source
-  end
-
-  def self.positive_tag_regex(tag)
-    /(?i)(^|\+)(#{tag}(\+|$)|%28(.+\+)?#{tag}(\+|%29))/
-  end
-
-  def self.negative_tag_regex(tag)
-    /(?i)(^|\+)(-#{tag}(\+|$)|-%28(.+\+)?#{tag}(\+|%29))/
-  end
-
-  def self.old_tag_regex(tag)
-    /tags=(?i)(?:[^&]*\++\(?|[+(]*)(#{tag})([+&)]|$)/
+    /tags=(?i)(?:[^&]*\++\(?|[+(]*)(#{tag})([+&)]|$)/.source
   end
 end
