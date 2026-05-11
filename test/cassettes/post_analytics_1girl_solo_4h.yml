@@ -1,0 +1,23 @@
+---
+http_interactions:
+- request:
+    method: post
+    uri: https://signoz.donmai.us/api/v5/query_range
+    body:
+      encoding: UTF-8
+      string: '{"schemaVersion":"v1","start":1778446993000,"end":1778461393000,"requestType":"scalar","compositeQuery":{"queries":[{"type":"builder_query","spec":{"name":"unique_ips","signal":"logs","filter":{"expression":"k8s.daemonset.name
+        = ''nginx-ingress-controller'' AND userAgent CONTAINS ''Mozilla/5.0'' AND
+        userAgent NOT CONTAINS ''compatible'' AND url CONTAINS ''/posts?tags='' AND
+        query_string_page NOT EXISTS AND url REGEXP ''tags=(?i)(?:[^&]*\\++\\(?|[+(]*)(1girl)([+&)]|$)''
+        AND url REGEXP ''tags=(?i)(?:[^&]*\\++\\(?|[+(]*)(solo)([+&)]|$)''"},"having":{"expression":""},"aggregations":[{"expression":"count_distinct(ip)"}]}}]},"formatOptions":{"formatTableResultForUI":false,"fillGaps":false},"variables":{}}'
+    headers: {}
+  response:
+    status:
+      code: 200
+      message: OK
+    headers: {}
+    body:
+      encoding: ASCII-8BIT
+      string: '{"status":"success","data":{"type":"scalar","meta":{"rowsScanned":7480121,"bytesScanned":1054938762,"durationMs":684,"stepIntervals":{"unique_ips":45}},"data":{"results":[{"queryName":"unique_ips","columns":[{"name":"__result_0","queryName":"unique_ips","aggregationIndex":0,"meta":{},"columnType":"aggregation"}],"data":[[22]]}]}}}'
+  recorded_at: Mon, 11 May 2026 01:03:14 GMT
+recorded_with: VCR 6.4.0

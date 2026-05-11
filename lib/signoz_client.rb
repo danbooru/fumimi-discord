@@ -1,8 +1,30 @@
-# Client for querying SigNoz log analytics endpoints.
+# Client for querying the SigNoz API.
 #
 # Required signoz configuration:
-# attributes.url -> donmai\.\w+(?<danbooru_path>[\w\/]+) -> attributes (Regex parser)
-# attributes.url -> tags=(?P<query_string_tags>[^&]*) -> attributes (Regex parser)
+#
+#   attributes.url -> donmai\.\w+(?<danbooru_path>[\w\/]+) -> attributes (Regex parser)
+#   attributes.url -> tags=(?P<query_string_tags>[^&]*) -> attributes (Regex parser)
+#
+# Usage:
+#
+#   signoz = SignozClient.new
+#
+#   queries =
+#     signoz
+#     .query_set
+#     .start(since.ago)
+#     .end(Time.now)
+#     .query("unique_ips") do |query|
+#         query
+#         .where("k8s.daemonset.name = 'nginx-ingress-controller'")
+#         .where("userAgent CONTAINS 'Mozilla/5.0'")
+#         .where("userAgent NOT CONTAINS 'compatible'") # googlebot, etc
+#         .where("url CONTAINS '/posts?tags='")
+#         .aggregate_by("count_distinct(ip)")
+#     end
+#
+#   puts queries.results[:unique_ips]
+#
 class SignozClient
   # @param base_url [String] SigNoz base URL.
   # @param api_key [String] SigNoz API key header value.
@@ -13,46 +35,29 @@ class SignozClient
     raise Fumimi::Exceptions::FumimiException, "SIGNOZ_URL is not configured." if base_url.blank?
     raise Fumimi::Exceptions::FumimiException, "SIGNOZ_API_KEY is not configured." if api_key.blank?
 
-    @api_key     = api_key
-    @log         = log
-    @cache       = cache
-    @http        = http.base_url(base_url).headers("SIGNOZ-API-KEY": api_key)
+    @api_key = api_key
+    @log = log
+    @cache = cache
+    @http = http.base_url(base_url).headers("SIGNOZ-API-KEY": api_key)
   end
 
-  # Returns a data structure detailing unique IP counts for sets of tags over a given time range.
-  # { :duration => 1.second, :unique_ips => [10, 11]}
-  # @return [Hash]
-  def unique_ips_in_range(tags, range)
-    payload = base_payload(range)
-    payload[:compositeQuery][:queries] << create_tag_payload(tags)
-
-    @cache.fetch(cache_key(range, tags), expires_in: 3.minutes) do
-      # cache queries about a set of tags for their selected timespan
-      @log.info("[Signoz] Fetching signoz query for #{tags} for the last #{range.inspect}...")
-      parse_request(payload)
-    end
-  end
-
-  # Converts the stupid graphql return format into something more easily accessible
-  def parse_request(payload)
-    data = post_json("/api/v5/query_range", payload)
-
-    {
-      duration: (data["data"]["meta"]["durationMs"] / 1000.to_f).seconds,
-      unique_ips: data["data"]["data"]["results"].sort_by { |q| q["queryName"] }.map { |q| q["data"] }.flatten,
-      cached_at: Time.now.to_s,
-    }
-  end
-
-  def cache_key(range, tags)
-    :"signoz_count_tags_#{tags.flatten.sort.join("_")}_#{range}"
-  end
-
-  # Sends the query payload and returns parsed response JSON.
+  # Perform a query_range request to the SigNoz API.
   #
-  # @return [Hash]
-  def post_json(path, payload)
-    response = @http.use(:json).post(path, body: payload)
+  # @param payload [Hash] The query payload according to the SigNoz API specification.
+  # @return [Hash] The parsed response from SigNoz.
+  #
+  # @see https://signoz.io/api-reference/v0.122.0#/operations/QueryRangeV5
+  def query_range(payload)
+    request("/api/v5/query_range", payload)
+  end
+
+  # Send a request to the SigNoz API and return the parsed response.
+  #
+  # @param path [String] The SigNoz API endpoint path.
+  # @param body [Hash] The request body.
+  # @return [Result] The response from SigNoz.
+  def request(path, body)
+    response = @http.use(:json).post(path, body: body)
 
     if response.code >= 400
       @log.info("[Signoz] Response: #{response.body}")
@@ -65,61 +70,170 @@ class SignozClient
       raise "Signoz API response: unexpected status."
     end
 
-    parsed
+    Result.new(parsed)
   end
 
-  def base_payload(range)
-    {
-      schemaVersion: "v1",
-      start: range.begin.to_i * 1000,
-      end: range.last.to_i * 1000,
-      requestType: "scalar",
-      compositeQuery: {
-        queries: [],
-      },
-      formatOptions: {
-        formatTableResultForUI: false,
-        fillGaps: false,
-      },
-      variables: {},
-    }.with_indifferent_access
+  # @return [QuerySet] A new QuerySet instance for building and executing queries.
+  def query_set
+    QuerySet.new(self)
   end
 
-  def create_tag_payload(tags)
-    expressions = []
-    expressions << "k8s.daemonset.name = 'nginx-ingress-controller'"
-    expressions << "userAgent CONTAINS 'Mozilla/5.0' "
-    expressions << "userAgent NOT CONTAINS 'compatible'" # googlebot, etc
-    expressions << "url CONTAINS '/posts?tags='"
-    expressions << "query_string_page NOT EXISTS"
+  # The SigNoz API allows multiple queries to be sent together in a single request. A QuerySet consists of a set
+  # of one or more SigNoz queries that are executed together, and a start and end time range for all the queries.
+  class QuerySet
+    attr_reader :signoz, :start_at, :end_at, :queries
+    protected attr_writer :start_at, :end_at, :queries
 
-    tags.each do |tag|
-      expressions << "url REGEXP '#{tag_regex(tag)}'"
+    # @param signoz [SignozClient] The SignozClient instance to use for executing the queries.
+    def initialize(signoz)
+      @signoz = signoz
+      @start_at = nil
+      @end_at = nil
+      @queries = []
+      @results = nil
     end
 
-    {
-      type: "builder_query",
-      spec: {
-        name: "query",
-        signal: "logs",
-        filter: {
-          expression: expressions.join(" AND "),
+    # @param time [Time] The start time for the query range.
+    # @return [QuerySet] A new QuerySet instance with the specified start time.
+    def start(time)
+      dup.tap do |copy|
+        copy.start_at = time
+      end
+    end
+
+    # @param time [Time] The end time for the query range.
+    # @return [QuerySet] A new QuerySet instance with the specified end time.
+    def end(time)
+      dup.tap do |copy|
+        copy.end_at = time
+      end
+    end
+
+    # Add a query to the query set.
+    #
+    # @param name [String] The name of the query.
+    # @param signal [String] The signal (table) to query (e.g. "logs", "metrics", "traces")
+    # @yieldparam query [Query] The Query instance to configure.
+    # @return [QuerySet] A new QuerySet instance with the specified log query added.
+    def query(name, signal = "logs", &block)
+      dup.tap do |copy|
+        query = yield Query.new(name, signal)
+        copy.queries += [query]
+      end
+    end
+
+    # @return [Result] The results from executing this query set against the SigNoz API.
+    def results
+      @results ||= signoz.request("/api/v5/query_range", payload)
+    end
+
+    # @return [Hash] The payload to send to the SigNoz query_range API for this query set.
+    def payload
+      {
+        schemaVersion: "v1",
+        start: start_at.to_i * 1000,
+        end: end_at.to_i * 1000,
+        requestType: "scalar",
+        compositeQuery: {
+          queries: queries.map(&:payload),
         },
-        having: {
-          expression: "",
+        formatOptions: {
+          formatTableResultForUI: false,
+          fillGaps: false,
         },
-        aggregations: [{
-          expression: "count_distinct(ip)",
-        }],
-      },
-    }.with_indifferent_access
+        variables: {},
+      }.with_indifferent_access
+    end
+
+    # The instance variables to include in the `.inspect` output for this object.
+    def instance_variables_to_inspect
+      instance_variable_names - ["@signoz"]
+    end
   end
 
-  def tag_regex(tag)
-    tag = URI.encode_www_form_component(tag)
-    tag = Regexp.escape(tag)
-    tag = tag.gsub('\*', ".*") if tag.include?("\\*")
+  # A Query represents a single query to be sent to the SigNoz API. A Query consists of a set of where clauses and at
+  # least one aggregation. Multiple queries can be batched together in a QuerySet.
+  class Query
+    attr_reader :name, :signal, :where_clauses, :aggregations
+    protected attr_writer :name, :signal, :where_clauses, :aggregations
 
-    /tags=(?i)(?:[^&]*\++\(?|[+(]*)(#{tag})([+&)]|$)/.source
+    # Create a new Query for the logs signal.
+    #
+    # @param name [String] The name of the query, which will be used to identify the results in the response.
+    # @return [Query] A new Query instance for the logs signal.
+    def self.logs(name = "query")
+      new(name, signal: "logs")
+    end
+
+    # @param name [String] The name of the query, which will be used to identify the results in the response.
+    # @param signal [String] The signal (table) to query (e.g. "logs", "metrics", "traces")
+    def initialize(name = "query", signal = "logs")
+      @name = name
+      @signal = signal
+      @where_clauses = []
+      @aggregations = []
+    end
+
+    # @param expression [String] A filter expression to add to the query (e.g. `url CONTAINS '/posts'`).
+    # @return [Query] A new Query instance with the specified where clause added.
+    def where(expression)
+      dup.tap do |copy|
+        copy.where_clauses += [expression]
+      end
+    end
+
+    # @param expression [String] An aggregation expression to add to the query (e.g. `count_distinct(ip)`).
+    # @return [Query] A new Query instance with the specified aggregation added.
+    def aggregate_by(expression)
+      dup.tap do |copy|
+        copy.aggregations += [{ expression: expression }]
+      end
+    end
+
+    # @return [Hash] The payload to include in the SigNoz query_range API request for this query.
+    def payload
+      {
+        type: "builder_query",
+        spec: {
+          name: name.to_s,
+          signal: signal,
+          filter: { expression: where_clauses.join(" AND ") },
+          having: { expression: "" },
+          aggregations: aggregations,
+        },
+      }
+    end
+  end
+
+  # A Result represents the results returned by a SigNoz request.
+  class Result
+    attr_reader :results, :finished_at
+
+    delegate :[], to: :query_results
+
+    # @param results [Hash] The raw results hash returned from the SigNoz API.
+    def initialize(results)
+      @results = results.with_indifferent_access
+      @finished_at = Time.now
+    end
+
+    # @return [Boolean] Whether the query was successful
+    def success?
+      results[:status] == "success"
+    end
+
+    # @return [ActiveSupport::Duration] Duration of the query execution.
+    def duration
+      (results.dig(:data, :meta, :durationMs) / 1000.0).seconds
+    end
+
+    # @return [Hash<String, Array>] The query results, keyed by query name. The values are arrays of the column values.
+    def query_results
+      results.dig(:data, :data, :results).index_by { |r| r[:queryName] }.with_indifferent_access.transform_values do |result|
+        result[:columns].map.with_index do |_column, i|
+          result.dig(:data, 0, i)
+        end
+      end
+    end
   end
 end

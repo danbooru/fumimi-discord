@@ -1,12 +1,13 @@
 class Fumimi::Report::PostAnalyticsReport
   include Fumimi::HasDiscordEmbed
 
-  attr_reader :signoz, :tags, :since
+  attr_reader :cache, :signoz, :tags, :since
 
   # @param fumimi [Fumimi::Bot] Fumimi instance for accessing the bot.
   # @param tags [Array<String>] List of tags contained in the search.
   # @param since [Time] Starting point for the time range.
   def initialize(fumimi:, tags: [], since: 1.day)
+    @cache = fumimi.cache
     @signoz = fumimi.signoz
     @tags = tags.sort
     @since = since
@@ -30,7 +31,7 @@ class Fumimi::Report::PostAnalyticsReport
   end
 
   def embed_timestamp
-    Time.parse(range_request[:cached_at]) if range_request[:cached_at].present?
+    results.finished_at
   end
 
   def clarification
@@ -69,15 +70,38 @@ class Fumimi::Report::PostAnalyticsReport
     rows
   end
 
-  def range_request
-    @range_request ||= signoz.unique_ips_in_range(@tags.compact, @since.ago..Time.now)
+  def results
+    cache.fetch("post_analytics_report/#{tags.join(" ")}/#{since})}", expires_in: 5.minutes) do
+      signoz
+        .query_set
+        .start(since.ago)
+        .end(Time.now)
+        .query("unique_ips") do |query|
+          query
+            .where("k8s.daemonset.name = 'nginx-ingress-controller'")
+            .where("userAgent CONTAINS 'Mozilla/5.0'")
+            .where("userAgent NOT CONTAINS 'compatible'") # googlebot, etc
+            .where("url CONTAINS '/posts?tags='")
+            .where("query_string_page NOT EXISTS")
+            .where(tags.map { |tag| "url REGEXP '#{tag_regex(tag)}'" }.join(" AND "))
+            .aggregate_by("count_distinct(ip)")
+        end.results
+    end
+  end
+
+  def tag_regex(tag)
+    tag = URI.encode_www_form_component(tag)
+    tag = Regexp.escape(tag)
+    tag = tag.gsub('\*', ".*") if tag.include?("\\*")
+
+    /tags=(?i)(?:[^&]*\++\(?|[+(]*)(#{tag})([+&)]|$)/.source
   end
 
   def unique_ips_in_range
-    @unique_ips_in_range ||= range_request[:unique_ips][0]
+    @unique_ips_in_range ||= results[:unique_ips].first
   end
 
   def request_time
-    range_request[:duration].to_fs(:rounded, precision: 1)
+    results.duration.to_fs(:rounded, precision: 1)
   end
 end
