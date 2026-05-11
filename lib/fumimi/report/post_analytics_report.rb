@@ -14,7 +14,7 @@ class Fumimi::Report::PostAnalyticsReport
   end
 
   def embed_title
-    "Searches for #{@tags.join(" ")}"
+    tags.present? ? "Searches for #{@tags.join(" ").gsub("_", "\\_")}" : "Searches for anything"
   end
 
   def embed_description
@@ -36,16 +36,12 @@ class Fumimi::Report::PostAnalyticsReport
 
   def clarification
     lines = []
-    if @tags.to_a.length > 1
-      lines << "Unique users whose searches in the last #{@since.inspect} included all of these tags at once:"
-      lines << @tags.map { |t| "`#{t}`" }.join(", ")
-    elsif @tags.present?
-      lines << "Unique users whose searches in the last #{@since.inspect} included `#{@tags.first}`:"
+    if @tags.present?
+      lines << "Number of users who searched for `#{@tags.join(" & ")}` in the last #{@since.inspect}"
+      lines << "(order doesn't matter)" if @tags.length > 1
     else
-      lines << "Unique users who searched for anything in the last #{@since.inspect}:"
+      lines << "Number of users who searched for anything in the last #{@since.inspect}"
     end
-
-    lines << "Order does not matter." if @tags.length > 1
 
     lines << "Note: `*` matches anything, including exclusions." if @tags.any? { |t| t.include?("*") }
 
@@ -57,17 +53,19 @@ class Fumimi::Report::PostAnalyticsReport
   end
 
   def table
-    Fumimi::DiscordTable.new(headers: table_headers, rows: table_rows)
-  end
+    unique_searchers = results[:searches].first
+    direct_searches = results[:direct_searches].first
+    pages_viewed = results[:searches].second
+    posts_viewed = results[:post_views].first
 
-  def table_headers
-    %w[Contains Users]
-  end
-
-  def table_rows
+    headers = %w[Name Value]
     rows = []
-    rows << [@tags.join(" + ").truncate(20, omission: "…"), unique_ips_in_range.to_fs(:delimited)]
-    rows
+    rows << ["Unique Searches", unique_searchers.to_fs(:delimited)]
+    rows << ["Type-in Searches", (direct_searches.to_f / unique_searchers * 100).to_fs(:rounded, precision: 1) + "%"]
+    rows << ["Avg. Pages Viewed", (pages_viewed.to_f / unique_searchers).to_fs(:rounded, precision: 1)]
+    rows << ["Avg. Posts Viewed", (posts_viewed.to_f / unique_searchers).to_fs(:rounded, precision: 1)]
+
+    Fumimi::DiscordTable.new(headers:, rows:)
   end
 
   def results
@@ -76,29 +74,44 @@ class Fumimi::Report::PostAnalyticsReport
         .query_set
         .start(since.ago)
         .end(Time.now)
-        .query("unique_ips") do |query|
+        .query("searches") do |query|
           query
             .where("k8s.daemonset.name = 'nginx-ingress-controller'")
             .where("userAgent CONTAINS 'Mozilla/5.0'")
             .where("userAgent NOT CONTAINS 'compatible'") # googlebot, etc
-            .where("url CONTAINS '/posts?tags='")
-            .where("query_string_page NOT EXISTS")
-            .where(tags.map { |tag| "url REGEXP '#{tag_regex(tag)}'" }.join(" AND "))
+            .where("danbooru_path = '/posts'")
+            .where(tags.map { |tag| "url REGEXP '#{tag_regex("tags", tag)}'" }.join(" AND "))
             .aggregate_by("count_distinct(ip)")
+            .aggregate_by("count()")
+        end
+        .query("direct_searches") do |query|
+          query
+            .where("k8s.daemonset.name = 'nginx-ingress-controller'")
+            .where("userAgent CONTAINS 'Mozilla/5.0'")
+            .where("userAgent NOT CONTAINS 'compatible'") # googlebot, etc
+            .where("danbooru_path = '/posts'")
+            .where("url CONTAINS 'z=5'")
+            .where(tags.map { |tag| "url REGEXP '#{tag_regex("tags", tag)}'" }.join(" AND "))
+            .aggregate_by("count_distinct(ip)")
+        end
+        .query("post_views") do |query|
+          query
+            .where("k8s.daemonset.name = 'nginx-ingress-controller'")
+            .where("userAgent CONTAINS 'Mozilla/5.0'")
+            .where("userAgent NOT CONTAINS 'compatible'") # googlebot, etc
+            .where("danbooru_path REGEXP '^/posts/[0-9]+$'")
+            .where(tags.map { |tag| "url REGEXP '#{tag_regex("q", tag)}'" }.join(" AND "))
+            .aggregate_by("count()")
         end.results
     end
   end
 
-  def tag_regex(tag)
+  def tag_regex(param, tag)
     tag = URI.encode_www_form_component(tag)
     tag = Regexp.escape(tag)
     tag = tag.gsub('\*', ".*") if tag.include?("\\*")
 
-    /tags=(?i)(?:[^&]*\++\(?|[+(]*)(#{tag})([+&)]|$)/.source
-  end
-
-  def unique_ips_in_range
-    @unique_ips_in_range ||= results[:unique_ips].first
+    /#{param}=(?i)(?:[^&]*\++\(?|[+(]*)(#{tag})([+&)]|$)/.source
   end
 
   def request_time

@@ -8,8 +8,11 @@ class PostAnalyticsCommandTest < ApplicationTest
       table_lines = table_lines_for(report)
 
       assert_equal "Searches for 1girl", report.title
-      assert_equal %w[Contains Users], table_lines.first
-      assert_equal %w[1girl 3,645], table_lines.second
+      assert_equal %w[Name Value], table_lines.first
+      assert_equal ["Unique Searches", "3,936"], table_lines.second
+      assert_equal ["Type-in Searches", "46.7%"], table_lines.third
+      assert_equal ["Avg. Pages Viewed", "9.0"], table_lines.fourth
+      assert_equal ["Avg. Posts Viewed", "7.5"], table_lines.fifth
     end
   end
 
@@ -29,8 +32,11 @@ class PostAnalyticsCommandTest < ApplicationTest
       table_lines = table_lines_for(report)
 
       assert_equal "Searches for 1girl", report.title
-      assert_equal %w[Contains Users], table_lines.first
-      assert_equal %w[1girl 152], table_lines.second
+      assert_equal %w[Name Value], table_lines.first
+      assert_equal ["Unique Searches", "192"], table_lines.second
+      assert_equal ["Type-in Searches", "43.2%"], table_lines.third
+      assert_equal ["Avg. Pages Viewed", "8.4"], table_lines.fourth
+      assert_equal ["Avg. Posts Viewed", "4.8"], table_lines.fifth
     end
   end
 
@@ -40,10 +46,27 @@ class PostAnalyticsCommandTest < ApplicationTest
       report = response.reply_embeds.first
       table_lines = table_lines_for(report)
 
-      assert_equal 2, table_lines.length
       assert_equal "Searches for 1girl solo", report.title
-      assert_equal %w[Contains Users], table_lines.first
-      assert_equal ["1girl + solo", "22"], table_lines.second
+      assert_equal %w[Name Value], table_lines.first
+      assert_equal ["Unique Searches", "13"], table_lines.second
+      assert_equal ["Type-in Searches", "92.3%"], table_lines.third
+      assert_equal ["Avg. Pages Viewed", "9.7"], table_lines.fourth
+      assert_equal ["Avg. Posts Viewed", "12.4"], table_lines.fifth
+    end
+  end
+
+  def test_blank_search
+    VCR.use_cassette("post_analytics_blank_1h") do
+      response = mock_slash_command("/searches", args: { time_range: "1h" })
+      report = response.reply_embeds.first
+      table_lines = table_lines_for(report)
+
+      assert_equal "Searches for anything", report.title
+      assert_equal %w[Name Value], table_lines.first
+      assert_equal ["Unique Searches", "42,811"], table_lines.second
+      assert_equal ["Type-in Searches", "35.9%"], table_lines.third
+      assert_equal ["Avg. Pages Viewed", "11.8"], table_lines.fourth
+      assert_equal ["Avg. Posts Viewed", "12.1"], table_lines.fifth
     end
   end
 end

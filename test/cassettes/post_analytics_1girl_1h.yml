@@ -5,10 +5,16 @@ http_interactions:
     uri: https://signoz.donmai.us/api/v5/query_range
     body:
       encoding: UTF-8
-      string: '{"schemaVersion":"v1","start":1778457793000,"end":1778461393000,"requestType":"scalar","compositeQuery":{"queries":[{"type":"builder_query","spec":{"name":"unique_ips","signal":"logs","filter":{"expression":"k8s.daemonset.name
+      string: '{"schemaVersion":"v1","start":1778474695000,"end":1778478295000,"requestType":"scalar","compositeQuery":{"queries":[{"type":"builder_query","spec":{"name":"searches","signal":"logs","filter":{"expression":"k8s.daemonset.name
         = ''nginx-ingress-controller'' AND userAgent CONTAINS ''Mozilla/5.0'' AND
-        userAgent NOT CONTAINS ''compatible'' AND url CONTAINS ''/posts?tags='' AND
-        query_string_page NOT EXISTS AND url REGEXP ''tags=(?i)(?:[^&]*\\++\\(?|[+(]*)(1girl)([+&)]|$)''"},"having":{"expression":""},"aggregations":[{"expression":"count_distinct(ip)"}]}}]},"formatOptions":{"formatTableResultForUI":false,"fillGaps":false},"variables":{}}'
+        userAgent NOT CONTAINS ''compatible'' AND danbooru_path = ''/posts'' AND url
+        REGEXP ''tags=(?i)(?:[^&]*\\++\\(?|[+(]*)(1girl)([+&)]|$)''"},"having":{"expression":""},"aggregations":[{"expression":"count_distinct(ip)"},{"expression":"count()"}]}},{"type":"builder_query","spec":{"name":"direct_searches","signal":"logs","filter":{"expression":"k8s.daemonset.name
+        = ''nginx-ingress-controller'' AND userAgent CONTAINS ''Mozilla/5.0'' AND
+        userAgent NOT CONTAINS ''compatible'' AND danbooru_path = ''/posts'' AND url
+        CONTAINS ''z=5'' AND url REGEXP ''tags=(?i)(?:[^&]*\\++\\(?|[+(]*)(1girl)([+&)]|$)''"},"having":{"expression":""},"aggregations":[{"expression":"count_distinct(ip)"}]}},{"type":"builder_query","spec":{"name":"post_views","signal":"logs","filter":{"expression":"k8s.daemonset.name
+        = ''nginx-ingress-controller'' AND userAgent CONTAINS ''Mozilla/5.0'' AND
+        userAgent NOT CONTAINS ''compatible'' AND danbooru_path REGEXP ''^/posts/[0-9]+$''
+        AND url REGEXP ''q=(?i)(?:[^&]*\\++\\(?|[+(]*)(1girl)([+&)]|$)''"},"having":{"expression":""},"aggregations":[{"expression":"count()"}]}}]},"formatOptions":{"formatTableResultForUI":false,"fillGaps":false},"variables":{}}'
     headers: {}
   response:
     status:
@@ -17,6 +23,6 @@ http_interactions:
     headers: {}
     body:
       encoding: ASCII-8BIT
-      string: '{"status":"success","data":{"type":"scalar","meta":{"rowsScanned":1860659,"bytesScanned":702186793,"durationMs":569,"stepIntervals":{"unique_ips":10}},"data":{"results":[{"queryName":"unique_ips","columns":[{"name":"__result_0","queryName":"unique_ips","aggregationIndex":0,"meta":{},"columnType":"aggregation"}],"data":[[152]]}]}}}'
-  recorded_at: Mon, 11 May 2026 01:03:14 GMT
+      string: '{"status":"success","data":{"type":"scalar","meta":{"rowsScanned":5422794,"bytesScanned":4131885871,"durationMs":6101,"stepIntervals":{"direct_searches":10,"post_views":10,"searches":10}},"data":{"results":[{"queryName":"searches","columns":[{"name":"__result_0","queryName":"searches","aggregationIndex":0,"meta":{},"columnType":"aggregation"},{"name":"__result_1","queryName":"searches","aggregationIndex":1,"meta":{},"columnType":"aggregation"}],"data":[[192,1621]]},{"queryName":"direct_searches","columns":[{"name":"__result_0","queryName":"direct_searches","aggregationIndex":0,"meta":{},"columnType":"aggregation"}],"data":[[83]]},{"queryName":"post_views","columns":[{"name":"__result_0","queryName":"post_views","aggregationIndex":0,"meta":{},"columnType":"aggregation"}],"data":[[931]]}]}}}'
+  recorded_at: Mon, 11 May 2026 05:45:02 GMT
 recorded_with: VCR 6.4.0

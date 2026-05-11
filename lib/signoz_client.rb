@@ -177,6 +177,8 @@ class SignozClient
     # @param expression [String] A filter expression to add to the query (e.g. `url CONTAINS '/posts'`).
     # @return [Query] A new Query instance with the specified where clause added.
     def where(expression)
+      return self if expression.blank?
+
       dup.tap do |copy|
         copy.where_clauses += [expression]
       end
