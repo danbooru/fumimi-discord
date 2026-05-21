@@ -1,0 +1,3 @@
+# The Dockerfile must be updated too when these are updated.
+
+ruby 4.0.3
