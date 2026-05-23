@@ -17,9 +17,7 @@ class Fumimi::Report::YappersReport
     <<~EOS
       #{description}
       #{"Only showing the latest #{total_posts} posts." if hit_max_pages?}
-      ```
-      #{table.prettified}
-      ```
+      #{table}
       -# Results are cached for one hour.
     EOS
   end

@@ -20,9 +20,7 @@ class Fumimi::Report::PostAnalyticsReport
   def embed_description
     <<~EOS
       #{clarification}
-      ```
-      #{table.prettified}
-      ```
+      #{table}
     EOS
   end
 

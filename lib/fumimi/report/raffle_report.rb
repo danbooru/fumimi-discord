@@ -28,9 +28,7 @@ class Fumimi::Report::RaffleReport
       raffle_stats
     else
       <<~EOF
-        ```
         #{raffle_winners}
-        ```
       EOF
     end
   end
@@ -40,9 +38,7 @@ class Fumimi::Report::RaffleReport
       #{date_info}
       #{candidates.length} users have entered the raffle. Of these, #{valid_candidates.length} are eligible.
       They have submitted a total of #{total_uploads} posts, of which [#{total_pending} are pending](#{pending_link}).
-      ```
       #{top_uploader_table}
-      ```
     EOS
   end
 
@@ -54,7 +50,7 @@ class Fumimi::Report::RaffleReport
       posts = Hash.new(0) if posts.blank?
       [winner.name, winner_id, posts[:total], posts[:active], posts[:pending], winner.post_upload_count]
     end
-    Fumimi::DiscordTable.new(headers: headers, rows: rows).prettified
+    Fumimi::DiscordTable.new(headers: headers, rows: rows)
   end
 
   def end_date
@@ -155,7 +151,7 @@ class Fumimi::Report::RaffleReport
         posts = posts_by_user[uploader.id]
         [uploader.name, posts[:total], posts[:active], posts[:pending], uploader.post_upload_count]
       end
-      Fumimi::DiscordTable.new(headers: headers, rows: rows).prettified
+      Fumimi::DiscordTable.new(headers: headers, rows: rows)
     end
   end
 

@@ -26,7 +26,10 @@ class Fumimi::Report::PostStatsReport
         #{status_report.table.prettified}
         #{by_level_report.table.prettified unless tag_string =~ /user:[^\b]+/}
         ```
+        #{total_table.forced_table_width}
       EOS
+      # the *80 part is a ugly hack to force discord to make embeds wider
+      # see https://discord.com/channels/310432830138089472/1378296698421379093/1507797175114141717
     end
   end
 

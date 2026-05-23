@@ -15,7 +15,19 @@ class Fumimi::DiscordTable
   end
 
   def to_s
-    "```\n#{prettified}\n```"
+    <<~EOS
+    ```
+    #{prettified}
+    ```
+    #{forced_table_width}
+    EOS
+  end
+
+  def forced_table_width
+    # ugly hack to force code blocks to be wider independent of surrounding text.
+    # See https://discord.com/channels/310432830138089472/1378296698421379093/1507797175114141717
+
+    "-" * 80
   end
 
   def raw_table
