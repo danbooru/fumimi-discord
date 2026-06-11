@@ -24,6 +24,7 @@ class Fumimi::Button
     embed = Discordrb::Webhooks::Embed.new(
       title: @old_embed.title,
       description: @old_embed.description,
+      url: @old_embed.url,
       color: embed_color,
     )
 
