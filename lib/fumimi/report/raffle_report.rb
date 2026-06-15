@@ -65,12 +65,13 @@ class Fumimi::Report::RaffleReport
     end
   end
 
-  def forum_posts
-    @cache.fetch(:"#{cache_key}_forum_posts", expires_in: cache_lifetime) { forum_topic.all_posts }
-  end
-
   def candidates
-    @candidates ||= forum_posts.pluck("creator").uniq(&:id)
+    @candidates ||= begin
+      raw_data = @cache.fetch(:"#{cache_key}_candidates", expires_in: cache_lifetime) do
+        forum_topic.all_posts.pluck("creator").uniq(&:id).map(&:as_json)
+      end
+      raw_data.map { |attrs| @booru.build_model(resource_name: "user", attributes: attrs) }
+    end
   end
 
   def valid_candidates
