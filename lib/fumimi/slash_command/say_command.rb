@@ -17,10 +17,6 @@ class Fumimi::SlashCommand::SayCommand < Fumimi::SlashCommand
     true
   end
 
-  def self.bits_to_view_command
-    Discordrb::Permissions.new([:administrator]).bits
-  end
-
   def respond_to_event
     event.channel.send_message!(content: arguments[:message])
     event.delete_response
