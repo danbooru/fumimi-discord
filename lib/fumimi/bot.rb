@@ -96,12 +96,17 @@ class Fumimi
       exit(0)
     end
 
+    # Discordrb sends server_members/server_presences as intents, which requires special permissions, but we don't need it
+    # Intent 15 is message content intent, which we DO need.
+    GATEWAY_INTENTS = Discordrb::UNPRIVILEGED_INTENTS | (1 << 15)
+
     def bot
       @bot ||= Discordrb::Commands::CommandBot.new(
         name: "Robot Maid Fumimi",
         client_id: client_id,
         token: token,
         prefix: "/",
+        intents: GATEWAY_INTENTS,
       )
     end
 
