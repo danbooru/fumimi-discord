@@ -15,6 +15,10 @@ class Fumimi::Report::ReportReport
     Fumimi::Colors::RED
   end
 
+  def formatted_report
+    @report_reason.gsub(/(user|post) #(\d+)/, "[\\1 #\\2](#{@booru.url}/\\1s/\\2)")
+  end
+
   def embed_fields
     [
       { name: "Submitted at", value: "<t:#{Time.now.to_i}:R>", inline: true },
@@ -24,7 +28,7 @@ class Fumimi::Report::ReportReport
 
       { name: "", value: "", inline: false },
 
-      { name: "Reason", value: @report_reason },
+      { name: "Reason", value: formatted_report },
     ]
   end
 
