@@ -1,5 +1,4 @@
 FROM ruby:4.0.3 AS base
-# Remember to update .tool-versions too
 
 ENV LANG=C.UTF-8
 ENV DISCORDRB_NONACL=1
