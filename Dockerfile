@@ -1,4 +1,4 @@
-FROM ruby:4.0.3 AS base
+FROM ruby:4.0.6 AS base
 
 ENV LANG=C.UTF-8
 ENV DISCORDRB_NONACL=1
