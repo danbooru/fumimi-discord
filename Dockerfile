@@ -5,7 +5,7 @@ ENV LANG=C.UTF-8
 ENV DISCORDRB_NONACL=1
 RUN \
   useradd --user-group --create-home --shell /bin/bash fumimi && \
-  apt-get install --update libsodium-dev libglib2.0-dev tini
+  apt-get install -y --update libsodium-dev libglib2.0-dev tini
 
 
 FROM base AS build
