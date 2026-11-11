@@ -2,7 +2,11 @@ class Fumimi
   # The main bot class that drives the Discord bot.
   class Bot
     attr_reader :client_id, :token, :log, :http, :booru, :mod_booru, :booru_domains, :cache, :webserver, :censored_tags,
-                :signoz, :signoz_url, :signoz_api_key, :report_channel_id, :sockpuppet_channel_id, :report_monitor, :sockpuppet_monitor
+                :signoz, :signoz_url, :signoz_api_key, :report_channel_id, :sockpuppet_channel_id, :report_monitor, :sockpuppet_monitor,
+                :user_agent
+
+    # The User-Agent sent with all HTTP requests (to Danbooru, SigNoz, etc), unless overridden by FUMIMI_USER_AGENT.
+    DEFAULT_USER_AGENT = "Fumimi (+https://github.com/danbooru/fumimi-discord)".freeze
 
     # Adapts the Discordrb logger to write through Fumimi's logger.
     DiscordLogStream = Struct.new(:log) do
@@ -41,6 +45,7 @@ class Fumimi
       signoz_url: nil,
       signoz_api_key: nil,
       censored_tags: nil,
+      user_agent: nil,
       log: Fumimi.log,
       env: ENV
     )
@@ -59,9 +64,10 @@ class Fumimi
       @signoz_url = signoz_url.presence || env["SIGNOZ_URL"]
       @signoz_api_key = signoz_api_key.presence || env["SIGNOZ_API_KEY"]
       @censored_tags = censored_tags.presence || env["FUMIMI_CENSORED_TAGS"].to_s.split || []
+      @user_agent = user_agent.presence || env["FUMIMI_USER_AGENT"].presence || DEFAULT_USER_AGENT
       @log = log
 
-      @http = HTTPClient.new.logger(log).timeout(30)
+      @http = HTTPClient.new.logger(log).timeout(30).headers("User-Agent": @user_agent)
       @booru = Danbooru.new(url: @booru_url, user: @booru_user, api_key: @booru_api_key, http: http, model_builder: method(:build_model))
       @mod_booru = Danbooru.new(url: @booru_url, user: @mod_user, api_key: @mod_api_key, http: http, model_builder: method(:build_model))
       @cache = ActiveSupport::Cache::MemoryStore.new
